@@ -464,25 +464,6 @@ main { position: relative; z-index: 1; }
   background: linear-gradient(to bottom, #01060c 0%, #04101d 55%, #051727 100%);
 }
 
-/* aerial footage under the holographic wireframe overlay */
-.city-aerial {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  z-index: 1;
-  pointer-events: none;
-  opacity: calc((var(--p, 0) - 0.28) * 5);
-  filter:
-    saturate(0.35)
-    contrast(1.35)
-    brightness(0.42)
-    hue-rotate(168deg);
-  mix-blend-mode: screen;
-}
-.city-aerial::after { content: none; }
-
 #city .viewport::before {
   content: "";
   position: absolute;
@@ -545,49 +526,51 @@ main { position: relative; z-index: 1; }
 }
 
 .city-text {
+  /* solid neon fill + dark halo so it reads over the skyline */
+  background: linear-gradient(180deg, #ffffff 12%, #aeeaff 55%, var(--cyan) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
   color: transparent;
-  -webkit-text-stroke: 2px var(--cyan);
-  text-shadow: 0 0 42px rgba(79, 216, 255, 0.3);
-  z-index: 4;
-  top: 26%;
+  -webkit-text-stroke: 1px rgba(220, 246, 255, 0.65);
+  filter:
+    drop-shadow(0 0 3px rgba(2, 10, 18, 0.95))
+    drop-shadow(0 4px 16px rgba(2, 10, 18, 0.9))
+    drop-shadow(0 0 34px rgba(79, 216, 255, 0.55));
+  z-index: 6;
+  top: 22%;
   transform:
     translate(-50%, -50%)
     scale(calc(0.86 + var(--p, 0) * 0.3));
   opacity: calc(min((var(--p, 0) - 0.42) * 4, 1.6 - var(--p, 0)));
 }
 
-/* flyover caption — landmark names cycle while the city plays */
+/* flyover caption — tucked in the lower-right corner so it never
+   collides with the personnel-file card */
 .montage-caption {
   position: absolute;
-  bottom: clamp(6rem, 14vh, 9rem);
-  left: 50%;
-  transform: translateX(-50%);
+  bottom: clamp(2.2rem, 6vh, 4rem);
+  right: clamp(1.4rem, 5vw, 4rem);
   z-index: 9;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
+  align-items: flex-end;
+  gap: 0.35rem;
   font-family: var(--font-hud);
   text-transform: uppercase;
-  text-align: center;
+  text-align: right;
   opacity: calc((var(--p, 0) - 0.5) * 4);
 }
 .montage-label {
   color: var(--cyan);
-  font-size: clamp(1rem, 2.4vw, 1.5rem);
+  font-size: clamp(0.78rem, 1.5vw, 1rem);
   font-weight: 700;
-  letter-spacing: 0.34em;
-  text-shadow: 0 0 22px var(--cyan-dim);
+  letter-spacing: 0.3em;
+  text-shadow: 0 0 18px var(--cyan-dim);
 }
 .montage-sub {
   color: var(--text-dim);
-  font-size: 0.66rem;
-  letter-spacing: 0.3em;
-}
-
-.city-caption {
-  opacity: calc((var(--p, 0) - 0.62) * 5 - max(var(--p, 0) - 0.9, 0) * 10);
-  z-index: 18;
+  font-size: 0.6rem;
+  letter-spacing: 0.28em;
 }
 
 /* personnel file — intro panel over the skyline */
@@ -625,28 +608,32 @@ main { position: relative; z-index: 1; }
 }
 
 /* ============================================================
-   SCENE 03 // KPOP ENCORE -> GUN ZOOM -> DISINTEGRATION
+   SCENE 03 // KPOP HOLOGRAM STAGE -> GUN POSE -> BLAST
    Phases (by --p):
-     0.00–0.33  stage builds; canvas dance line performs the chorus
-     0.33–0.40  SNAP into the finger-gun pose + strobe hits
-     0.40–0.53  camera dives into the guns; energy charge builds
-     0.56–0.95  detonation: dancers disintegrate into particles,
-                stage falls away, aurora afterglow fades in
+     0.00–0.06  hologram materializes
+     0.06–0.46  scroll scrubs the full choreography
+     0.46–0.56  gun pose locks + strobe hits
+     0.54–0.62  camera dives toward the raised gun; charge builds
+     0.62–0.76  BANG — the background explodes MV-style (flash,
+                debris, dust) while the pose holds
+     0.76–1.00  the scene dissolves into the pink lightstick ocean
+                + project-card shards, afterglow
    ============================================================ */
 
 #concert .viewport {
-  background:
-    radial-gradient(ellipse 90% 60% at 50% 108%, rgba(255, 79, 216, 0.22), transparent 60%),
-    linear-gradient(to bottom, #05030f 0%, #0d0620 60%, #170a2e 100%);
+  background: radial-gradient(ellipse 70% 55% at 50% 42%, rgba(18, 8, 32, 0.9), #030208 72%);
 }
 
 .stage-content {
   position: absolute;
   inset: 0;
-  opacity: calc(1 - max(var(--p, 0) - 0.56, 0) * 3.4);
+  opacity: calc(1 - max(var(--p, 0) - 0.78, 0) * 4.5);
+  /* during the dance the arena stays dark and quiet — crowd and
+     beams only bookend the hologram so nothing competes with it */
+  --arena-quiet: clamp((var(--p, 0) - 0.05) * 6, 0, 1) * (1 - clamp((var(--p, 0) - 0.68) * 5, 0, 1));
 }
 
-/* animated performance: real chorus video + particle canvas overlay */
+/* animated performance: drone-show canvas */
 .chorus-theater {
   position: absolute;
   inset: 0;
@@ -654,31 +641,18 @@ main { position: relative; z-index: 1; }
   display: grid;
   place-items: center;
   pointer-events: none;
-  opacity: calc(min(var(--p, 0) * 8, 1) - max(var(--p, 0) - 0.88, 0) * 10);
+  opacity: calc(min(0.4 + var(--p, 0) * 8, 1) - max(var(--p, 0) - 0.88, 0) * 10);
 }
 .chorus-frame {
   position: relative;
   width: min(96vw, 1200px);
   height: min(64vh, 680px);
   overflow: hidden;
-  border: 1px solid rgba(255, 79, 216, 0.35);
-  box-shadow:
-    0 0 50px rgba(255, 79, 216, 0.25),
-    inset 0 0 80px rgba(0, 0, 0, 0.5);
+  /* no hard box — the hologram floats over the arena; a soft
+     vignette keeps the edges from cutting harshly */
+  background: radial-gradient(ellipse 78% 68% at 50% 52%, rgba(6, 3, 18, 0.55), transparent 78%);
   transform-origin: var(--zoom-x, 42%) var(--zoom-y, 48%);
   transform: scale(var(--video-zoom, 1));
-}
-.chorus-video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: calc(1 - var(--dissolve, 0));
-  filter: contrast(1.08) saturate(1.12);
-}
-.chorus-frame[data-pixelating="1"] .chorus-video {
-  opacity: calc(1 - var(--dissolve, 0) - var(--pixel-cover, 0));
 }
 .chorus-frame .stage-canvas {
   position: absolute;
@@ -697,61 +671,42 @@ main { position: relative; z-index: 1; }
   pointer-events: none;
 }
 
-.led-wall {
+/* four soft volumetric spotlight cones sweeping slowly over the
+   stage — the only backdrop light besides the crowd, so the scene
+   stays clean and the hologram is the star */
+.spotlights { position: absolute; inset: 0; overflow: hidden; }
+.beam {
   position: absolute;
-  top: 0;
+  top: -14vh;
   left: 50%;
-  width: min(94vw, 1200px);
-  height: 46vh;
-  display: flex;
-  gap: 10px;
-  padding: 0 6px;
-  transform: translateX(-50%) translateY(calc(-36% + min(var(--p, 0), 0.5) * 64%));
-  opacity: calc(0.35 + var(--p, 0) * 0.65);
-}
-.led-wall span {
-  flex: 1;
-  border-radius: 0 0 6px 6px;
-  background: linear-gradient(to bottom, rgba(255, 79, 216, 0.55), rgba(138, 92, 255, 0.18) 70%, transparent);
-  box-shadow: 0 0 24px rgba(255, 79, 216, 0.28);
-  animation: ledFlicker 2.4s ease-in-out infinite;
-}
-.led-wall span:nth-child(2n) { animation-delay: 0.35s; background: linear-gradient(to bottom, rgba(79, 216, 255, 0.5), rgba(138, 92, 255, 0.16) 70%, transparent); }
-.led-wall span:nth-child(3n) { animation-delay: 0.7s; }
-.led-wall span:nth-child(5n) { animation-delay: 1.1s; background: linear-gradient(to bottom, rgba(138, 92, 255, 0.55), rgba(255, 79, 216, 0.16) 70%, transparent); }
-@keyframes ledFlicker {
-  0%, 100% { opacity: 0.65; }
-  50% { opacity: 1; }
-}
-
-.lasers { position: absolute; inset: 0; overflow: hidden; }
-.laser {
-  position: absolute;
-  top: -12vh;
-  left: 50%;
-  width: 3px;
-  height: 130vh;
+  width: 16vw;
+  height: 135vh;
   transform-origin: top center;
-  background: linear-gradient(to bottom, rgba(255, 79, 216, 0.85), transparent 82%);
-  filter: blur(0.6px);
-  opacity: calc(0.4 + var(--p, 0) * 0.6);
+  background: linear-gradient(to bottom,
+    rgba(255, 190, 228, 0.20),
+    rgba(255, 160, 216, 0.07) 55%,
+    transparent 85%);
+  clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%);
+  filter: blur(6px);
+  opacity: calc((0.35 + min(var(--p, 0) * 2, 1) * 0.5 - max(var(--p, 0) - 0.62, 0) * 5) * (1 - var(--arena-quiet, 0)));
+  animation: beamSweep 9s ease-in-out infinite alternate;
 }
-.laser.l1 { transform: rotate(calc(-52deg + min(var(--p, 0), 0.5) * 60deg)); }
-.laser.l2 { transform: rotate(calc(-26deg + min(var(--p, 0), 0.5) * 36deg)); background: linear-gradient(to bottom, rgba(79, 216, 255, 0.8), transparent 82%); }
-.laser.l3 { transform: rotate(calc(-8deg + min(var(--p, 0), 0.5) * 24deg)); background: linear-gradient(to bottom, rgba(138, 92, 255, 0.85), transparent 82%); }
-.laser.l4 { transform: rotate(calc(8deg - min(var(--p, 0), 0.5) * 24deg)); }
-.laser.l5 { transform: rotate(calc(26deg - min(var(--p, 0), 0.5) * 36deg)); background: linear-gradient(to bottom, rgba(79, 216, 255, 0.8), transparent 82%); }
-.laser.l6 { transform: rotate(calc(52deg - min(var(--p, 0), 0.5) * 60deg)); background: linear-gradient(to bottom, rgba(138, 92, 255, 0.85), transparent 82%); }
+.beam.b1 { margin-left: -34vw; rotate: 16deg; animation-delay: 0s; }
+.beam.b2 { margin-left: -12vw; rotate: 5deg; animation-delay: -3s; animation-duration: 11s; }
+.beam.b3 { margin-left: 12vw; rotate: -5deg; animation-delay: -6s; animation-duration: 10s; }
+.beam.b4 { margin-left: 34vw; rotate: -16deg; animation-delay: -8s; }
+@keyframes beamSweep {
+  from { transform: rotate(-6deg); }
+  to { transform: rotate(6deg); }
+}
 
-.concert-text {
-  color: transparent;
-  -webkit-text-stroke: 2px var(--magenta);
-  text-shadow: 0 0 52px rgba(255, 79, 216, 0.4);
-  transform:
-    translate(-50%, -50%)
-    translateY(calc(10vh - min(var(--p, 0), 0.5) * 44vh))
-    scale(calc(0.84 + var(--p, 0) * 0.34));
-  opacity: calc(var(--p, 0) * 3.4);
+/* thin haze layer that catches the beams */
+.haze {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 120% 55% at 50% 30%, rgba(150, 90, 200, 0.08), transparent 70%),
+    radial-gradient(ellipse 100% 40% at 50% 95%, rgba(255, 110, 200, 0.10), transparent 70%);
 }
 
 .strobe {
@@ -760,10 +715,10 @@ main { position: relative; z-index: 1; }
   z-index: 8;
   background: #fff;
   pointer-events: none;
-  /* two quick flashes as the finger-gun pose lands (p .33–.41) */
+  /* two quick flashes as the gun-pose formation locks (p .48–.56) */
   opacity: calc(
-    max(0.5 - (max(var(--p, 0) - 0.33, 0) + max(0.355 - var(--p, 0), 0)) * 22, 0) +
-    max(0.35 - (max(var(--p, 0) - 0.39, 0) + max(0.41 - var(--p, 0), 0)) * 22, 0)
+    max(0.5 - (max(var(--p, 0) - 0.48, 0) + max(0.505 - var(--p, 0), 0)) * 22, 0) +
+    max(0.35 - (max(var(--p, 0) - 0.54, 0) + max(0.56 - var(--p, 0), 0)) * 22, 0)
   );
   mix-blend-mode: screen;
 }
@@ -777,9 +732,9 @@ main { position: relative; z-index: 1; }
   align-items: flex-end;
   pointer-events: none;
 }
-.crowd.row-back  { bottom: 16vh; z-index: 4; opacity: calc((0.35 + var(--crowd-boost, 0)) * 0.85); transform: translateY(calc(8vh - min(var(--p, 0), 0.5) * 18vh)) scale(0.62); }
-.crowd.row-mid   { bottom: 8vh;  z-index: 5; opacity: calc((0.55 + var(--crowd-boost, 0)) * 0.95); transform: translateY(calc(20vh - min(var(--p, 0), 0.5) * 44vh)) scale(0.82); }
-.crowd.row-front { bottom: -2vh; z-index: 6; opacity: calc(0.65 + var(--crowd-boost, 0)); transform: translateY(calc(32vh - min(var(--p, 0), 0.5) * 66vh)); }
+.crowd.row-back  { bottom: 16vh; z-index: 4; opacity: calc((0.35 + var(--crowd-boost, 0)) * 0.85 * (1 - var(--arena-quiet, 0))); transform: translateY(calc(8vh - min(var(--p, 0), 0.5) * 18vh)) scale(0.62); }
+.crowd.row-mid   { bottom: 8vh;  z-index: 5; opacity: calc((0.55 + var(--crowd-boost, 0)) * 0.95 * (1 - var(--arena-quiet, 0))); transform: translateY(calc(20vh - min(var(--p, 0), 0.5) * 44vh)) scale(0.82); }
+.crowd.row-front { bottom: -2vh; z-index: 6; opacity: calc((0.65 + var(--crowd-boost, 0)) * (1 - var(--arena-quiet, 0))); transform: translateY(calc(32vh - min(var(--p, 0), 0.5) * 66vh)); }
 
 .stick {
   position: relative;
@@ -815,6 +770,7 @@ main { position: relative; z-index: 1; }
   height: 40vh;
   background: radial-gradient(ellipse at center, rgba(255, 79, 216, 0.35), transparent 65%);
   z-index: 3;
+  opacity: calc(1 - var(--arena-quiet, 0));
 }
 
 /* aurora afterglow revealed by the disintegration */
@@ -826,7 +782,7 @@ main { position: relative; z-index: 1; }
   background:
     radial-gradient(ellipse 80% 55% at 50% 100%, rgba(138, 92, 255, 0.2), transparent 65%),
     linear-gradient(to bottom, #040210 0%, #0a0522 55%, #120838 100%);
-  opacity: calc((var(--p, 0) - 0.6) * 4);
+  opacity: calc((var(--p, 0) - 0.8) * 5);
 }
 .aurora {
   position: absolute;
@@ -872,7 +828,7 @@ main { position: relative; z-index: 1; }
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) translateY(calc((1 - min(max((var(--p, 0) - 0.72) * 4, 0), 1)) * 6vh));
+  transform: translate(-50%, -50%) translateY(calc((1 - min(max((var(--p, 0) - 0.8) * 5, 0), 1)) * 6vh));
   font-family: var(--font-display);
   font-weight: 700;
   font-size: clamp(1.2rem, 3.4vw, 2.6rem);
@@ -880,7 +836,7 @@ main { position: relative; z-index: 1; }
   text-align: center;
   color: #f2eaff;
   text-shadow: 0 0 34px rgba(138, 92, 255, 0.8);
-  opacity: calc((var(--p, 0) - 0.72) * 4);
+  opacity: calc((var(--p, 0) - 0.86) * 7);
 }
 .afterglow-text span {
   display: block;
@@ -1285,40 +1241,46 @@ main { position: relative; z-index: 1; }
   place-items: center;
 }
 
+/* the rig starts three-quarter sideways so the depth of the parts
+   reads immediately, then swings to face the camera as it assembles */
 .glasses-rig {
   position: relative;
   transform-style: preserve-3d;
   transform:
-    rotateY(calc(var(--r) * 28deg - var(--z) * 28deg))
-    rotateX(calc(var(--r) * 10deg - var(--z) * 10deg))
+    rotateY(calc(58deg - var(--a) * 34deg - var(--r) * 24deg))
+    rotateX(calc(7deg - var(--a) * 3deg + var(--r) * 6deg - var(--z) * 10deg))
     scale(calc(1 + var(--z) * 13))
     translateX(calc(var(--z) * -28vw))
     translateY(calc(var(--z) * -4vh));
   opacity: calc(1 - max(var(--z) - 0.55, 0) * 3.2);
 }
 
-.glasses-photo {
-  position: absolute;
-  width: min(78vw, 720px);
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) translateZ(18px);
-  filter:
-    drop-shadow(0 28px 40px rgba(0, 0, 0, 0.65))
-    drop-shadow(0 0 36px rgba(79, 216, 255, 0.18));
-  opacity: calc(max(var(--a) - 0.55, 0) * 2.2);
-  pointer-events: none;
-}
-
-.glasses-svg {
-  position: relative;
+.gsvg {
+  display: block;
   width: min(80vw, 780px);
   overflow: visible;
-  transform: translateZ(0);
+}
+.g-front {
+  position: relative;
+  transform: translateZ(12px);
   filter:
     drop-shadow(0 22px 30px rgba(0, 0, 0, 0.55))
     drop-shadow(0 0 30px rgba(79, 216, 255, 0.16));
-  opacity: calc(1 - max(var(--a) - 0.88, 0) * 6);
+}
+/* temple arms fold backwards out of the frame plane as assembly
+   completes — this is what sells the glasses as a 3D object */
+.g-temple {
+  position: absolute;
+  inset: 0;
+  filter: drop-shadow(0 14px 18px rgba(0, 0, 0, 0.4));
+}
+.g-temple-left {
+  transform-origin: 14% 34.5%;
+  transform: rotateY(calc(var(--a) * -64deg));
+}
+.g-temple-right {
+  transform-origin: 86% 34.5%;
+  transform: rotateY(calc(var(--a) * 64deg));
 }
 
 /* exploded offsets collapse as --a -> 1 */
@@ -1572,10 +1534,28 @@ main { position: relative; z-index: 1; }
    ============================================================ */
 
 #contact {
+  position: relative;
+  overflow: hidden;
   background:
     radial-gradient(ellipse 55% 45% at 50% 100%, rgba(23, 68, 105, 0.45), transparent 70%),
     var(--bg);
   text-align: center;
+}
+
+/* transmission-grid background: radar sweep + signal constellation */
+.socials-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+#contact .section-head,
+#contact .socials-grid,
+#contact .footer {
+  position: relative;
+  z-index: 1;
 }
 
 .socials-grid {
@@ -1719,8 +1699,17 @@ main { position: relative; z-index: 1; }
   #glasses.scene.scrub { height: 300vh; }
   .poker-table { grid-template-columns: 1fr; }
   .feed-grid { grid-template-columns: 1fr; }
-  .reel-cover { aspect-ratio: 16 / 9; }
+  .reel-cover { aspect-ratio: 16 / 8; }
+  .feed-window { max-height: 82vh; overflow-y: auto; }
   .city-intro { top: auto; bottom: 14vh; transform: none; }
+}
+
+/* short windows: compact reel covers so no card gets clipped */
+@media (max-height: 720px) {
+  .feed-window { width: min(88vw, 620px); }
+  .feed-grid { padding: 0.9rem; gap: 0.8rem; }
+  .reel-cover { aspect-ratio: 1 / 1.05; }
+  .feed-follow { padding: 0.55rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

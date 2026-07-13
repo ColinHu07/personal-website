@@ -1,1 +1,12 @@
 .DS_Store
+node_modules/
+practice.mp4
+frames-cut/
+prev/
+*.log
+mv-chorus.mp4
+stage-cam.mp4
+shoot.js
+shoot-city.js
+smoke-test.js
+static-server.*.log

@@ -14,7 +14,7 @@
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=jarvis-5" />
+    <link rel="stylesheet" href="styles.css?v=jarvis-9" />
   </head>
   <body>
     <canvas id="particle-field" aria-hidden="true"></canvas>
@@ -96,8 +96,6 @@
       <!-- ============ SCENE 02 // GLOBE -> NEW YORK ============ -->
       <section class="scene scrub" id="city" data-scene="city">
         <div class="viewport">
-          <video class="city-aerial" src="assets/earth-ref.mp4" muted playsinline loop preload="auto" aria-hidden="true"></video>
-
           <canvas class="globe-canvas" aria-hidden="true"></canvas>
 
           <div class="globe-hud" aria-hidden="true">
@@ -128,9 +126,6 @@
             <span class="tag-num">SCENE&nbsp;02</span>
             <span class="tag-name">ORBIT DROP // GRID SCAN ACTIVE</span>
           </div>
-          <p class="scene-caption city-caption">
-            From orbit to the skyline. The flyover keeps rolling until you scroll on.
-          </p>
         </div>
       </section>
 
@@ -138,19 +133,13 @@
       <section class="scene scrub" id="concert" data-scene="concert">
         <div class="viewport">
           <div class="stage-content" aria-hidden="true">
-            <div class="led-wall">
-              <span></span><span></span><span></span><span></span><span></span>
-              <span></span><span></span><span></span><span></span><span></span>
+            <div class="spotlights">
+              <span class="beam b1"></span>
+              <span class="beam b2"></span>
+              <span class="beam b3"></span>
+              <span class="beam b4"></span>
             </div>
-            <div class="lasers">
-              <span class="laser l1"></span>
-              <span class="laser l2"></span>
-              <span class="laser l3"></span>
-              <span class="laser l4"></span>
-              <span class="laser l5"></span>
-              <span class="laser l6"></span>
-            </div>
-            <h2 class="giant-text concert-text">ENCORE</h2>
+            <div class="haze"></div>
             <div class="strobe"></div>
             <div class="crowd row-back"></div>
             <div class="crowd row-mid"></div>
@@ -160,7 +149,6 @@
 
           <div class="chorus-theater">
             <div class="chorus-frame">
-              <video class="chorus-video" src="assets/chorus.mov" muted playsinline preload="auto"></video>
               <canvas class="stage-canvas" aria-hidden="true"></canvas>
             </div>
           </div>
@@ -333,46 +321,45 @@
 
           <div class="glasses-stage">
             <div class="glasses-rig" aria-hidden="true">
-              <img class="glasses-photo" src="assets/meta-glasses.png" alt="" />
-              <svg class="glasses-svg" viewBox="0 0 900 360">
+              <!-- front plane: frame, lenses, camera, LED -->
+              <svg class="gsvg g-front" viewBox="0 0 900 360">
               <defs>
-                <pattern id="glass-photo" patternUnits="userSpaceOnUse" width="900" height="360">
-                  <image href="assets/meta-glasses.png" x="0" y="0" width="900" height="360" preserveAspectRatio="xMidYMid meet" />
-                </pattern>
                 <linearGradient id="photo-shade" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stop-color="rgba(255,255,255,0.22)" />
+                  <stop offset="0" stop-color="rgba(255,255,255,0.28)" />
                   <stop offset="0.45" stop-color="rgba(255,255,255,0)" />
-                  <stop offset="1" stop-color="rgba(0,0,0,0.35)" />
+                  <stop offset="1" stop-color="rgba(0,0,0,0.45)" />
                 </linearGradient>
+                <!-- glossy black acetate, like the real Meta Ray-Bans -->
                 <linearGradient id="acet-v" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="#aaa196" />
-                  <stop offset="0.28" stop-color="#8d847a" />
-                  <stop offset="0.62" stop-color="#665e55" />
-                  <stop offset="1" stop-color="#443e37" />
+                  <stop offset="0" stop-color="#4a4f57" />
+                  <stop offset="0.26" stop-color="#26282e" />
+                  <stop offset="0.62" stop-color="#131519" />
+                  <stop offset="1" stop-color="#08090b" />
                 </linearGradient>
                 <linearGradient id="acet-under" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="#4d463f" />
-                  <stop offset="1" stop-color="#241f1a" />
+                  <stop offset="0" stop-color="#1b1d21" />
+                  <stop offset="1" stop-color="#050607" />
                 </linearGradient>
                 <linearGradient id="temple-grad-l" x1="1" y1="0" x2="0" y2="0">
-                  <stop offset="0" stop-color="#948b81" />
-                  <stop offset="0.6" stop-color="#6b635a" />
-                  <stop offset="1" stop-color="#443e37" />
+                  <stop offset="0" stop-color="#3d4149" />
+                  <stop offset="0.55" stop-color="#1f2126" />
+                  <stop offset="1" stop-color="#0c0d10" />
                 </linearGradient>
                 <linearGradient id="temple-grad-r" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0" stop-color="#948b81" />
-                  <stop offset="0.6" stop-color="#6b635a" />
-                  <stop offset="1" stop-color="#443e37" />
+                  <stop offset="0" stop-color="#3d4149" />
+                  <stop offset="0.55" stop-color="#1f2126" />
+                  <stop offset="1" stop-color="#0c0d10" />
                 </linearGradient>
+                <!-- dark smoked blue-gray display lenses -->
                 <linearGradient id="lens-glass" x1="0" y1="0" x2="0.55" y2="1">
-                  <stop offset="0" stop-color="rgba(214,238,252,0.5)" />
-                  <stop offset="0.4" stop-color="rgba(148,190,216,0.2)" />
-                  <stop offset="1" stop-color="rgba(84,124,155,0.13)" />
+                  <stop offset="0" stop-color="rgba(140,175,200,0.6)" />
+                  <stop offset="0.38" stop-color="rgba(58,88,112,0.55)" />
+                  <stop offset="1" stop-color="rgba(14,26,38,0.72)" />
                 </linearGradient>
                 <radialGradient id="cam-glass" cx="0.35" cy="0.32" r="0.85">
-                  <stop offset="0" stop-color="#a9dcff" />
-                  <stop offset="0.3" stop-color="#28506c" />
-                  <stop offset="1" stop-color="#040e17" />
+                  <stop offset="0" stop-color="#9fd0ef" />
+                  <stop offset="0.3" stop-color="#1d3a52" />
+                  <stop offset="1" stop-color="#02070c" />
                 </radialGradient>
                 <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0" stop-color="#dde1e4" />
@@ -380,24 +367,6 @@
                   <stop offset="1" stop-color="#51585d" />
                 </linearGradient>
               </defs>
-
-              <!-- left temple arm -->
-              <g class="part temple-left">
-                <path d="M 126 110 L 40 92 Q 22 88 17 99 L 15 107 Q 14 117 30 121 L 124 138 Z" fill="url(#glass-photo)" stroke="#241f1a" stroke-width="1.5" />
-                <path d="M 126 110 L 40 92 Q 22 88 17 99 L 15 107 Q 14 117 30 121 L 124 138 Z" fill="url(#photo-shade)" />
-                <path d="M 126 132 L 30 115 Q 18 112 15 107 L 14 111 Q 15 119 30 122 L 124 139 Z" fill="rgba(20,16,12,0.35)" />
-                <rect x="34" y="99" width="26" height="3" rx="1.5" fill="rgba(24,20,16,0.5)" />
-                <rect x="34" y="106" width="26" height="3" rx="1.5" fill="rgba(24,20,16,0.5)" />
-                <text x="72" y="109" font-family="Rajdhani" font-size="11" letter-spacing="2" fill="rgba(235,228,218,0.55)">META</text>
-              </g>
-              <!-- right temple arm -->
-              <g class="part temple-right">
-                <path d="M 774 110 L 860 92 Q 878 88 883 99 L 885 107 Q 886 117 870 121 L 776 138 Z" fill="url(#glass-photo)" stroke="#241f1a" stroke-width="1.5" />
-                <path d="M 774 110 L 860 92 Q 878 88 883 99 L 885 107 Q 886 117 870 121 L 776 138 Z" fill="url(#photo-shade)" />
-                <path d="M 774 132 L 870 115 Q 882 112 885 107 L 886 111 Q 885 119 870 122 L 776 139 Z" fill="rgba(20,16,12,0.35)" />
-                <rect x="840" y="99" width="26" height="3" rx="1.5" fill="rgba(24,20,16,0.5)" />
-                <rect x="840" y="106" width="26" height="3" rx="1.5" fill="rgba(24,20,16,0.5)" />
-              </g>
 
               <!-- hinges -->
               <g class="part hinge-left">
@@ -411,52 +380,53 @@
                 <circle cx="782" cy="135" r="2" fill="#3a4045" />
               </g>
 
-              <!-- left lens -->
+              <!-- left lens (Wayfarer trapezoid, smoked glass) -->
               <g class="part lens-left">
-                <path d="M 154 122 L 388 122 Q 400 122 398 136 L 386 224 Q 384 238 370 238 L 176 238 Q 162 238 160 224 L 146 136 Q 144 122 154 122 Z"
-                  fill="url(#lens-glass)" stroke="rgba(200,225,240,0.5)" stroke-width="1.5" />
-                <polygon points="176,122 250,122 190,238 160,238 158,224" fill="rgba(255,255,255,0.14)" />
-                <polygon points="268,122 296,122 240,238 216,238" fill="rgba(255,255,255,0.08)" />
+                <path d="M 174 112 L 388 112 Q 404 112 402 128 L 396 214 Q 393 236 371 236 L 224 238 Q 200 239 193 218 L 159 136 Q 152 113 174 112 Z"
+                  fill="url(#lens-glass)" stroke="rgba(150,185,210,0.35)" stroke-width="1.5" />
+                <polygon points="198,112 264,112 218,235 198,226 178,178" fill="rgba(255,255,255,0.12)" />
+                <polygon points="286,112 314,112 266,236 240,236" fill="rgba(255,255,255,0.07)" />
               </g>
               <!-- right lens -->
               <g class="part lens-right">
-                <path d="M 512 122 L 746 122 Q 756 122 754 136 L 740 224 Q 738 238 724 238 L 530 238 Q 516 238 514 224 L 502 136 Q 500 122 512 122 Z"
-                  fill="url(#lens-glass)" stroke="rgba(200,225,240,0.5)" stroke-width="1.5" />
-                <polygon points="534,122 608,122 548,238 518,238 516,224" fill="rgba(255,255,255,0.14)" />
-                <polygon points="626,122 654,122 598,238 574,238" fill="rgba(255,255,255,0.08)" />
+                <path d="M 726 112 L 512 112 Q 496 112 498 128 L 504 214 Q 507 236 529 236 L 676 238 Q 700 239 707 218 L 741 136 Q 748 113 726 112 Z"
+                  fill="url(#lens-glass)" stroke="rgba(150,185,210,0.35)" stroke-width="1.5" />
+                <polygon points="546,112 612,112 566,235 546,226 528,178" fill="rgba(255,255,255,0.12)" />
+                <polygon points="634,112 662,112 614,236 588,236" fill="rgba(255,255,255,0.07)" />
               </g>
 
-              <!-- frame front (acetate, lens holes cut out) -->
+              <!-- frame front: chunky black Wayfarer acetate, lens holes cut out -->
               <g class="part frame-front">
-                <path transform="translate(0 7)" fill-rule="evenodd" fill="url(#glass-photo)" opacity="0.92"
-                  d="M 134 100 L 766 100 Q 788 100 786 122 L 770 238 Q 766 262 740 262 L 558 262 Q 534 262 530 240 L 518 158 Q 515 142 498 142 L 402 142 Q 385 142 382 158 L 370 240 Q 366 262 342 262 L 160 262 Q 134 262 130 238 L 114 122 Q 112 100 134 100 Z
-                     M 154 120 L 390 120 Q 402 120 400 134 L 388 226 Q 386 240 372 240 L 174 240 Q 160 240 158 226 L 144 134 Q 142 120 154 120 Z
-                     M 510 120 L 746 120 Q 758 120 756 134 L 744 226 Q 742 240 728 240 L 528 240 Q 514 240 512 226 L 500 134 Q 498 120 510 120 Z" />
-                <path fill-rule="evenodd" fill="url(#photo-shade)" opacity="0.55"
-                  d="M 134 100 L 766 100 Q 788 100 786 122 L 770 238 Q 766 262 740 262 L 558 262 Q 534 262 530 240 L 518 158 Q 515 142 498 142 L 402 142 Q 385 142 382 158 L 370 240 Q 366 262 342 262 L 160 262 Q 134 262 130 238 L 114 122 Q 112 100 134 100 Z
-                     M 154 120 L 390 120 Q 402 120 400 134 L 388 226 Q 386 240 372 240 L 174 240 Q 160 240 158 226 L 144 134 Q 142 120 154 120 Z
-                     M 510 120 L 746 120 Q 758 120 756 134 L 744 226 Q 742 240 728 240 L 528 240 Q 514 240 512 226 L 500 134 Q 498 120 510 120 Z" />
-                <path fill-rule="evenodd" fill="none" stroke="#241f1a" stroke-width="2" stroke-linejoin="round"
-                  d="M 134 100 L 766 100 Q 788 100 786 122 L 770 238 Q 766 262 740 262 L 558 262 Q 534 262 530 240 L 518 158 Q 515 142 498 142 L 402 142 Q 385 142 382 158 L 370 240 Q 366 262 342 262 L 160 262 Q 134 262 130 238 L 114 122 Q 112 100 134 100 Z
-                     M 154 120 L 390 120 Q 402 120 400 134 L 388 226 Q 386 240 372 240 L 174 240 Q 160 240 158 226 L 144 134 Q 142 120 154 120 Z
-                     M 510 120 L 746 120 Q 758 120 756 134 L 744 226 Q 742 240 728 240 L 528 240 Q 514 240 512 226 L 500 134 Q 498 120 510 120 Z" />
-                <rect x="126" y="103" width="648" height="8" rx="4" fill="rgba(255,255,255,0.17)" />
-                <path d="M 404 146 Q 450 128 496 146 L 494 156 Q 450 140 406 156 Z" fill="rgba(255,255,255,0.08)" />
+                <path fill-rule="evenodd" fill="url(#acet-v)"
+                  d="M 154 92 L 746 92 Q 785 92 779 127 L 745 234 Q 737 262 706 262 L 562 262 Q 539 262 535 241 L 524 165 Q 521 147 502 147 L 398 147 Q 379 147 376 165 L 365 241 Q 361 262 338 262 L 194 262 Q 163 262 155 234 L 121 127 Q 115 92 154 92 Z
+                     M 172 116 L 380 116 Q 400 116 398 134 L 390 213 Q 387 234 365 234 L 226 236 Q 199 237 191 215 L 159 143 Q 150 118 172 116 Z
+                     M 728 116 L 520 116 Q 500 116 502 134 L 510 213 Q 513 234 535 234 L 674 236 Q 701 237 709 215 L 741 143 Q 750 118 728 116 Z" />
+                <path fill-rule="evenodd" fill="url(#photo-shade)" opacity="0.5"
+                  d="M 154 92 L 746 92 Q 785 92 779 127 L 745 234 Q 737 262 706 262 L 562 262 Q 539 262 535 241 L 524 165 Q 521 147 502 147 L 398 147 Q 379 147 376 165 L 365 241 Q 361 262 338 262 L 194 262 Q 163 262 155 234 L 121 127 Q 115 92 154 92 Z
+                     M 172 116 L 380 116 Q 400 116 398 134 L 390 213 Q 387 234 365 234 L 226 236 Q 199 237 191 215 L 159 143 Q 150 118 172 116 Z
+                     M 728 116 L 520 116 Q 500 116 502 134 L 510 213 Q 513 234 535 234 L 674 236 Q 701 237 709 215 L 741 143 Q 750 118 728 116 Z" />
+                <path fill-rule="evenodd" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"
+                  d="M 154 92 L 746 92 Q 785 92 779 127 L 745 234 Q 737 262 706 262 L 562 262 Q 539 262 535 241 L 524 165 Q 521 147 502 147 L 398 147 Q 379 147 376 165 L 365 241 Q 361 262 338 262 L 194 262 Q 163 262 155 234 L 121 127 Q 115 92 154 92 Z
+                     M 172 116 L 380 116 Q 400 116 398 134 L 390 213 Q 387 234 365 234 L 226 236 Q 199 237 191 215 L 159 143 Q 150 118 172 116 Z
+                     M 728 116 L 520 116 Q 500 116 502 134 L 510 213 Q 513 234 535 234 L 674 236 Q 701 237 709 215 L 741 143 Q 750 118 728 116 Z" />
+                <!-- glossy brow highlight -->
+                <rect x="142" y="97" width="616" height="7" rx="3.5" fill="rgba(255,255,255,0.14)" />
+                <path d="M 402 150 Q 450 132 498 150 L 496 160 Q 450 145 404 160 Z" fill="rgba(255,255,255,0.07)" />
                 <!-- nose pads -->
-                <path d="M 404 158 Q 412 178 408 196 L 400 192 Q 398 172 400 160 Z" fill="url(#acet-under)" />
-                <path d="M 496 158 Q 488 178 492 196 L 500 192 Q 502 172 500 160 Z" fill="url(#acet-under)" />
+                <path d="M 402 160 Q 410 180 406 198 L 398 194 Q 396 174 398 162 Z" fill="url(#acet-under)" />
+                <path d="M 498 160 Q 490 180 494 198 L 502 194 Q 504 174 502 162 Z" fill="url(#acet-under)" />
               </g>
 
-              <!-- camera module (left corner) -->
+              <!-- camera module set into the left corner of the frame -->
               <g class="part camera-module">
-                <circle cx="165" cy="129" r="16" fill="#1a1712" stroke="#0c0a08" stroke-width="2" />
-                <circle cx="165" cy="129" r="10.5" fill="url(#cam-glass)" />
-                <circle cx="161" cy="125" r="3" fill="rgba(255,255,255,0.8)" />
+                <circle cx="146" cy="126" r="10" fill="#0a0b0d" stroke="#000" stroke-width="1.5" />
+                <circle cx="146" cy="126" r="6.5" fill="url(#cam-glass)" />
+                <circle cx="143.5" cy="123.5" r="1.9" fill="rgba(255,255,255,0.8)" />
               </g>
-              <!-- LED indicator (right corner) -->
+              <!-- capture LED (right corner) -->
               <g class="part led-dot">
-                <circle cx="735" cy="129" r="8" fill="#10161c" stroke="#262d33" stroke-width="2" />
-                <circle cx="735" cy="129" r="3.4" fill="#cfe8ff" />
+                <circle cx="755" cy="126" r="6" fill="#0d1216" stroke="#1e262d" stroke-width="1.5" />
+                <circle cx="755" cy="126" r="2.6" fill="#cfe8ff" />
               </g>
 
               <!-- component callout labels, visible only while exploded -->
@@ -470,6 +440,28 @@
                 <text x="794" y="185">HINGE</text>
               </g>
             </svg>
+
+              <!-- temple arms live on their own 3D layers so they can
+                   fold backwards out of the frame plane -->
+              <svg class="gsvg g-temple g-temple-left" viewBox="0 0 900 360">
+                <g class="part temple-left">
+                  <path d="M 126 104 L 44 88 Q 22 84 17 96 L 15 106 Q 14 119 32 123 L 124 146 Z" fill="url(#temple-grad-l)" stroke="#000" stroke-width="1.5" />
+                  <path d="M 126 104 L 44 88 Q 22 84 17 96 L 15 106 Q 14 119 32 123 L 124 146 Z" fill="url(#photo-shade)" />
+                  <path d="M 125 128 L 32 110 Q 18 107 15 102 L 15 106 Q 14 119 32 123 L 124 146 Z" fill="rgba(0,0,0,0.45)" />
+                  <rect x="34" y="97" width="26" height="3" rx="1.5" fill="rgba(70,76,84,0.9)" />
+                  <rect x="34" y="104" width="26" height="3" rx="1.5" fill="rgba(70,76,84,0.9)" />
+                  <text x="72" y="108" font-family="Rajdhani" font-size="11" letter-spacing="2" fill="rgba(210,218,226,0.6)">META</text>
+                </g>
+              </svg>
+              <svg class="gsvg g-temple g-temple-right" viewBox="0 0 900 360">
+                <g class="part temple-right">
+                  <path d="M 774 104 L 856 88 Q 878 84 883 96 L 885 106 Q 886 119 868 123 L 776 146 Z" fill="url(#temple-grad-r)" stroke="#000" stroke-width="1.5" />
+                  <path d="M 774 104 L 856 88 Q 878 84 883 96 L 885 106 Q 886 119 868 123 L 776 146 Z" fill="url(#photo-shade)" />
+                  <path d="M 775 128 L 868 110 Q 882 107 885 102 L 885 106 Q 886 119 868 123 L 776 146 Z" fill="rgba(0,0,0,0.45)" />
+                  <rect x="840" y="97" width="26" height="3" rx="1.5" fill="rgba(70,76,84,0.9)" />
+                  <rect x="840" y="104" width="26" height="3" rx="1.5" fill="rgba(70,76,84,0.9)" />
+                </g>
+              </svg>
             </div>
           </div>
 
@@ -532,6 +524,7 @@
 
       <!-- ============ SCENE 07 // SOCIALS ============ -->
       <section class="scene flow contact" id="contact" data-scene="contact">
+        <canvas class="socials-canvas" aria-hidden="true"></canvas>
         <div class="section-head">
           <p class="eyebrow">SCENE 07 // OPEN CHANNELS</p>
           <h2>SOCIALS</h2>
@@ -614,6 +607,6 @@
       </section>
     </main>
 
-    <script src="script.js?v=jarvis-5"></script>
+    <script src="script.js?v=jarvis-9"></script>
   </body>
 </html>

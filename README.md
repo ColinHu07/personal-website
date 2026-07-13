@@ -11,7 +11,7 @@ no build step, works on GitHub Pages as-is.
    France, Spain, Italy), locks onto NYC, and the camera dives into a landmark skyline
    (One WTC, Empire State, Chrysler, Brooklyn Bridge). A "personnel file" intro panel
    slides in over the skyline (placeholder text). Park for ~2.5s and the city montage pans.
-3. **Encore** — k-pop concert: LED wall, lasers, a dance line snapping into the
+3. **Encore** — k-pop concert: spotlit holographic stage, a dance line snapping into the
    finger-gun chorus pose with strobe hits, then the whole stage pixelates away
    into an aurora afterglow.
 4. **Broadcast** — a white cursor flies in and clicks the Instagram icon; the reel
