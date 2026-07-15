@@ -3,6 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <meta
       name="description"
       content="Colin Hu — personal site. A Jarvis-style holographic interface: projects, experiments, and contact."
@@ -14,7 +17,7 @@
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=jarvis-9" />
+    <link rel="stylesheet" href="styles.css?v=jarvis-79" />
   </head>
   <body>
     <canvas id="particle-field" aria-hidden="true"></canvas>
@@ -30,7 +33,6 @@
       </a>
       <nav aria-label="Primary">
         <a href="#city">City</a>
-        <a href="#concert">Encore</a>
         <a href="#broadcast">Reels</a>
         <a href="#projects">Projects</a>
         <a href="#glasses">Optics</a>
@@ -41,7 +43,6 @@
     <nav class="scene-dots" aria-label="Scene navigation">
       <a href="#hero" data-dot="hero"><span></span><em>Boot</em></a>
       <a href="#city" data-dot="city"><span></span><em>New York</em></a>
-      <a href="#concert" data-dot="concert"><span></span><em>Encore</em></a>
       <a href="#broadcast" data-dot="broadcast"><span></span><em>Reels</em></a>
       <a href="#projects" data-dot="projects"><span></span><em>Hangar</em></a>
       <a href="#glasses" data-dot="glasses"><span></span><em>Optics</em></a>
@@ -70,7 +71,7 @@
             <h1 class="hero-name">COLIN&nbsp;HU</h1>
             <p class="hero-sub">PERSONAL INTERFACE <span class="divider">//</span> HOLOGRAPHIC ARCHIVE</p>
             <p class="hero-desc">
-              Scroll to move through the system — a planet, a city, a concert,
+              Scroll to move through the system — a planet, a city in motion,
               a hangar of projects, and a pair of very smart glasses.
             </p>
           </div>
@@ -103,22 +104,44 @@
             <span class="globe-hud-coords">40.7128° N &nbsp;//&nbsp; 74.0060° W</span>
           </div>
 
-          <canvas class="city-canvas" aria-hidden="true"></canvas>
+          <div class="city-flight" aria-hidden="true">
+            <video
+              class="city-flight-video"
+              muted
+              loop
+              playsinline
+              preload="auto"
+              poster="assets/nyc-drone-poster.jpg"
+            >
+              <source src="assets/nyc-flight-source-v2.mp4" type="video/mp4" />
+            </video>
+            <div class="city-flight-grade"></div>
+            <div class="drone-hud">
+              <span class="drone-horizon"></span>
+              <span class="drone-reticle"></span>
+              <span class="drone-readout drone-readout-left">ALT&nbsp;122M&nbsp;&nbsp;//&nbsp;&nbsp;SPD&nbsp;05</span>
+              <span class="drone-readout drone-readout-right">REC&nbsp;&nbsp;MANHATTAN&nbsp;GRID</span>
+            </div>
+          </div>
 
           <h2 class="giant-text city-text">NEW&nbsp;YORK</h2>
 
           <div class="montage-caption" aria-hidden="true">
-            <span class="montage-label" id="montage-label">FIFTH AVENUE FLYOVER</span>
-            <span class="montage-sub">LIVE FLYOVER // HOLOGRID ACTIVE</span>
+            <span class="montage-label" id="montage-label">EAST RIVER RUN</span>
+            <span class="montage-sub">DRONE FLIGHT // MANHATTAN VECTOR LOCK</span>
           </div>
 
           <aside class="city-intro">
             <div class="card-corners"><span></span><span></span><span></span><span></span></div>
             <p class="intro-kicker">PERSONNEL FILE // ORIGIN: NEW YORK</p>
-            <h3>Born &amp; raised here.</h3>
+            <h3>New Yorker. Engineer. Builder.</h3>
             <p class="intro-body">
-              [ Intro coming soon — this is where the story goes: growing up in
-              the city, what it taught me, and why everything I build starts here. ]
+              I’m Colin Hu, a rising second-year Electrical Engineering student
+              at Georgia Tech. I was born in New York City, grew up in Great Neck
+              on Long Island, and have since found my way back to NYC. I love
+              building playful, practical projects with friends—especially ideas
+              that use AI to help people, solve a real problem, or simply make
+              something fun.
             </p>
           </aside>
 
@@ -126,53 +149,19 @@
             <span class="tag-num">SCENE&nbsp;02</span>
             <span class="tag-name">ORBIT DROP // GRID SCAN ACTIVE</span>
           </div>
-        </div>
-      </section>
 
-      <!-- ============ SCENE 03 // KPOP ENCORE ============ -->
-      <section class="scene scrub" id="concert" data-scene="concert">
-        <div class="viewport">
-          <div class="stage-content" aria-hidden="true">
-            <div class="spotlights">
-              <span class="beam b1"></span>
-              <span class="beam b2"></span>
-              <span class="beam b3"></span>
-              <span class="beam b4"></span>
-            </div>
-            <div class="haze"></div>
-            <div class="strobe"></div>
-            <div class="crowd row-back"></div>
-            <div class="crowd row-mid"></div>
-            <div class="crowd row-front"></div>
-            <div class="stage-glow"></div>
-          </div>
-
-          <div class="chorus-theater">
-            <div class="chorus-frame">
-              <canvas class="stage-canvas" aria-hidden="true"></canvas>
-            </div>
-          </div>
-
-          <div class="afterglow" aria-hidden="true">
-            <span class="aurora a1"></span>
-            <span class="aurora a2"></span>
-            <span class="aurora a3"></span>
-            <div class="afterglow-stars"></div>
-            <p class="afterglow-text">THE LIGHTS STAY ON<span>//&nbsp;AFTER THE ENCORE</span></p>
-          </div>
-
-          <div class="scene-tag magenta" aria-hidden="true">
-            <span class="tag-num">SCENE&nbsp;03</span>
-            <span class="tag-name">AUDIO: 128 BPM // CHORUS DROP</span>
+          <div class="city-handoff" aria-hidden="true">
+            <span class="city-handoff-beam"></span>
+            <span class="city-handoff-copy">CITY FEED&nbsp;&nbsp;//&nbsp;&nbsp;ROUTING TO BROADCAST DECK</span>
           </div>
         </div>
       </section>
 
-      <!-- ============ SCENE 04 // BROADCAST (cursor -> instagram) ============ -->
+      <!-- ============ SCENE 03 // BROADCAST (cursor -> instagram) ============ -->
       <section class="scene scrub" id="broadcast" data-scene="broadcast">
         <div class="viewport">
           <div class="scene-tag" aria-hidden="true">
-            <span class="tag-num">SCENE&nbsp;04</span>
+            <span class="tag-num">SCENE&nbsp;03</span>
             <span class="tag-name">BROADCAST DECK // OPENING FEED</span>
           </div>
 
@@ -213,32 +202,38 @@
             <div class="feed-grid">
               <a class="reel-card" href="https://www.instagram.com/reel/DY7v0RXhrjC/" target="_blank" rel="noopener">
                 <div class="reel-cover c1">
+                  <img src="assets/reel-poker.jpg" alt="Colin holding the display glasses above a live poker table" loading="lazy" decoding="async" />
                   <span class="play-tri"></span>
                   <span class="reel-scan"></span>
+                  <span class="reel-badge">LIVE POKER HUD</span>
                 </div>
                 <div class="reel-meta">
-                  <strong>REEL 01</strong>
-                  <span>LATEST DROP</span>
+                  <strong>POKER VISION</strong>
+                  <span>REAL-TIME ADVICE</span>
                 </div>
               </a>
               <a class="reel-card" href="https://www.instagram.com/reel/DZ-FDMXu3iR/" target="_blank" rel="noopener">
                 <div class="reel-cover c2">
+                  <img src="assets/reel-exam.jpg" alt="Two builders presenting AI display glasses" loading="lazy" decoding="async" />
                   <span class="play-tri"></span>
                   <span class="reel-scan"></span>
+                  <span class="reel-badge">OCR + ANSWERS</span>
                 </div>
                 <div class="reel-meta">
-                  <strong>REEL 02</strong>
-                  <span>FRESH UPLOAD</span>
+                  <strong>EXAM LENS</strong>
+                  <span>LIVE DEMO</span>
                 </div>
               </a>
               <a class="reel-card" href="https://www.instagram.com/reel/DaIxCjjuo0W/" target="_blank" rel="noopener">
                 <div class="reel-cover c3">
+                  <img src="assets/reel-dance.jpg" alt="A computer-vision pose tracker scoring a K-pop dance" loading="lazy" decoding="async" />
                   <span class="play-tri"></span>
                   <span class="reel-scan"></span>
+                  <span class="reel-badge">POSE SCORING</span>
                 </div>
                 <div class="reel-meta">
-                  <strong>REEL 03</strong>
-                  <span>NEW EPISODE</span>
+                  <strong>AI DANCE COACH</strong>
+                  <span>PERFECT FORM</span>
                 </div>
               </a>
             </div>
@@ -249,284 +244,306 @@
         </div>
       </section>
 
-      <!-- ============ SCENE 05 // PROJECT HANGAR ============ -->
+      <!-- ============ SCENE 04 // PROJECT HANGAR ============ -->
       <section class="scene flow" id="projects" data-scene="projects">
         <div class="section-head">
-          <p class="eyebrow">SCENE 05 // HANGAR BAY</p>
+          <p class="eyebrow">SCENE 04 // HANGAR BAY</p>
           <h2>PROJECT&nbsp;HANGAR</h2>
           <p class="section-sub">
-            Every build gets a bay. Links and case studies drop in here —
-            slots are live and waiting.
+            A newest-to-oldest archive of things I have built, tested, and
+            shipped. Select a bay to open its project file.
           </p>
         </div>
 
         <div class="hangar-grid">
-          <article class="holo-card">
+          <a class="holo-card" href="projects/poker-glasses/" aria-label="Open the PokerVision project page">
             <div class="card-corners"><span></span><span></span><span></span><span></span></div>
-            <p class="card-id">BAY 01</p>
-            <h3>Poker Copilot</h3>
-            <p>Meta Ray-Ban glasses that read the table and recommend the best poker move in real time.</p>
-            <a class="card-chip live" href="https://github.com/ColinHu07/poker">VIEW ON GITHUB</a>
-          </article>
-          <article class="holo-card">
+            <p class="card-id">BAY 01 <span>// LATEST</span></p>
+            <h3>PokerVision</h3>
+            <p>Meta display glasses that turn a visible poker table into structured state and real-time training advice.</p>
+            <span class="card-chip live">OPEN PROJECT FILE&nbsp;&nbsp;&gt;</span>
+          </a>
+          <a class="holo-card" href="projects/just-dance-2/" aria-label="Open the Just Dance 2.0 project page">
             <div class="card-corners"><span></span><span></span><span></span><span></span></div>
             <p class="card-id">BAY 02</p>
-            <h3>Signal Log</h3>
-            <p>Research, writing, or a breakdown that shows how the thinking works.</p>
-            <span class="card-chip">LINK PENDING</span>
-          </article>
-          <article class="holo-card">
+            <h3>Just Dance 2.0</h3>
+            <p>An offline dance coach that tracks body poses, compares choreography, and scores timing and form.</p>
+            <span class="card-chip live">OPEN PROJECT FILE&nbsp;&nbsp;&gt;</span>
+          </a>
+          <a class="holo-card" href="projects/inbox-lens/" aria-label="Open the InboxLens project page">
             <div class="card-corners"><span></span><span></span><span></span><span></span></div>
             <p class="card-id">BAY 03</p>
-            <h3>Utility Deck</h3>
-            <p>A tool built for real use — app, dashboard, or automation.</p>
-            <span class="card-chip">LINK PENDING</span>
-          </article>
-          <article class="holo-card">
+            <h3>InboxLens</h3>
+            <p>A glasses-first email copilot for triage, voice-assisted replies, calendar checks, and safe draft creation.</p>
+            <span class="card-chip live">OPEN PROJECT FILE&nbsp;&nbsp;&gt;</span>
+          </a>
+          <a class="holo-card" href="projects/raspberry-pi/" aria-label="Open the Raspberry Pi project page">
             <div class="card-corners"><span></span><span></span><span></span><span></span></div>
             <p class="card-id">BAY 04</p>
-            <h3>Experiment X</h3>
-            <p>The weird one. Prototypes and creative experiments live here.</p>
-            <span class="card-chip">LINK PENDING</span>
-          </article>
-          <article class="holo-card">
+            <h3>Raspberry Pi</h3>
+            <p>A collection of Raspberry Pi experiments, hardware builds, and code made to bridge software with the physical world.</p>
+            <span class="card-chip live">OPEN PROJECT FILE&nbsp;&nbsp;&gt;</span>
+          </a>
+          <a class="holo-card" href="projects/floodstack/" aria-label="Open the FloodStack project page">
             <div class="card-corners"><span></span><span></span><span></span><span></span></div>
             <p class="card-id">BAY 05</p>
-            <h3>Open Slot</h3>
-            <p>Reserved for the next launch. The hangar always has room.</p>
-            <span class="card-chip">LINK PENDING</span>
-          </article>
-          <article class="holo-card">
+            <h3>FloodStack</h3>
+            <p>A deep-learning application for visualizing SAR imagery and segmenting flood extents for analysis.</p>
+            <span class="card-chip live">OPEN PROJECT FILE&nbsp;&nbsp;&gt;</span>
+          </a>
+          <article class="holo-card pending" aria-label="A new project is in development">
             <div class="card-corners"><span></span><span></span><span></span><span></span></div>
-            <p class="card-id">BAY 06</p>
-            <h3>Open Slot</h3>
-            <p>Reserved for the one after that. Keep shipping.</p>
-            <span class="card-chip">LINK PENDING</span>
+            <p class="card-id">BAY 06 <span>// IN PROGRESS</span></p>
+            <h3>Soon…</h3>
+            <p>The next project is currently under construction. This bay will unlock when it is ready.</p>
+            <span class="card-chip">TRANSMISSION PENDING</span>
           </article>
         </div>
       </section>
 
-      <!-- ============ SCENE 06 // STARK OPTICS ============ -->
+      <!-- ============ SCENE 05 // STARK OPTICS ============ -->
       <section class="scene scrub" id="glasses" data-scene="glasses">
         <div class="viewport">
           <div class="scene-tag" aria-hidden="true">
-            <span class="tag-num">SCENE&nbsp;06</span>
-            <span class="tag-name">STARK OPTICS // COMPONENT ASSEMBLY</span>
+            <span class="tag-num">SCENE&nbsp;05</span>
+            <span class="tag-name">META DISPLAY // PRECISION ASSEMBLY</span>
           </div>
 
           <p class="assembly-status" aria-hidden="true">
-            <span class="status-assembling">ASSEMBLING SMART GLASSES…</span>
-            <span class="status-complete">ASSEMBLY COMPLETE // ENTERING LENS VIEW</span>
+            <span class="status-product">WEARER-SIDE PRODUCT MODEL // META DISPLAY</span>
+            <span class="status-exploded">11-PART EXPLODED SYSTEM // 360 ORBIT</span>
+            <span class="status-complete">REASSEMBLY COMPLETE // WEARER VIEW</span>
           </p>
 
           <div class="glasses-stage">
-            <div class="glasses-rig" aria-hidden="true">
-              <!-- front plane: frame, lenses, camera, LED -->
-              <svg class="gsvg g-front" viewBox="0 0 900 360">
-              <defs>
-                <linearGradient id="photo-shade" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0" stop-color="rgba(255,255,255,0.28)" />
-                  <stop offset="0.45" stop-color="rgba(255,255,255,0)" />
-                  <stop offset="1" stop-color="rgba(0,0,0,0.45)" />
-                </linearGradient>
-                <!-- glossy black acetate, like the real Meta Ray-Bans -->
-                <linearGradient id="acet-v" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="#4a4f57" />
-                  <stop offset="0.26" stop-color="#26282e" />
-                  <stop offset="0.62" stop-color="#131519" />
-                  <stop offset="1" stop-color="#08090b" />
-                </linearGradient>
-                <linearGradient id="acet-under" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="#1b1d21" />
-                  <stop offset="1" stop-color="#050607" />
-                </linearGradient>
-                <linearGradient id="temple-grad-l" x1="1" y1="0" x2="0" y2="0">
-                  <stop offset="0" stop-color="#3d4149" />
-                  <stop offset="0.55" stop-color="#1f2126" />
-                  <stop offset="1" stop-color="#0c0d10" />
-                </linearGradient>
-                <linearGradient id="temple-grad-r" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0" stop-color="#3d4149" />
-                  <stop offset="0.55" stop-color="#1f2126" />
-                  <stop offset="1" stop-color="#0c0d10" />
-                </linearGradient>
-                <!-- dark smoked blue-gray display lenses -->
-                <linearGradient id="lens-glass" x1="0" y1="0" x2="0.55" y2="1">
-                  <stop offset="0" stop-color="rgba(140,175,200,0.6)" />
-                  <stop offset="0.38" stop-color="rgba(58,88,112,0.55)" />
-                  <stop offset="1" stop-color="rgba(14,26,38,0.72)" />
-                </linearGradient>
-                <radialGradient id="cam-glass" cx="0.35" cy="0.32" r="0.85">
-                  <stop offset="0" stop-color="#9fd0ef" />
-                  <stop offset="0.3" stop-color="#1d3a52" />
-                  <stop offset="1" stop-color="#02070c" />
-                </radialGradient>
-                <linearGradient id="metal" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stop-color="#dde1e4" />
-                  <stop offset="0.5" stop-color="#8f979d" />
-                  <stop offset="1" stop-color="#51585d" />
-                </linearGradient>
-              </defs>
+            <div class="product-keylight" aria-hidden="true"></div>
+            <div class="product-floor" aria-hidden="true"></div>
+            <canvas class="glasses-product-canvas" aria-label="A studio-lit 3D model of Meta display glasses disassembling, rotating, and reassembling"></canvas>
 
-              <!-- hinges -->
-              <g class="part hinge-left">
-                <rect x="110" y="112" width="16" height="30" rx="3" fill="url(#metal)" stroke="#2b2f33" stroke-width="1" />
-                <circle cx="118" cy="119" r="2" fill="#3a4045" />
-                <circle cx="118" cy="135" r="2" fill="#3a4045" />
-              </g>
-              <g class="part hinge-right">
-                <rect x="774" y="112" width="16" height="30" rx="3" fill="url(#metal)" stroke="#2b2f33" stroke-width="1" />
-                <circle cx="782" cy="119" r="2" fill="#3a4045" />
-                <circle cx="782" cy="135" r="2" fill="#3a4045" />
-              </g>
+            <div class="product-model-camera" aria-hidden="true">
+              <div class="product-model-rig">
+                <!-- Code-native wearer-side Meta display model. Every named group
+                     below is a separate physical assembly in the exploded view. -->
+                <svg class="rayban-assembly-svg" viewBox="0 0 1000 760" role="presentation">
+                  <defs>
+                    <linearGradient id="rb-acetate" x1="0" y1="0" x2="0.85" y2="1">
+                      <stop offset="0" stop-color="#696b70" />
+                      <stop offset="0.08" stop-color="#24262a" />
+                      <stop offset="0.32" stop-color="#07080a" />
+                      <stop offset="0.68" stop-color="#1a1c20" />
+                      <stop offset="0.88" stop-color="#050608" />
+                      <stop offset="1" stop-color="#33363b" />
+                    </linearGradient>
+                    <linearGradient id="rb-acetate-side" x1="0" y1="0" x2="1" y2="0.8">
+                      <stop offset="0" stop-color="#050608" />
+                      <stop offset="0.42" stop-color="#2c2f34" />
+                      <stop offset="0.56" stop-color="#08090b" />
+                      <stop offset="1" stop-color="#000" />
+                    </linearGradient>
+                    <linearGradient id="rb-temple" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0" stop-color="#08090b" />
+                      <stop offset="0.18" stop-color="#3e4248" />
+                      <stop offset="0.3" stop-color="#111318" />
+                      <stop offset="0.68" stop-color="#050608" />
+                      <stop offset="0.88" stop-color="#282b30" />
+                      <stop offset="1" stop-color="#030405" />
+                    </linearGradient>
+                    <linearGradient id="rb-lens" x1="0.05" y1="0" x2="0.9" y2="1">
+                      <stop offset="0" stop-color="#8da4b3" stop-opacity="0.56" />
+                      <stop offset="0.22" stop-color="#384e5d" stop-opacity="0.6" />
+                      <stop offset="0.62" stop-color="#122736" stop-opacity="0.92" />
+                      <stop offset="1" stop-color="#07131c" stop-opacity="0.96" />
+                    </linearGradient>
+                    <linearGradient id="rb-lens-reflect" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0" stop-color="#d7e8f0" stop-opacity="0.05" />
+                      <stop offset="0.35" stop-color="#ffd2c6" stop-opacity="0.7" />
+                      <stop offset="0.55" stop-color="#fff" stop-opacity="0.08" />
+                      <stop offset="1" stop-color="#68bde4" stop-opacity="0.22" />
+                    </linearGradient>
+                    <linearGradient id="rb-metal" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0" stop-color="#292d31" />
+                      <stop offset="0.24" stop-color="#d9dde0" />
+                      <stop offset="0.48" stop-color="#5d646a" />
+                      <stop offset="0.75" stop-color="#eef0f2" />
+                      <stop offset="1" stop-color="#25292d" />
+                    </linearGradient>
+                    <radialGradient id="rb-optic" cx="0.32" cy="0.26" r="0.78">
+                      <stop offset="0" stop-color="#fff" />
+                      <stop offset="0.12" stop-color="#a7efff" />
+                      <stop offset="0.38" stop-color="#235e7c" />
+                      <stop offset="1" stop-color="#010508" />
+                    </radialGradient>
+                    <radialGradient id="rb-display-glow" cx="0.5" cy="0.5" r="0.55">
+                      <stop offset="0" stop-color="#dbfbff" stop-opacity="0.8" />
+                      <stop offset="0.28" stop-color="#4fd8ff" stop-opacity="0.42" />
+                      <stop offset="1" stop-color="#4fd8ff" stop-opacity="0" />
+                    </radialGradient>
+                    <filter id="rb-shadow" x="-70%" y="-70%" width="240%" height="260%">
+                      <feDropShadow dx="0" dy="24" stdDeviation="17" flood-color="#000" flood-opacity="0.85" />
+                      <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#78c9ea" flood-opacity="0.1" />
+                    </filter>
+                    <filter id="rb-part-shadow" x="-100%" y="-100%" width="300%" height="300%">
+                      <feDropShadow dx="0" dy="12" stdDeviation="9" flood-color="#000" flood-opacity="0.76" />
+                    </filter>
+                    <clipPath id="rb-right-lens-clip">
+                      <path d="M590 158 L826 76 Q853 67 864 94 L908 282 Q916 313 889 326 L688 405 Q658 416 644 388 L574 199 Q563 170 590 158 Z" />
+                    </clipPath>
+                  </defs>
 
-              <!-- left lens (Wayfarer trapezoid, smoked glass) -->
-              <g class="part lens-left">
-                <path d="M 174 112 L 388 112 Q 404 112 402 128 L 396 214 Q 393 236 371 236 L 224 238 Q 200 239 193 218 L 159 136 Q 152 113 174 112 Z"
-                  fill="url(#lens-glass)" stroke="rgba(150,185,210,0.35)" stroke-width="1.5" />
-                <polygon points="198,112 264,112 218,235 198,226 178,178" fill="rgba(255,255,255,0.12)" />
-                <polygon points="286,112 314,112 266,236 240,236" fill="rgba(255,255,255,0.07)" />
-              </g>
-              <!-- right lens -->
-              <g class="part lens-right">
-                <path d="M 726 112 L 512 112 Q 496 112 498 128 L 504 214 Q 507 236 529 236 L 676 238 Q 700 239 707 218 L 741 136 Q 748 113 726 112 Z"
-                  fill="url(#lens-glass)" stroke="rgba(150,185,210,0.35)" stroke-width="1.5" />
-                <polygon points="546,112 612,112 566,235 546,226 528,178" fill="rgba(255,255,255,0.12)" />
-                <polygon points="634,112 662,112 614,236 588,236" fill="rgba(255,255,255,0.07)" />
-              </g>
+                  <ellipse class="model-ground-shadow" cx="520" cy="692" rx="350" ry="34" />
 
-              <!-- frame front: chunky black Wayfarer acetate, lens holes cut out -->
-              <g class="part frame-front">
-                <path fill-rule="evenodd" fill="url(#acet-v)"
-                  d="M 154 92 L 746 92 Q 785 92 779 127 L 745 234 Q 737 262 706 262 L 562 262 Q 539 262 535 241 L 524 165 Q 521 147 502 147 L 398 147 Q 379 147 376 165 L 365 241 Q 361 262 338 262 L 194 262 Q 163 262 155 234 L 121 127 Q 115 92 154 92 Z
-                     M 172 116 L 380 116 Q 400 116 398 134 L 390 213 Q 387 234 365 234 L 226 236 Q 199 237 191 215 L 159 143 Q 150 118 172 116 Z
-                     M 728 116 L 520 116 Q 500 116 502 134 L 510 213 Q 513 234 535 234 L 674 236 Q 701 237 709 215 L 741 143 Q 750 118 728 116 Z" />
-                <path fill-rule="evenodd" fill="url(#photo-shade)" opacity="0.5"
-                  d="M 154 92 L 746 92 Q 785 92 779 127 L 745 234 Q 737 262 706 262 L 562 262 Q 539 262 535 241 L 524 165 Q 521 147 502 147 L 398 147 Q 379 147 376 165 L 365 241 Q 361 262 338 262 L 194 262 Q 163 262 155 234 L 121 127 Q 115 92 154 92 Z
-                     M 172 116 L 380 116 Q 400 116 398 134 L 390 213 Q 387 234 365 234 L 226 236 Q 199 237 191 215 L 159 143 Q 150 118 172 116 Z
-                     M 728 116 L 520 116 Q 500 116 502 134 L 510 213 Q 513 234 535 234 L 674 236 Q 701 237 709 215 L 741 143 Q 750 118 728 116 Z" />
-                <path fill-rule="evenodd" fill="none" stroke="#000" stroke-width="2" stroke-linejoin="round"
-                  d="M 154 92 L 746 92 Q 785 92 779 127 L 745 234 Q 737 262 706 262 L 562 262 Q 539 262 535 241 L 524 165 Q 521 147 502 147 L 398 147 Q 379 147 376 165 L 365 241 Q 361 262 338 262 L 194 262 Q 163 262 155 234 L 121 127 Q 115 92 154 92 Z
-                     M 172 116 L 380 116 Q 400 116 398 134 L 390 213 Q 387 234 365 234 L 226 236 Q 199 237 191 215 L 159 143 Q 150 118 172 116 Z
-                     M 728 116 L 520 116 Q 500 116 502 134 L 510 213 Q 513 234 535 234 L 674 236 Q 701 237 709 215 L 741 143 Q 750 118 728 116 Z" />
-                <!-- glossy brow highlight -->
-                <rect x="142" y="97" width="616" height="7" rx="3.5" fill="rgba(255,255,255,0.14)" />
-                <path d="M 402 150 Q 450 132 498 150 L 496 160 Q 450 145 404 160 Z" fill="rgba(255,255,255,0.07)" />
-                <!-- nose pads -->
-                <path d="M 402 160 Q 410 180 406 198 L 398 194 Q 396 174 398 162 Z" fill="url(#acet-under)" />
-                <path d="M 498 160 Q 490 180 494 198 L 502 194 Q 504 174 502 162 Z" fill="url(#acet-under)" />
-              </g>
+                  <!-- Far temple and its open-ear audio channel. -->
+                  <g class="model-component rb-temple-far" filter="url(#rb-shadow)">
+                    <path d="M712 242 C775 290 807 381 793 474 C782 551 740 625 677 699 L619 672 C674 594 701 530 704 461 C707 377 685 316 648 276 Z"
+                      fill="url(#rb-temple)" stroke="#010203" stroke-width="7" />
+                    <path d="M733 293 C766 352 770 428 751 500 C735 558 709 610 669 661" fill="none" stroke="#8e98a0" stroke-opacity="0.23" stroke-width="7" stroke-linecap="round" />
+                  </g>
+                  <g class="model-component rb-audio-module" filter="url(#rb-part-shadow)">
+                    <rect x="710" y="432" width="48" height="132" rx="21" transform="rotate(13 734 498)" fill="#13171b" stroke="#5c6870" stroke-width="3" />
+                    <path d="M718 463 L747 470 M715 480 L744 487 M712 497 L741 504 M709 514 L738 521" stroke="#a2adb5" stroke-opacity="0.55" stroke-width="4" stroke-linecap="round" />
+                  </g>
 
-              <!-- camera module set into the left corner of the frame -->
-              <g class="part camera-module">
-                <circle cx="146" cy="126" r="10" fill="#0a0b0d" stroke="#000" stroke-width="1.5" />
-                <circle cx="146" cy="126" r="6.5" fill="url(#cam-glass)" />
-                <circle cx="143.5" cy="123.5" r="1.9" fill="rgba(255,255,255,0.8)" />
-              </g>
-              <!-- capture LED (right corner) -->
-              <g class="part led-dot">
-                <circle cx="755" cy="126" r="6" fill="#0d1216" stroke="#1e262d" stroke-width="1.5" />
-                <circle cx="755" cy="126" r="2.6" fill="#cfe8ff" />
-              </g>
+                  <!-- Two precision-cut lenses. -->
+                  <g class="model-component rb-lens-left" filter="url(#rb-part-shadow)">
+                    <path d="M349 339 L579 261 Q610 251 623 279 L687 507 Q696 539 667 552 L469 631 Q436 642 421 612 L326 381 Q313 350 349 339 Z"
+                      fill="url(#rb-lens)" stroke="#a1bdce" stroke-opacity="0.55" stroke-width="4" />
+                    <path d="M371 350 L579 281" stroke="url(#rb-lens-reflect)" stroke-width="22" stroke-linecap="round" opacity="0.46" />
+                    <path d="M426 349 L536 608" stroke="#dff7ff" stroke-opacity="0.09" stroke-width="20" />
+                  </g>
+                  <g class="model-component rb-lens-right" filter="url(#rb-part-shadow)">
+                    <path d="M590 158 L826 76 Q853 67 864 94 L908 282 Q916 313 889 326 L688 405 Q658 416 644 388 L574 199 Q563 170 590 158 Z"
+                      fill="url(#rb-lens)" stroke="#a1bdce" stroke-opacity="0.58" stroke-width="4" />
+                    <path d="M614 165 L822 94" stroke="url(#rb-lens-reflect)" stroke-width="24" stroke-linecap="round" opacity="0.64" />
+                    <path d="M731 113 L810 350" stroke="#f2fbff" stroke-opacity="0.09" stroke-width="18" />
+                  </g>
 
-              <!-- component callout labels, visible only while exploded -->
-              <g class="part-labels" fill="#6fa8c4" font-family="Rajdhani" font-size="15" letter-spacing="3">
-                <text x="34" y="50">TEMPLE ARM // SPEAKER</text>
-                <text x="690" y="50">TEMPLE ARM</text>
-                <text x="86" y="330">ULTRA-WIDE CAMERA</text>
-                <text x="630" y="330">CAPTURE LED</text>
-                <text x="392" y="34">FRAME FRONT</text>
-                <text x="80" y="185">HINGE</text>
-                <text x="794" y="185">HINGE</text>
-              </g>
-            </svg>
+                  <!-- Optical waveguide embedded in the right lens. -->
+                  <g class="model-component rb-waveguide" clip-path="url(#rb-right-lens-clip)">
+                    <ellipse cx="752" cy="244" rx="108" ry="64" transform="rotate(-18 752 244)" fill="url(#rb-display-glow)" />
+                    <ellipse cx="752" cy="244" rx="84" ry="47" transform="rotate(-18 752 244)" fill="none" stroke="#9cefff" stroke-opacity="0.3" stroke-width="2" />
+                    <ellipse cx="752" cy="244" rx="52" ry="28" transform="rotate(-18 752 244)" fill="none" stroke="#c6f7ff" stroke-opacity="0.42" stroke-width="2" />
+                    <path d="M622 201 L872 120 M634 236 L884 155 M646 271 L895 190 M658 306 L903 226" stroke="#75d7f3" stroke-opacity="0.09" stroke-width="2" />
+                  </g>
 
-              <!-- temple arms live on their own 3D layers so they can
-                   fold backwards out of the frame plane -->
-              <svg class="gsvg g-temple g-temple-left" viewBox="0 0 900 360">
-                <g class="part temple-left">
-                  <path d="M 126 104 L 44 88 Q 22 84 17 96 L 15 106 Q 14 119 32 123 L 124 146 Z" fill="url(#temple-grad-l)" stroke="#000" stroke-width="1.5" />
-                  <path d="M 126 104 L 44 88 Q 22 84 17 96 L 15 106 Q 14 119 32 123 L 124 146 Z" fill="url(#photo-shade)" />
-                  <path d="M 125 128 L 32 110 Q 18 107 15 102 L 15 106 Q 14 119 32 123 L 124 146 Z" fill="rgba(0,0,0,0.45)" />
-                  <rect x="34" y="97" width="26" height="3" rx="1.5" fill="rgba(70,76,84,0.9)" />
-                  <rect x="34" y="104" width="26" height="3" rx="1.5" fill="rgba(70,76,84,0.9)" />
-                  <text x="72" y="108" font-family="Rajdhani" font-size="11" letter-spacing="2" fill="rgba(210,218,226,0.6)">META</text>
-                </g>
-              </svg>
-              <svg class="gsvg g-temple g-temple-right" viewBox="0 0 900 360">
-                <g class="part temple-right">
-                  <path d="M 774 104 L 856 88 Q 878 84 883 96 L 885 106 Q 886 119 868 123 L 776 146 Z" fill="url(#temple-grad-r)" stroke="#000" stroke-width="1.5" />
-                  <path d="M 774 104 L 856 88 Q 878 84 883 96 L 885 106 Q 886 119 868 123 L 776 146 Z" fill="url(#photo-shade)" />
-                  <path d="M 775 128 L 868 110 Q 882 107 885 102 L 885 106 Q 886 119 868 123 L 776 146 Z" fill="rgba(0,0,0,0.45)" />
-                  <rect x="840" y="97" width="26" height="3" rx="1.5" fill="rgba(70,76,84,0.9)" />
-                  <rect x="840" y="104" width="26" height="3" rx="1.5" fill="rgba(70,76,84,0.9)" />
-                </g>
-              </svg>
+                  <!-- Inner frame shell follows the perspective of the source view. -->
+                  <g class="model-component rb-frame-shell" filter="url(#rb-shadow)">
+                    <path d="M315 316 L574 231 Q614 218 640 246 L665 274 L682 251 Q697 230 723 221 L842 181 L860 226 L723 275 Q705 281 702 300 L697 365 Q695 400 670 419 L694 508 Q708 562 655 585 L474 655 Q416 675 389 621 L293 389 Q270 334 315 316 Z
+                             M350 345 L574 269 Q600 261 611 288 L669 506 Q677 533 652 544 L476 613 Q450 623 438 597 L331 382 Q316 354 350 345 Z"
+                      fill="url(#rb-acetate)" fill-rule="evenodd" stroke="#010203" stroke-width="7" stroke-linejoin="round" />
+                    <path d="M567 230 L832 141 Q884 123 900 174 L930 286 Q944 337 895 357 L697 430 Q645 448 626 400 L558 202 Q547 171 567 151 Z
+                             M594 174 L819 98 Q846 89 856 117 L900 278 Q908 306 881 317 L694 388 Q666 397 654 369 L579 209 Q568 183 594 174 Z"
+                      fill="url(#rb-acetate)" fill-rule="evenodd" stroke="#010203" stroke-width="7" stroke-linejoin="round" />
+                    <path d="M301 340 L574 245 Q610 233 633 260 M570 159 L835 72 Q872 59 888 91" fill="none" stroke="#e8eef2" stroke-opacity="0.23" stroke-width="10" stroke-linecap="round" />
+                    <path d="M623 270 C645 251 666 245 687 249 L701 273 C677 266 653 273 635 292 Z" fill="url(#rb-acetate-side)" />
+                  </g>
+
+                  <!-- Dominant near temple, matching the diagonal wearer-side silhouette. -->
+                  <g class="model-component rb-temple-near" filter="url(#rb-shadow)">
+                    <path d="M96 708 L495 241 L684 71 Q720 39 756 52 L855 89 Q884 100 867 127 L789 236 Q777 253 756 258 L681 276 L531 438 L205 748 Z"
+                      fill="url(#rb-temple)" stroke="#010203" stroke-width="8" stroke-linejoin="round" />
+                    <path d="M132 704 L516 262 L700 92 Q722 72 747 79 L821 105" fill="none" stroke="url(#rb-lens-reflect)" stroke-width="18" stroke-linecap="round" opacity="0.54" />
+                    <path d="M164 703 L526 293" fill="none" stroke="#020304" stroke-width="5" />
+                    <path d="M811 92 L858 109 L822 160 L770 139 Z" fill="#060709" />
+                    <path d="M798 116 C808 100 824 106 824 122 C824 137 809 141 798 126 C788 142 772 136 774 120 C776 104 791 102 798 116 Z"
+                      fill="none" stroke="#b5bbc0" stroke-opacity="0.72" stroke-width="4" />
+                  </g>
+
+                  <!-- Steel hinges, battery rail, camera, and display projector. -->
+                  <g class="model-component rb-hinges" filter="url(#rb-part-shadow)">
+                    <path d="M202 635 L272 563 L315 596 L247 672 Z" fill="url(#rb-metal)" stroke="#181b1e" stroke-width="4" />
+                    <circle cx="254" cy="616" r="5" fill="#343a3f" />
+                    <circle cx="276" cy="595" r="5" fill="#343a3f" />
+                    <path d="M785 205 L835 170 L861 201 L812 238 Z" fill="url(#rb-metal)" stroke="#181b1e" stroke-width="4" />
+                  </g>
+                  <g class="model-component rb-battery-module" filter="url(#rb-part-shadow)">
+                    <rect x="218" y="648" width="49" height="112" rx="20" transform="rotate(42 242 704)" fill="#11151a" stroke="#68747c" stroke-width="3" />
+                    <path d="M216 685 L263 733 M226 674 L273 722 M236 663 L283 711" stroke="#87939b" stroke-opacity="0.42" stroke-width="3" />
+                  </g>
+                  <g class="model-component rb-camera-module" filter="url(#rb-part-shadow)">
+                    <circle cx="841" cy="126" r="18" fill="#020304" stroke="#707981" stroke-width="4" />
+                    <circle cx="841" cy="126" r="11" fill="url(#rb-optic)" />
+                    <circle cx="837" cy="121" r="3" fill="#fff" fill-opacity="0.8" />
+                  </g>
+                  <g class="model-component rb-display-engine" filter="url(#rb-part-shadow)">
+                    <path d="M842 191 L890 174 Q905 169 911 184 L921 214 Q926 229 911 236 L864 252 Q849 257 844 242 L833 212 Q828 197 842 191 Z"
+                      fill="#11171c" stroke="#7c8991" stroke-width="3" />
+                    <circle cx="861" cy="213" r="10" fill="url(#rb-optic)" />
+                    <path d="M868 215 L807 232 L756 249" stroke="#a8f1ff" stroke-opacity="0.74" stroke-width="2" stroke-dasharray="6 6" />
+                  </g>
+                </svg>
+
+                <div class="model-callouts">
+                  <span class="callout c-camera">CAMERA ARRAY</span>
+                  <span class="callout c-display">DISPLAY ENGINE</span>
+                  <span class="callout c-waveguide">WAVEGUIDE</span>
+                  <span class="callout c-hinge">STEEL HINGES</span>
+                  <span class="callout c-audio">OPEN-EAR AUDIO</span>
+                  <span class="callout c-battery">BATTERY RAIL</span>
+                </div>
+
+                <div class="right-lens-target">
+                  <span></span><span></span>
+                  <em>RIGHT DISPLAY // WEARER SIDE</em>
+                </div>
+              </div>
             </div>
-          </div>
 
+            <div class="lens-glass-transition" aria-hidden="true"></div>
+          </div>
           <!-- lens view: poker copilot -->
           <div class="lens-view">
-            <div class="lens-frame">
-              <div class="lens-hud-top">
-                <span>META RAY-BAN // LENS FEED</span>
-                <span class="rec-dot"></span>
-              </div>
-
-              <div class="poker-table">
+            <div class="lens-frame" aria-label="Poker Copilot recommendation over a live poker table">
+              <div class="poker-table current-poker-layout">
                 <div class="table-felt">
-                  <div class="board-label">COMMUNITY</div>
-                  <div class="board-cards">
-                    <span class="pcard black">A<em>&#9824;</em></span>
-                    <span class="pcard red">K<em>&#9829;</em></span>
-                    <span class="pcard black">Q<em>&#9824;</em></span>
-                    <span class="pcard red">7<em>&#9830;</em></span>
-                    <span class="pcard back"></span>
+                  <div class="board-label">COMMUNITY // RIVER</div>
+                  <div class="board-cards" aria-label="Board: three of spades, four of diamonds, five of spades, ten of spades, five of clubs">
+                    <span class="pcard black">3<em>♠</em></span>
+                    <span class="pcard red">4<em>♦</em></span>
+                    <span class="pcard black">5<em>♠</em></span>
+                    <span class="pcard black">T<em>♠</em></span>
+                    <span class="pcard black">5<em>♣</em></span>
                   </div>
                   <div class="hole-block">
                     <div class="board-label">YOUR HAND</div>
-                    <div class="hole-cards">
-                      <span class="pcard black">J<em>&#9824;</em></span>
-                      <span class="pcard black">10<em>&#9824;</em></span>
+                    <div class="hole-cards" aria-label="Your hand: ace of spades, queen of spades">
+                      <span class="pcard black">A<em>♠</em></span>
+                      <span class="pcard black">Q<em>♠</em></span>
                     </div>
                   </div>
-                  <div class="pot-chip">POT&nbsp;·&nbsp;2,450</div>
+                  <div class="pot-chip">RIVER // BOARD LOCKED</div>
                 </div>
 
-                <aside class="copilot-panel">
-                  <p class="copilot-title">POKER COPILOT</p>
-                  <div class="copilot-row">
-                    <span>RECOMMEND</span>
-                    <strong class="verdict">RAISE 3.5BB</strong>
+                <aside class="copilot-panel current-copilot-panel">
+                  <span class="display-eyebrow">POKER COPILOT // RIVER</span>
+                  <h3>Best: Check</h3>
+                  <p>Check is best: the board pairs on the river, so we let the lower flush decide whether to put more chips in.</p>
+                  <div class="copilot-hand">
+                    <strong>Hero A♠ Q♠</strong>
+                    <strong>Board 3♠ 4♦ 5♠ T♠ 5♣</strong>
                   </div>
-                  <div class="copilot-row">
-                    <span>EQUITY</span>
-                    <strong>78.4%</strong>
+                  <div class="copilot-actions" aria-hidden="true">
+                    <span>Analyze next</span>
+                    <span>Rescan table</span>
                   </div>
-                  <div class="copilot-row">
-                    <span>DRAW</span>
-                    <strong>ROYAL // OPEN-ENDED</strong>
-                  </div>
-                  <div class="equity-bar"><span></span></div>
-                  <a class="copilot-link" href="https://github.com/ColinHu07/poker">
-                    VIEW BUILD ON GITHUB &nbsp;&gt;
-                  </a>
                 </aside>
               </div>
-
-              <div class="lens-hud-bottom">
-                <span>BUILT WITH META RAY-BAN GLASSES // github.com/ColinHu07/poker</span>
+              <div class="display-glass-sheen" aria-hidden="true"></div>
+              <div class="display-livebar">
+                <span><i></i> META DISPLAY // LIVE</span>
+                <a class="lens-project-link" href="projects/poker-glasses/">
+                  VIEW BUILD &nbsp;&gt;
+                </a>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- ============ SCENE 07 // SOCIALS ============ -->
+      <!-- ============ SCENE 06 // SOCIALS ============ -->
       <section class="scene flow contact" id="contact" data-scene="contact">
         <canvas class="socials-canvas" aria-hidden="true"></canvas>
         <div class="section-head">
-          <p class="eyebrow">SCENE 07 // OPEN CHANNELS</p>
+          <p class="eyebrow">SCENE 06 // OPEN CHANNELS</p>
           <h2>SOCIALS</h2>
           <p class="section-sub">All transmission lines. Pick a frequency.</p>
         </div>
@@ -598,6 +615,21 @@
             </div>
             <span class="social-arrow">&gt;</span>
           </a>
+
+          <a class="social-tile sp" href="https://open.spotify.com/user/9irjoaptx440uu6qstrtiuwqa?si=cdca0c2d23d4413d" target="_blank" rel="noopener">
+            <div class="card-corners"><span></span><span></span><span></span><span></span></div>
+            <svg viewBox="0 0 96 96" class="social-icon" aria-hidden="true">
+              <circle cx="48" cy="48" r="38" fill="none" stroke="currentColor" stroke-width="6.5" />
+              <path d="M 26 37 C 40 31, 59 32, 72 39" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" />
+              <path d="M 29 49 C 41 44, 57 45, 68 51" fill="none" stroke="currentColor" stroke-width="5.5" stroke-linecap="round" />
+              <path d="M 32 60 C 42 56, 54 57, 64 62" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" />
+            </svg>
+            <div class="social-meta">
+              <strong>SPOTIFY</strong>
+              <span>Colin</span>
+            </div>
+            <span class="social-arrow">&gt;</span>
+          </a>
         </div>
 
         <footer class="footer">
@@ -607,6 +639,14 @@
       </section>
     </main>
 
-    <script src="script.js?v=jarvis-9"></script>
+    <script>
+      if (new URLSearchParams(window.location.search).has("preview")) {
+        var previewUrl = new URL(window.location.href);
+        previewUrl.searchParams.set("preview", "jarvis79");
+        window.history.replaceState(null, "", previewUrl);
+      }
+    </script>
+    <script src="script.js?v=jarvis-79"></script>
+    <script type="module" src="glasses-product.js?v=jarvis-79"></script>
   </body>
 </html>
