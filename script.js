@@ -132,13 +132,14 @@
             : 0.25 + 0.75 * smooth(clamp01((p - 0.22) / 0.48));
         // The wearer-side rotation and camera approach deliberately overlap:
         // the right lens remains the camera target throughout one continuous glide.
-        var productTurn = smoother((p - 0.62) / 0.25);
-        var lensDive = smoother((p - 0.67) / 0.285);
-        // The live feed begins resolving through the glass before the camera
-        // arrives. Portal drives the optical bloom; HUD controls final focus.
-        var lensFeed = smoother((p - 0.82) / 0.155);
-        var lensPortal = smoother((p - 0.85) / 0.125);
-        var lensHud = smoother((p - 0.93) / 0.065);
+        var productTurn = smoother((p - 0.56) / 0.24);
+        var lensDive = smoother((p - 0.6) / 0.27);
+        // Give the live feed a substantial scroll runway: it appears through
+        // the waveguide, clears its optical bloom, reaches full focus, and then
+        // holds long enough to read before the Socials handoff begins.
+        var lensFeed = smoother((p - 0.72) / 0.15);
+        var lensPortal = smoother((p - 0.75) / 0.14);
+        var lensHud = smoother((p - 0.79) / 0.12);
         var statusProduct = 1 - smooth(clamp01(p / 0.08));
         var statusExploded =
           smooth(clamp01((p - 0.17) / 0.08)) *
@@ -158,9 +159,9 @@
         glassesViewport.style.setProperty("--status-product", statusProduct.toFixed(4));
         glassesViewport.style.setProperty("--status-exploded", statusExploded.toFixed(4));
         glassesViewport.style.setProperty("--status-complete", statusComplete.toFixed(4));
-        glassesViewport.style.setProperty("--scene-exit", smoother((p - 0.945) / 0.055).toFixed(4));
+        glassesViewport.style.setProperty("--scene-exit", smoother((p - 0.975) / 0.025).toFixed(4));
 
-        if (p > 0.95) glassesViewport.setAttribute("data-lens", "open");
+        if (p > 0.91) glassesViewport.setAttribute("data-lens", "open");
         else glassesViewport.removeAttribute("data-lens");
       }
       if (scene.id === "broadcast" && broadcastViewport) {
