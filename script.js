@@ -3,11 +3,9 @@
    - Scroll scrub: writes --p (0..1) on each .scrub scene
    - Topographic holographic globe (filled continents, contour
      rings, Asia -> Europe -> NYC camera path)
-   - 3D wireframe NYC flythrough (buildings/cars/bridges) that
-     keeps playing until the user scrolls past
-   - Real chorus video: finger-gun freeze, gun zoom, pixel
-     disintegration into lightsticks
-   - Exploded Meta glasses assembly handled in CSS from --p
+   - Full-resolution NYC drone footage in a slow cinematic pass
+   - Code-native Meta glasses disassembly, full 360-degree orbit,
+     reassembly, and wearer-side display dive scrubbed from --p
    ============================================================ */
 
 (function () {
@@ -22,6 +20,10 @@
   function smooth(t) {
     t = clamp01(t);
     return t * t * (3 - 2 * t);
+  }
+  function smoother(t) {
+    t = clamp01(t);
+    return t * t * t * (t * (t * 6 - 15) + 10);
   }
   function lerp(a, b, t) {
     return a + (b - a) * t;
@@ -41,11 +43,51 @@
   var allScenes = Array.prototype.slice.call(document.querySelectorAll(".scene"));
 
   var cityViewport = document.querySelector("#city .viewport");
+  var cityFlightVideo = document.querySelector(".city-flight-video");
+  var montageLabel = document.getElementById("montage-label");
   var concertViewport = document.querySelector("#concert .viewport");
   var glassesViewport = document.querySelector("#glasses .viewport");
   var broadcastViewport = document.querySelector("#broadcast .viewport");
   var cityP = 0;
   var concertP = 0;
+
+  var CITY_FLIGHT_STOPS = [
+    "EAST RIVER RUN",
+    "BRIDGE DECK APPROACH",
+    "STREET-LEVEL ASCENT",
+    "MIDTOWN TOWER PASS",
+  ];
+
+  function updateCityFlightLabel(progress) {
+    if (!montageLabel) return;
+    var stopIndex = Math.min(CITY_FLIGHT_STOPS.length - 1, Math.floor(clamp01(progress) * CITY_FLIGHT_STOPS.length));
+    montageLabel.textContent = CITY_FLIGHT_STOPS[stopIndex];
+  }
+
+  function syncCityFlight() {
+    var flyP = smoother((cityP - 0.29) / 0.68);
+    updateCityFlightLabel(flyP);
+
+    if (!cityFlightVideo) return;
+    cityFlightVideo.playbackRate = 0.58;
+
+    var shouldFly = cityP > 0.27 && cityP < 0.99 && isInView(cityViewport) && !prefersReduced;
+    if (shouldFly) {
+      var playAttempt = cityFlightVideo.play();
+      if (playAttempt && typeof playAttempt.catch === "function") playAttempt.catch(function () {});
+    } else if (!cityFlightVideo.paused) {
+      cityFlightVideo.pause();
+    }
+  }
+
+  if (cityFlightVideo) {
+    cityFlightVideo.addEventListener("loadedmetadata", syncCityFlight);
+    cityFlightVideo.addEventListener("timeupdate", function () {
+      if (Number.isFinite(cityFlightVideo.duration) && cityFlightVideo.duration > 0) {
+        updateCityFlightLabel(cityFlightVideo.currentTime / cityFlightVideo.duration);
+      }
+    });
+  }
 
   function onScroll() {
     var vh = window.innerHeight;
@@ -58,13 +100,72 @@
       var viewport = scene.querySelector(".viewport");
       if (viewport) viewport.style.setProperty("--p", p.toFixed(4));
 
-      if (scene.id === "city") cityP = p;
+      if (scene.id === "city") {
+        cityP = p;
+        var cityFlightReveal = smoother((p - 0.405) / 0.16);
+        var citySceneExit = smoother((p - 0.86) / 0.14);
+        if (cityViewport) {
+          cityViewport.style.setProperty("--city-in", cityFlightReveal.toFixed(4));
+          cityViewport.style.setProperty("--scene-exit", citySceneExit.toFixed(4));
+        }
+        syncCityFlight();
+      }
       if (scene.id === "concert") concertP = p;
       if (scene.id === "glasses" && glassesViewport) {
-        if (p > 0.72) glassesViewport.setAttribute("data-lens", "open");
+        // Folded hero, quarter-turn to the left profile, exploded orbit,
+        // precision reassembly, then one wearer-side right-lens camera glide.
+        var templeFold = 1 - smooth(clamp01((p - 0.03) / 0.18));
+        var explode = 0;
+        if (p < 0.2) {
+          explode = 0;
+        } else if (p < 0.31) {
+          explode = smooth((p - 0.2) / 0.11);
+        } else if (p < 0.53) {
+          explode = 1;
+        } else if (p < 0.7) {
+          explode = 1 - smooth((p - 0.53) / 0.17);
+        }
+
+        var productOrbit =
+          p < 0.22
+            ? 0.25 * smooth(clamp01((p - 0.03) / 0.19))
+            : 0.25 + 0.75 * smooth(clamp01((p - 0.22) / 0.48));
+        // The wearer-side rotation and camera approach deliberately overlap:
+        // the right lens remains the camera target throughout one continuous glide.
+        var productTurn = smoother((p - 0.62) / 0.25);
+        var lensDive = smoother((p - 0.67) / 0.285);
+        // The live feed begins resolving through the glass before the camera
+        // arrives. Portal drives the optical bloom; HUD controls final focus.
+        var lensFeed = smoother((p - 0.82) / 0.155);
+        var lensPortal = smoother((p - 0.85) / 0.125);
+        var lensHud = smoother((p - 0.93) / 0.065);
+        var statusProduct = 1 - smooth(clamp01(p / 0.08));
+        var statusExploded =
+          smooth(clamp01((p - 0.17) / 0.08)) *
+          (1 - smooth(clamp01((p - 0.57) / 0.11)));
+        var statusComplete =
+          smooth(clamp01((p - 0.65) / 0.08)) *
+          (1 - smooth(clamp01((p - 0.86) / 0.07)));
+
+        glassesViewport.style.setProperty("--fold", templeFold.toFixed(4));
+        glassesViewport.style.setProperty("--explode", explode.toFixed(4));
+        glassesViewport.style.setProperty("--orbit", productOrbit.toFixed(4));
+        glassesViewport.style.setProperty("--turn", productTurn.toFixed(4));
+        glassesViewport.style.setProperty("--dive", lensDive.toFixed(4));
+        glassesViewport.style.setProperty("--feed", lensFeed.toFixed(4));
+        glassesViewport.style.setProperty("--portal", lensPortal.toFixed(4));
+        glassesViewport.style.setProperty("--hud", lensHud.toFixed(4));
+        glassesViewport.style.setProperty("--status-product", statusProduct.toFixed(4));
+        glassesViewport.style.setProperty("--status-exploded", statusExploded.toFixed(4));
+        glassesViewport.style.setProperty("--status-complete", statusComplete.toFixed(4));
+        glassesViewport.style.setProperty("--scene-exit", smoother((p - 0.945) / 0.055).toFixed(4));
+
+        if (p > 0.95) glassesViewport.setAttribute("data-lens", "open");
         else glassesViewport.removeAttribute("data-lens");
       }
       if (scene.id === "broadcast" && broadcastViewport) {
+        broadcastViewport.style.setProperty("--scene-enter", smoother(p / 0.12).toFixed(4));
+        broadcastViewport.style.setProperty("--scene-exit", smoother((p - 0.84) / 0.16).toFixed(4));
         if (p > 0.6) broadcastViewport.setAttribute("data-feed", "open");
         else broadcastViewport.removeAttribute("data-feed");
       }
@@ -84,6 +185,7 @@
     dots.forEach(function (dot) {
       dot.classList.toggle("active", dot.dataset.dot === active);
     });
+    document.body.dataset.activeScene = active || "";
   }
 
   var ticking = false;
@@ -1753,27 +1855,6 @@
     if (prefersReduced) drawCityFrame(4000);
   }
 
-  /* ---------- flyover captions ---------- */
-
-  var MONTAGE_STOPS = [
-    "FIFTH AVENUE FLYOVER",
-    "MIDTOWN CANYON SWEEP",
-    "BROOKLYN BRIDGE APPROACH",
-    "EMPIRE STATE GRID",
-    "EAST RIVER CROSSING",
-    "ONE WORLD TRADE CENTER",
-  ];
-  var montageLabel = document.getElementById("montage-label");
-  var montageLabelIdx = 0;
-  if (montageLabel && !prefersReduced) {
-    setInterval(function () {
-      if (cityP > 0.5 && isInView(cityViewport)) {
-        montageLabelIdx = (montageLabelIdx + 1) % MONTAGE_STOPS.length;
-        montageLabel.textContent = MONTAGE_STOPS[montageLabelIdx];
-      }
-    }, 3000);
-  }
-
   /* ============================================================
      K-POP HOLOGRAM STAGE (scene 03)
      Source: the "Kill This Love" MV chorus (1:13–1:15.2) — the
@@ -2302,10 +2383,10 @@
   buildCrowd("#concert .crowd.row-front", 42, 65, 120);
 
   /* ============================================================
-     SOCIALS BACKGROUND (scene 07) — open-channels transmission
-     grid: a radar sweep scans the sky, satellite nodes ping in
-     each platform's accent color, and connection lines light up
-     as the beam passes over them.
+     SOCIALS BACKGROUND (scene 06) — open-channels transmission
+     grid: a radar sweep scans a character constellation. Star
+     nodes trace a Pikachu-inspired silhouette and flare as the
+     beam passes over them.
      ============================================================ */
 
   var socialsCanvas = document.querySelector(".socials-canvas");
@@ -2314,6 +2395,9 @@
     var sctx = socialsCanvas.getContext("2d");
     var XW = 0, XH = 0;
     var nodes = [];
+    var constellationPaths = [];
+    var planets = [];
+    var socialsStartTime = null;
     var NODE_COLORS = [
       [255, 79, 216],   // instagram
       [255, 71, 87],    // youtube
@@ -2323,24 +2407,414 @@
       [79, 216, 255],   // system cyan
     ];
 
+    // The outer silhouette is traced from the supplied reference pose. Dense,
+    // hidden geometry keeps it accurate while a medium set of visible stars
+    // gives the second radar pass enough real anchors to connect.
+    var CHARACTER_PATHS = [
+      // Exact exterior: tail, feet, body, reaching arm, head, ears, and wave.
+      {
+        closed: true,
+        smooth: false,
+        color: [255, 211, 72],
+        stars: 32,
+        lineWidth: 1.7,
+        points: [
+          [1.000, 0.617], [0.872, 0.742], [0.692, 0.695], [0.631, 0.787],
+          [0.592, 0.778], [0.584, 0.847], [0.528, 0.841], [0.538, 0.901],
+          [0.520, 0.936], [0.580, 0.967], [0.596, 0.985], [0.593, 0.999],
+          [0.555, 0.996], [0.450, 0.971], [0.438, 0.953], [0.292, 0.927],
+          [0.208, 0.936], [0.200, 0.950], [0.115, 0.965], [0.054, 0.965],
+          [0.050, 0.954], [0.064, 0.938], [0.112, 0.919], [0.092, 0.883],
+          [0.088, 0.856], [0.159, 0.659], [0.154, 0.650], [0.116, 0.632],
+          [0.103, 0.615], [0.092, 0.588], [0.095, 0.564], [0.103, 0.545],
+          [0.130, 0.523], [0.166, 0.513], [0.205, 0.510], [0.178, 0.442],
+          [0.176, 0.408], [0.184, 0.383], [0.214, 0.341], [0.238, 0.281],
+          [0.259, 0.250], [0.192, 0.227], [0.122, 0.185], [0.039, 0.110],
+          [0.000, 0.062], [0.005, 0.058], [0.057, 0.069], [0.157, 0.103],
+          [0.247, 0.155], [0.314, 0.212], [0.420, 0.210], [0.482, 0.231],
+          [0.538, 0.264], [0.551, 0.174], [0.576, 0.090], [0.611, 0.024],
+          [0.634, 0.000], [0.643, 0.022], [0.647, 0.063], [0.645, 0.168],
+          [0.623, 0.260], [0.585, 0.335], [0.585, 0.372], [0.565, 0.454],
+          [0.565, 0.482], [0.573, 0.485], [0.616, 0.467], [0.681, 0.459],
+          [0.686, 0.462], [0.685, 0.474], [0.704, 0.490], [0.700, 0.508],
+          [0.685, 0.527], [0.688, 0.544], [0.792, 0.554], [0.869, 0.569],
+          [0.953, 0.595],
+        ],
+      },
+      // Ear-tip divisions follow the same angled shapes as the reference.
+      {
+        closed: true,
+        smooth: false,
+        color: [88, 42, 38],
+        stars: 2,
+        fillAlpha: 0.16,
+        points: [[0.000, 0.062], [0.057, 0.069], [0.122, 0.185], [0.039, 0.110]],
+      },
+      {
+        closed: true,
+        smooth: false,
+        color: [88, 42, 38],
+        stars: 2,
+        fillAlpha: 0.16,
+        points: [[0.634, 0.000], [0.647, 0.063], [0.645, 0.147], [0.576, 0.090], [0.611, 0.024]],
+      },
+      // Circular, offset eyes and highlights preserve the head's real tilt.
+      {
+        closed: true,
+        color: [88, 42, 38],
+        stars: 3,
+        fillAlpha: 0.34,
+        lineWidth: 1.3,
+        points: [[0.257, 0.336], [0.266, 0.313], [0.288, 0.304], [0.310, 0.313], [0.319, 0.336], [0.310, 0.359], [0.288, 0.368], [0.266, 0.359]],
+      },
+      {
+        closed: true,
+        color: [88, 42, 38],
+        stars: 3,
+        fillAlpha: 0.34,
+        lineWidth: 1.3,
+        points: [[0.472, 0.398], [0.481, 0.375], [0.503, 0.366], [0.525, 0.375], [0.534, 0.398], [0.525, 0.421], [0.503, 0.430], [0.481, 0.421]],
+      },
+      {
+        closed: true,
+        color: [245, 252, 255],
+        fillAlpha: 0.82,
+        lineWidth: 0.85,
+        points: [[0.281, 0.326], [0.288, 0.315], [0.300, 0.318], [0.303, 0.331], [0.293, 0.339]],
+      },
+      {
+        closed: true,
+        color: [245, 252, 255],
+        fillAlpha: 0.82,
+        lineWidth: 0.85,
+        points: [[0.496, 0.387], [0.503, 0.376], [0.515, 0.379], [0.518, 0.392], [0.508, 0.400]],
+      },
+      // Small button nose.
+      {
+        closed: true,
+        color: [88, 42, 38],
+        stars: 1,
+        fillAlpha: 0.62,
+        lineWidth: 0.8,
+        points: [[0.376, 0.378], [0.386, 0.373], [0.395, 0.380], [0.386, 0.386]],
+      },
+      // Open smile and tongue, positioned from the reference rather than centered.
+      {
+        closed: true,
+        color: [121, 43, 43],
+        stars: 5,
+        fillAlpha: 0.2,
+        lineWidth: 1.35,
+        points: [[0.309, 0.395], [0.348, 0.404], [0.382, 0.397], [0.418, 0.413], [0.451, 0.431], [0.437, 0.467], [0.410, 0.510], [0.383, 0.538], [0.356, 0.526], [0.335, 0.490], [0.321, 0.445]],
+      },
+      {
+        closed: true,
+        color: [255, 124, 143],
+        stars: 2,
+        fillAlpha: 0.24,
+        lineWidth: 1,
+        points: [[0.337, 0.465], [0.372, 0.455], [0.410, 0.470], [0.437, 0.490], [0.409, 0.522], [0.382, 0.536], [0.355, 0.522]],
+      },
+      // The cheeks are tall ovals in this tilted pose, not generic circles.
+      {
+        closed: true,
+        color: [244, 75, 75],
+        stars: 3,
+        fillAlpha: 0.12,
+        points: [[0.179, 0.408], [0.186, 0.375], [0.203, 0.361], [0.220, 0.375], [0.227, 0.408], [0.220, 0.441], [0.203, 0.455], [0.186, 0.441]],
+      },
+      {
+        closed: true,
+        color: [244, 75, 75],
+        stars: 3,
+        fillAlpha: 0.12,
+        points: [[0.498, 0.512], [0.507, 0.483], [0.530, 0.471], [0.553, 0.483], [0.562, 0.512], [0.553, 0.541], [0.530, 0.553], [0.507, 0.541]],
+      },
+      // Interior arm seams make the pose readable without redrawing the silhouette.
+      {
+        closed: false,
+        color: [247, 173, 52],
+        stars: 3,
+        lineWidth: 1.1,
+        points: [[0.322, 0.557], [0.337, 0.570], [0.328, 0.579], [0.339, 0.589], [0.326, 0.596], [0.335, 0.606], [0.302, 0.632]],
+      },
+      {
+        closed: false,
+        color: [247, 173, 52],
+        stars: 3,
+        lineWidth: 1.1,
+        points: [[0.450, 0.586], [0.520, 0.556], [0.590, 0.530], [0.670, 0.490]],
+      },
+      // Red tail root and two subtle foot creases.
+      {
+        closed: true,
+        smooth: false,
+        color: [224, 69, 56],
+        stars: 2,
+        fillAlpha: 0.1,
+        points: [[0.550, 0.790], [0.592, 0.778], [0.584, 0.847], [0.528, 0.841]],
+      },
+      {
+        closed: false,
+        color: [247, 173, 52],
+        stars: 2,
+        lineWidth: 1,
+        points: [[0.108, 0.950], [0.145, 0.933], [0.200, 0.936]],
+      },
+      {
+        closed: false,
+        color: [247, 173, 52],
+        stars: 2,
+        lineWidth: 1,
+        points: [[0.450, 0.971], [0.520, 0.982], [0.580, 0.967]],
+      },
+    ];
+
+    function addCharacterPath(path, artX, artY, artW, artH, spacing) {
+      var sampledPoints = [];
+      var segmentCount = path.closed ? path.points.length : path.points.length - 1;
+
+      function pointAt(index) {
+        if (path.closed) {
+          return path.points[(index + path.points.length) % path.points.length];
+        }
+        return path.points[Math.max(0, Math.min(path.points.length - 1, index))];
+      }
+
+      for (var seg = 0; seg < segmentCount; seg++) {
+        var p0 = pointAt(seg - 1);
+        var p1 = pointAt(seg);
+        var p2 = pointAt(seg + 1);
+        var p3 = pointAt(seg + 2);
+        var x1 = p1[0] * artW;
+        var y1 = p1[1] * artH;
+        var x2 = p2[0] * artW;
+        var y2 = p2[1] * artH;
+        var length = Math.hypot(x2 - x1, y2 - y1);
+        var steps = Math.max(2, Math.ceil(length / spacing));
+
+        for (var step = 0; step < steps; step++) {
+          var t = step / steps;
+          var tx;
+          var ty;
+          if (path.smooth === false) {
+            tx = p1[0] + (p2[0] - p1[0]) * t;
+            ty = p1[1] + (p2[1] - p1[1]) * t;
+          } else {
+            // Centripetal-looking Catmull-Rom interpolation: the source
+            // points describe the pose while the generated trace stays round.
+            var t2 = t * t;
+            var t3 = t2 * t;
+            tx = 0.5 * (
+              2 * p1[0] +
+              (-p0[0] + p2[0]) * t +
+              (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 +
+              (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3
+            );
+            ty = 0.5 * (
+              2 * p1[1] +
+              (-p0[1] + p2[1]) * t +
+              (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 +
+              (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3
+            );
+          }
+          sampledPoints.push({
+            x: artX + tx * artW,
+            y: artY + ty * artH,
+          });
+        }
+      }
+
+      if (!path.closed) {
+        var finalPoint = path.points[path.points.length - 1];
+        sampledPoints.push({
+          x: artX + finalPoint[0] * artW,
+          y: artY + finalPoint[1] * artH,
+        });
+      }
+
+      var visibleStars = {};
+      var visibleStarCount = path.stars || 0;
+      for (var starIndex = 0; starIndex < visibleStarCount; starIndex++) {
+        var starPosition = visibleStarCount === 1
+          ? Math.floor(sampledPoints.length * 0.5)
+          : Math.floor((starIndex / (path.closed ? visibleStarCount : visibleStarCount - 1)) * (sampledPoints.length - 1));
+        visibleStars[starPosition] = true;
+      }
+
+      var pathNodes = [];
+      var pathPhase = (constellationPaths.length + 1) * 1.618;
+      for (var sampleIndex = 0; sampleIndex < sampledPoints.length; sampleIndex++) {
+        var sample = sampledPoints[sampleIndex];
+        var nodeIndex = nodes.length;
+        var sizeVariation = ((nodeIndex * 37) % 11) / 11;
+        var brightnessVariation = ((nodeIndex * 53) % 17) / 17;
+        nodes.push({
+          x: sample.x,
+          y: sample.y,
+          drift: 0.018,
+          phase: pathPhase + sampleIndex * 0.012,
+          color: path.color,
+          fieldColor: [175, 221, 255],
+          ping: 0,
+          character: true,
+          visibleStar: !!visibleStars[sampleIndex],
+          spark: !!visibleStars[sampleIndex],
+          size: 1.05 + sizeVariation * 1.05,
+          brightness: 0.26 + brightnessVariation * 0.56,
+          connectionReveal: 0,
+        });
+        pathNodes.push(nodeIndex);
+      }
+
+      constellationPaths.push({
+        nodes: pathNodes,
+        closed: path.closed,
+        color: path.color,
+        fillAlpha: path.fillAlpha || 0,
+        lineWidth: path.lineWidth || 1.45,
+      });
+    }
+
     var resizeSocials = function () {
       XW = socialsCanvas.offsetWidth;
       XH = socialsCanvas.offsetHeight;
       socialsCanvas.width = XW * DPR;
       socialsCanvas.height = XH * DPR;
       nodes = [];
-      var count = Math.max(26, Math.floor(XW / 42));
+      constellationPaths = [];
+      planets = [];
+
+      var artW = Math.min(XW * (XW < 700 ? 0.92 : 0.72), XH * 0.78);
+      var artH = Math.min(XH * 0.78, artW * 1.08);
+      var artX = (XW - artW) * 0.5;
+      var artY = XH * 0.11;
+      // Geometry is sampled densely for a continuous antialiased stroke. Only
+      // each path's small `stars` allowance is visible before the reveal.
+      var spacing = Math.max(5, Math.min(9, artW / 80));
+      for (var pathIndex = 0; pathIndex < CHARACTER_PATHS.length; pathIndex++) {
+        addCharacterPath(CHARACTER_PATHS[pathIndex], artX, artY, artW, artH, spacing);
+      }
+
+      // These unconnected stars sit inside and just beyond the eventual
+      // silhouette. On pass one they keep the future character points from
+      // reading as an isolated dotted outline; pass two selects only the
+      // correct stars from this busier patch of sky.
+      var localStarCount = Math.max(32, Math.floor(artW / 20));
+      for (var localIndex = 0; localIndex < localStarCount; localIndex++) {
+        var localSeed = ((localIndex + 17) * 9301 + 49297) % 233280;
+        var localR1 = (localSeed = (localSeed * 9301 + 49297) % 233280) / 233280;
+        var localR2 = (localSeed = (localSeed * 9301 + 49297) % 233280) / 233280;
+        var localR3 = (localSeed = (localSeed * 9301 + 49297) % 233280) / 233280;
+        // Two overlapping clouds: one inside the body and another extending
+        // beyond every side of the eventual outline.
+        var localX = localIndex % 3 === 0
+          ? -0.1 + localR1 * 1.2
+          : 0.12 + localR1 * 0.72;
+        var localY = localIndex % 3 === 0
+          ? 0.01 + localR2 * 1.01
+          : 0.16 + localR2 * 0.76;
+        nodes.push({
+          x: artX + localX * artW,
+          y: artY + localY * artH,
+          drift: 0.07 + (localIndex % 4) * 0.025,
+          phase: localIndex * 1.41,
+          color: NODE_COLORS[(localIndex + 2) % NODE_COLORS.length],
+          ping: 0,
+          character: false,
+          spark: localIndex % 9 === 0,
+          size: 0.55 + localR3 * 1.75,
+          brightness: 0.14 + localR1 * 0.56,
+        });
+      }
+
+      // A small irregular halo hugs both sides of the future silhouette. It
+      // makes the selected anchors feel discovered among neighboring stars,
+      // rather than pre-arranged as a recognizable dotted frame.
+      var HALO_STAR_POINTS = [
+        [-0.02, 0.32], [0.11, 0.16], [0.50, 0.15], [0.91, 0.35],
+        [0.98, 0.62], [0.82, 0.83], [0.68, 0.99], [0.37, 1.01],
+        [0.14, 0.89], [0.04, 0.65], [0.31, 0.69], [0.58, 0.73],
+      ];
+      for (var haloIndex = 0; haloIndex < HALO_STAR_POINTS.length; haloIndex++) {
+        var haloPoint = HALO_STAR_POINTS[haloIndex];
+        nodes.push({
+          x: artX + haloPoint[0] * artW,
+          y: artY + haloPoint[1] * artH,
+          drift: 0.08 + (haloIndex % 3) * 0.025,
+          phase: haloIndex * 1.73,
+          color: NODE_COLORS[(haloIndex + 5) % NODE_COLORS.length],
+          ping: 0,
+          character: false,
+          spark: haloIndex % 7 === 0,
+          size: 0.65 + ((haloIndex * 5) % 8) * 0.18,
+          brightness: 0.2 + ((haloIndex * 7) % 9) * 0.055,
+        });
+      }
+
+      // Populate the quieter left and right edges with a proper star field.
+      // The center stays calmer so the social tiles and constellation can read.
+      var count = Math.max(24, Math.floor(XW / 50));
       for (var i = 0; i < count; i++) {
         var s = ((i + 3) * 9301 + 49297) % 233280;
         var r1 = (s = (s * 9301 + 49297) % 233280) / 233280;
         var r2 = (s = (s * 9301 + 49297) % 233280) / 233280;
         var r3 = (s = (s * 9301 + 49297) % 233280) / 233280;
+        var sideX = i % 2 === 0 ? r1 * 0.27 : 0.73 + r1 * 0.27;
         nodes.push({
-          x: r1 * XW,
-          y: r2 * XH,
+          x: sideX * XW,
+          y: (0.07 + r2 * 0.82) * XH,
           drift: 0.12 + r3 * 0.25,
           phase: r3 * Math.PI * 2,
           color: NODE_COLORS[i % NODE_COLORS.length],
+          ping: 0,
+          character: false,
+          spark: i % 8 === 0,
+          size: 0.7 + r3 * 1.35,
+          brightness: 0.18 + r1 * 0.52,
+        });
+      }
+
+      // A small irregular pocket keeps the left edge from feeling empty.
+      var leftFillCount = Math.max(10, Math.floor(XW / 125));
+      for (var leftIndex = 0; leftIndex < leftFillCount; leftIndex++) {
+        var leftSeed = ((leftIndex + 41) * 11003 + 7919) % 233280;
+        var leftR1 = (leftSeed = (leftSeed * 9301 + 49297) % 233280) / 233280;
+        var leftR2 = (leftSeed = (leftSeed * 9301 + 49297) % 233280) / 233280;
+        var leftR3 = (leftSeed = (leftSeed * 9301 + 49297) % 233280) / 233280;
+        nodes.push({
+          x: (0.025 + leftR1 * 0.31) * XW,
+          y: (0.09 + leftR2 * 0.8) * XH,
+          drift: 0.09 + leftR3 * 0.2,
+          phase: leftIndex * 1.27,
+          color: NODE_COLORS[(leftIndex + 3) % NODE_COLORS.length],
+          ping: 0,
+          character: false,
+          spark: leftIndex % 11 === 0,
+          size: 0.55 + leftR3 * 1.5,
+          brightness: 0.12 + leftR1 * 0.48,
+        });
+      }
+
+      var planetScale = Math.max(0.72, Math.min(1, XW / 1280));
+      var PLANET_LAYOUT = [
+        [0.075, 0.23, 18, [79, 216, 255], true, -0.18],
+        [0.17, 0.72, 10, [255, 79, 216], false, 0.32],
+        [0.105, 0.48, 7, [125, 255, 158], false, -0.4],
+        [0.91, 0.19, 23, [138, 92, 255], true, 0.28],
+        [0.94, 0.62, 13, [79, 168, 255], true, -0.3],
+        [0.82, 0.84, 8, [255, 133, 187], false, 0.16],
+      ];
+      for (var planetIndex = 0; planetIndex < PLANET_LAYOUT.length; planetIndex++) {
+        var planetDef = PLANET_LAYOUT[planetIndex];
+        planets.push({
+          x: planetDef[0] * XW,
+          y: planetDef[1] * XH,
+          r: planetDef[2] * planetScale,
+          color: planetDef[3],
+          ring: planetDef[4],
+          tilt: planetDef[5],
+          phase: planetIndex * 1.37,
           ping: 0,
         });
       }
@@ -2355,7 +2829,10 @@
       var cx = XW / 2;
       var cy = XH * 0.62;
       var maxR = Math.sqrt(XW * XW + XH * XH) * 0.62;
-      var sweep = (time * 0.00045) % (Math.PI * 2);
+      var TAU = Math.PI * 2;
+      var sweepTravel = time * 0.00085;
+      var sweep = sweepTravel % TAU;
+      var sweepCycle = Math.floor(sweepTravel / TAU);
 
       // concentric channel rings
       sctx.strokeStyle = "rgba(79,216,255,0.07)";
@@ -2374,6 +2851,65 @@
         sctx.lineTo(cx + Math.cos(sa) * maxR, cy + Math.sin(sa) * maxR);
         sctx.stroke();
       }
+
+      // First pass: a populated little solar system. The planets remain in
+      // view while pass two selects the stars that form the character.
+      for (var planetDrawIndex = 0; planetDrawIndex < planets.length; planetDrawIndex++) {
+        var planet = planets[planetDrawIndex];
+        var px = planet.x + Math.sin(time * 0.00016 + planet.phase) * 2.5;
+        var py = planet.y + Math.cos(time * 0.00012 + planet.phase) * 1.8;
+        var planetAngle = Math.atan2(py - cy, px - cx);
+        if (planetAngle < 0) planetAngle += TAU;
+        var planetDiff = (sweep - planetAngle + TAU) % TAU;
+        if (planetDiff < 0.075) planet.ping = 1;
+        planet.ping *= 0.957;
+
+        var pc = planet.color;
+        var planetGlow = sctx.createRadialGradient(
+          px - planet.r * 0.32,
+          py - planet.r * 0.34,
+          planet.r * 0.08,
+          px,
+          py,
+          planet.r * 1.15
+        );
+        planetGlow.addColorStop(0, "rgba(255,255,255,0.88)");
+        planetGlow.addColorStop(0.18, "rgba(" + pc[0] + "," + pc[1] + "," + pc[2] + ",0.7)");
+        planetGlow.addColorStop(0.72, "rgba(" + pc[0] + "," + pc[1] + "," + pc[2] + ",0.22)");
+        planetGlow.addColorStop(1, "rgba(" + pc[0] + "," + pc[1] + "," + pc[2] + ",0)");
+        sctx.beginPath();
+        sctx.arc(px, py, planet.r * 1.15, 0, TAU);
+        sctx.fillStyle = planetGlow;
+        sctx.shadowColor = "rgba(" + pc[0] + "," + pc[1] + "," + pc[2] + ",0.55)";
+        sctx.shadowBlur = 8 + planet.ping * 18;
+        sctx.fill();
+
+        sctx.beginPath();
+        sctx.arc(px, py, planet.r * (1 + planet.ping * 0.07), 0, TAU);
+        sctx.strokeStyle = "rgba(" + pc[0] + "," + pc[1] + "," + pc[2] + "," + (0.38 + planet.ping * 0.5).toFixed(2) + ")";
+        sctx.lineWidth = 1;
+        sctx.stroke();
+
+        if (planet.ring) {
+          sctx.save();
+          sctx.translate(px, py);
+          sctx.rotate(planet.tilt);
+          sctx.beginPath();
+          sctx.ellipse(0, 0, planet.r * 1.85, planet.r * 0.48, 0, 0, TAU);
+          sctx.strokeStyle = "rgba(" + pc[0] + "," + pc[1] + "," + pc[2] + "," + (0.22 + planet.ping * 0.5).toFixed(2) + ")";
+          sctx.lineWidth = 1.1;
+          sctx.stroke();
+          sctx.restore();
+        }
+
+        if (planet.ping > 0.32) {
+          sctx.beginPath();
+          sctx.arc(px, py, planet.r * 1.45 + (1 - planet.ping) * 18, 0, TAU);
+          sctx.strokeStyle = "rgba(" + pc[0] + "," + pc[1] + "," + pc[2] + "," + (planet.ping * 0.3).toFixed(2) + ")";
+          sctx.stroke();
+        }
+      }
+      sctx.shadowBlur = 0;
 
       // radar sweep beam with trailing wedge
       var TRAIL = 1.15;
@@ -2399,50 +2935,112 @@
       sctx.lineWidth = 1.5;
       sctx.stroke();
 
-      // nodes: drift slowly, ping when the beam passes
+      // Update every star first so the connecting silhouette and its nodes
+      // flare together as the radar beam crosses them.
       for (var n = 0; n < nodes.length; n++) {
         var nd = nodes[n];
-        var nx = nd.x + Math.sin(time * 0.0003 + nd.phase) * 14 * nd.drift;
-        var ny = nd.y + Math.cos(time * 0.00024 + nd.phase * 1.7) * 10 * nd.drift;
+        nd.drawX = nd.x + Math.sin(time * 0.0003 + nd.phase) * 14 * nd.drift;
+        nd.drawY = nd.y + Math.cos(time * 0.00024 + nd.phase * 1.7) * 10 * nd.drift;
 
-        var na = Math.atan2(ny - cy, nx - cx);
+        var na = Math.atan2(nd.drawY - cy, nd.drawX - cx);
+        if (na < 0) na += TAU;
         var diff = (sweep - na) % (Math.PI * 2);
         if (diff < 0) diff += Math.PI * 2;
-        if (diff < 0.06) nd.ping = 1;
-        nd.ping *= 0.985;
+        nd.reveal = 1;
+        if (nd.character) {
+          if (sweepCycle < 1) nd.connectionReveal = 0;
+          else if (sweepCycle === 1) nd.connectionReveal = clamp01((sweep - na + 0.07) / 0.18);
+          else nd.connectionReveal = 1;
+        } else {
+          nd.connectionReveal = 0;
+        }
+        if (diff < 0.052) nd.ping = 1;
+        nd.ping *= 0.952;
+      }
 
-        var c = nd.color;
-        var base = 0.22 + nd.ping * 0.78;
-        sctx.beginPath();
-        sctx.arc(nx, ny, 1.6 + nd.ping * 1.6, 0, Math.PI * 2);
-        sctx.fillStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + base.toFixed(2) + ")";
-        sctx.fill();
-
-        if (nd.ping > 0.05) {
+      // The second pass reveals complete antialiased paths through a sector
+      // clip. This keeps curves continuous instead of painting many short,
+      // independently glowing segments that read as pixels.
+      if (sweepCycle >= 1) {
+        sctx.save();
+        if (sweepCycle === 1) {
           sctx.beginPath();
-          sctx.arc(nx, ny, 4 + (1 - nd.ping) * 26, 0, Math.PI * 2);
-          sctx.strokeStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + (nd.ping * 0.5).toFixed(2) + ")";
-          sctx.lineWidth = 1.2;
+          sctx.moveTo(cx, cy);
+          sctx.arc(cx, cy, maxR * 1.3, 0, Math.max(0.0001, sweep));
+          sctx.closePath();
+          sctx.clip();
+        }
+
+        sctx.lineCap = "round";
+        sctx.lineJoin = "round";
+        for (var pathDrawIndex = 0; pathDrawIndex < constellationPaths.length; pathDrawIndex++) {
+          var constellationPath = constellationPaths[pathDrawIndex];
+          var pathNodeIndices = constellationPath.nodes;
+          if (!pathNodeIndices.length) continue;
+          var pathColor = constellationPath.color || [255, 211, 72];
+
+          sctx.beginPath();
+          var firstPathNode = nodes[pathNodeIndices[0]];
+          sctx.moveTo(firstPathNode.drawX, firstPathNode.drawY);
+          for (var pathPointIndex = 1; pathPointIndex < pathNodeIndices.length; pathPointIndex++) {
+            var pathPoint = nodes[pathNodeIndices[pathPointIndex]];
+            sctx.lineTo(pathPoint.drawX, pathPoint.drawY);
+          }
+          if (constellationPath.closed) sctx.closePath();
+
+          if (constellationPath.fillAlpha > 0) {
+            sctx.fillStyle = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + "," + constellationPath.fillAlpha.toFixed(2) + ")";
+            sctx.fill();
+          }
+
+          sctx.shadowColor = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + ",0.72)";
+          sctx.shadowBlur = 10;
+          sctx.strokeStyle = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + ",0.24)";
+          sctx.lineWidth = constellationPath.lineWidth * 2.4;
+          sctx.stroke();
+
+          sctx.shadowBlur = 0;
+          sctx.strokeStyle = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + ",0.88)";
+          sctx.lineWidth = constellationPath.lineWidth;
           sctx.stroke();
         }
+        sctx.restore();
+      }
 
-        // transmission lines to nearby pinged nodes
-        if (nd.ping > 0.2) {
-          for (var n2 = n + 1; n2 < nodes.length; n2++) {
-            var other = nodes[n2];
-            if (other.ping < 0.2) continue;
-            var dx = nd.x - other.x, dy = nd.y - other.y;
-            var d2 = dx * dx + dy * dy;
-            if (d2 > 240 * 240) continue;
-            sctx.beginPath();
-            sctx.moveTo(nx, ny);
-            sctx.lineTo(other.x, other.y);
-            sctx.strokeStyle = "rgba(79,216,255," + (Math.min(nd.ping, other.ping) * 0.35).toFixed(2) + ")";
-            sctx.lineWidth = 1;
-            sctx.stroke();
-          }
+      // Draw the star nodes over the traced silhouette.
+      for (var nDraw = 0; nDraw < nodes.length; nDraw++) {
+        var ndDraw = nodes[nDraw];
+        if (ndDraw.character && !ndDraw.visibleStar) continue;
+        var nx = ndDraw.drawX;
+        var ny = ndDraw.drawY;
+
+        var selected = ndDraw.character ? (ndDraw.connectionReveal || 0) : 0;
+        var fieldColor = ndDraw.fieldColor || ndDraw.color;
+        var c = [
+          Math.round(fieldColor[0] + (ndDraw.color[0] - fieldColor[0]) * selected),
+          Math.round(fieldColor[1] + (ndDraw.color[1] - fieldColor[1]) * selected),
+          Math.round(fieldColor[2] + (ndDraw.color[2] - fieldColor[2]) * selected),
+        ];
+        var brightness = ndDraw.brightness == null ? 0.4 : ndDraw.brightness;
+        var base = Math.min(1, brightness + ndDraw.ping * 0.48 + selected * 0.18);
+        var starRadius = (ndDraw.size || 1.1) + selected * 0.35;
+        sctx.beginPath();
+        sctx.arc(nx, ny, starRadius + ndDraw.ping * 1.8, 0, Math.PI * 2);
+        sctx.fillStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + base.toFixed(2) + ")";
+        sctx.shadowColor = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + (0.25 + ndDraw.ping * 0.7).toFixed(2) + ")";
+        sctx.shadowBlur = 2 + brightness * 4 + selected * 4 + ndDraw.ping * 12;
+        sctx.fill();
+
+        if (ndDraw.ping > 0.38 && ndDraw.spark) {
+          sctx.beginPath();
+          sctx.arc(nx, ny, 4 + (1 - ndDraw.ping) * 14, 0, Math.PI * 2);
+          sctx.strokeStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + (ndDraw.ping * 0.38).toFixed(2) + ")";
+          sctx.lineWidth = 1.2;
+          sctx.shadowBlur = 0;
+          sctx.stroke();
         }
       }
+      sctx.shadowBlur = 0;
 
       // drifting waveform along the bottom
       sctx.beginPath();
@@ -2459,7 +3057,16 @@
     }
 
     (function socialsLoop(time) {
-      if (isInView(contactSection)) drawSocials(time || 0);
+      var contactRect = contactSection.getBoundingClientRect();
+      var socialsFocused =
+        contactRect.top < window.innerHeight * 0.58 &&
+        contactRect.bottom > window.innerHeight * 0.42;
+      if (socialsFocused) {
+        if (socialsStartTime === null) socialsStartTime = time || 0;
+        drawSocials((time || 0) - socialsStartTime);
+      } else {
+        socialsStartTime = null;
+      }
       requestAnimationFrame(socialsLoop);
     })(0);
   }

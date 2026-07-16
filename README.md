@@ -8,19 +8,19 @@ no build step, works on GitHub Pages as-is.
 1. **Boot** — arc-reactor hero with typewriter boot line. Scrolling zooms through the reactor.
 2. **New York** — a wireframe holographic Earth spins with gold pings over every place
    visited (Switzerland, Mexico, Canada, China, Japan, South Korea, England, Iceland,
-   France, Spain, Italy), locks onto NYC, and the camera dives into a landmark skyline
-   (One WTC, Empire State, Chrysler, Brooklyn Bridge). A "personnel file" intro panel
-   slides in over the skyline (placeholder text). Park for ~2.5s and the city montage pans.
-3. **Encore** — k-pop concert: spotlit holographic stage, a dance line snapping into the
-   finger-gun chorus pose with strobe hits, then the whole stage pixelates away
-   into an aurora afterglow.
-4. **Broadcast** — a white cursor flies in and clicks the Instagram icon; the reel
-   feed blooms out of the click with three linked reels + follow button.
-5. **Project Hangar** — six holographic project bays. Bay 01 links to the poker build.
-6. **Stark Optics** — exploded Meta glasses components fly together as you scroll,
-   the assembled frames rotate, then the camera dives into the right lens revealing
-   the Poker Copilot HUD (github.com/ColinHu07/poker).
-7. **Socials** — Instagram, YouTube, GitHub, LinkedIn, email tiles.
+   France, Spain, Italy), locks onto NYC, and dives into a real, native-resolution drone
+   flight through the Manhattan street canyon. A personnel-file intro panel glides over
+   the footage near the end of the pass.
+3. **Broadcast** — a white cursor flies in and clicks the Instagram icon; the reel
+   feed blooms out of the click with three linked reels, real reel thumbnails, and a
+   follow button.
+4. **Project Hangar** — six holographic project bays. Bay 01 links to the poker build.
+5. **Meta Display Optics** — a physically lit Three.js product model separates into
+   parallel hardware layers during a full studio turntable, reassembles, and rotates
+   to the wearer side. The camera then eases through the right display into a recreated
+   Poker Copilot HUD (github.com/ColinHu07/poker). No reference footage or screenshot
+   is shipped.
+6. **Socials** — Instagram, YouTube, GitHub, LinkedIn, email tiles.
 
 ## Edit the content
 
@@ -30,9 +30,10 @@ no build step, works on GitHub Pages as-is.
 - Poker lens content: `index.html`, search for `lens-view`.
 - Socials: `index.html`, search for `socials-grid`.
 - Visited places on the globe: `script.js`, `VISITED` array.
-- Montage stops: `script.js`, `MONTAGE_STOPS` array.
+- Drone-flight labels: `script.js`, `CITY_FLIGHT_STOPS` array.
 - Parallax feel: each scrubbed scene reads a `--p` (0..1) variable set by `script.js`;
   the transforms live in `styles.css` per scene.
+- Glasses geometry, materials, lighting, and camera: `glasses-product.js`.
 
 ## Preview locally
 
