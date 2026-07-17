@@ -23,7 +23,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Orbitron:wght@600;700;900&amp;family=Rajdhani:wght@500;600;700&amp;display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="hydroheight.css?v=20260716-4" />
+    <link rel="stylesheet" href="hydroheight.css?v=20260717-6" />
     <link rel="stylesheet" href="../../project-bottom.css?v=20260716" />
   </head>
   <body>
@@ -44,7 +44,7 @@
       <section class="hydro-scene" aria-labelledby="hero-title">
         <div class="hydro-stage">
           <div class="world" aria-hidden="true">
-            <img src="../../assets/hydroheight-river-v1.png" alt="" />
+            <img src="../../assets/hydroheight-river-v2.jpg?v=20260717-1" alt="" />
             <canvas class="segmentation-canvas" data-waterline></canvas>
             <div class="beam beam-history"><span></span></div>
             <div class="beam beam-live"><span></span></div>
@@ -174,6 +174,15 @@
       </section>
 
       <section class="method-section" id="method" aria-labelledby="method-title">
+        <div class="method-transition" data-method-transition aria-hidden="true">
+          <span class="transition-grid"></span>
+          <span class="transition-orbit"></span>
+          <span class="transition-rail"></span>
+          <span class="transition-node"></span>
+          <p><span>Pixels</span><i>&rarr;</i><span>Pose</span><i>&rarr;</i><span>Height</span></p>
+          <small>Resolve the viewing ray</small>
+        </div>
+
         <div class="section-intro">
           <p class="eyebrow"><span>Method</span> From pixels to a physical reading</p>
           <h2 id="method-title">One fixed view.<br />Three knowns.</h2>
@@ -211,6 +220,22 @@
 
       <section class="geometry-section" id="geometry" aria-labelledby="geometry-title">
         <div class="geometry-visual" aria-hidden="true">
+          <img
+            class="geometry-field-image"
+            src="../../assets/hydroheight-geometry-field-v1.png?v=20260717-3"
+            alt=""
+            data-geometry-field
+            data-lens-x="326"
+            data-lens-y="608"
+            data-pier-x="870"
+            data-reference-y="610"
+            data-live-y="800"
+          />
+          <img
+            class="geometry-equipment-image"
+            src="../../assets/hydroheight-geometry-equipment-v4.jpg?v=20260717-3"
+            alt=""
+          />
           <div class="geo-water old"></div>
           <div class="geo-water current"></div>
           <div class="geo-ray old" data-geo-ray="reference"></div>
@@ -218,10 +243,7 @@
           <div class="geo-pier"></div>
           <span class="geo-target reference" data-geo-target="reference"></span>
           <span class="geo-target current" data-geo-target="current"></span>
-          <div class="geo-camera-rig">
-            <img src="../../assets/hydroheight-camera-rig-v1.png" alt="" />
-            <span class="geo-ray-origin" data-geo-origin></span>
-          </div>
+          <span class="geo-ray-origin" data-geo-origin></span>
           <span class="delta-line"></span>
           <p class="geo-label camera">Known camera pose</p>
           <p class="geo-label reference">Reference level</p>
@@ -244,6 +266,83 @@
         </div>
       </section>
 
+      <section class="threshold-section" id="thresholds" aria-labelledby="threshold-title">
+        <div class="threshold-heading">
+          <p class="eyebrow"><span>Risk model</span> From a reading to a warning</p>
+          <h2 id="threshold-title">One river.<br />Two time scales.</h2>
+          <p>
+            A height reading only becomes useful when it has context. HydroHeight
+            compares each measurement with both a recent local baseline and a
+            month-specific historical baseline to identify flood and drought risk.
+          </p>
+        </div>
+
+        <div class="threshold-models">
+          <article class="threshold-card threshold-card--micro">
+            <header>
+              <span>01 // Microscopic</span>
+              <strong>Local signal</strong>
+            </header>
+            <p>
+              Built from USGS observations collected from September to October 2024.
+              It reacts to short-term departures, but does not correct for seasonal change.
+            </p>
+            <div class="sigma-scale" aria-label="Microscopic threshold scale: flood warnings at one and two standard deviations above the mean, and drought warnings at one and two standard deviations below the mean">
+              <span class="sigma-band flood-2"><b>+2&sigma;</b><i>Flood warning</i></span>
+              <span class="sigma-band flood-1"><b>+1&sigma;</b><i>Flood watch</i></span>
+              <span class="sigma-band mean"><b>&mu;</b><i>Local mean</i></span>
+              <span class="sigma-band drought-1"><b>&minus;1&sigma;</b><i>Drought watch</i></span>
+              <span class="sigma-band drought-2"><b>&minus;2&sigma;</b><i>Drought warning</i></span>
+            </div>
+          </article>
+
+          <article class="threshold-card threshold-card--macro">
+            <header>
+              <span>02 // Macroscopic</span>
+              <strong>Seasonal signal</strong>
+            </header>
+            <p>
+              Built from daily records spanning January 2007 to October 2024.
+              Every calendar month receives its own baseline, so a normal spring
+              level is not judged against a normal autumn level.
+            </p>
+            <div class="month-baselines" aria-label="Twelve separate monthly baselines">
+              <span>J</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span>
+              <span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span>
+              <i></i>
+            </div>
+            <small class="month-note">Schematic // baseline recalibrated for each month</small>
+            <div class="macro-rule">
+              <span>MONTHLY &mu;</span>
+              <p><b class="flood-text">+1&sigma; / +2&sigma;</b> flood</p>
+              <p><b class="drought-text">&minus;1&sigma; / &minus;2&sigma;</b> drought</p>
+            </div>
+          </article>
+        </div>
+
+        <div class="threshold-validation" aria-label="Threshold validation cases">
+          <div>
+            <span>Flood validation // Hurricane Sandy</span>
+            <strong>Crossed +2&sigma;</strong>
+            <p>The historical threshold was exceeded the day before the hurricane.</p>
+          </div>
+          <div>
+            <span>Drought validation // October 2024</span>
+            <strong>Held below &minus;1&sigma;</strong>
+            <p>Low readings persisted before New York City issued its drought warning.</p>
+          </div>
+          <div class="threshold-evidence">
+            <span>Phone application</span>
+            <strong>0.163 ft MAE</strong>
+            <p>Measured across all tested tide levels.</p>
+          </div>
+        </div>
+
+        <a class="threshold-source" href="https://docs.google.com/presentation/d/1UQ-PywN87FLus3zjtN_8MTifnQoxWTUoZv5U9ZJsG1U/edit?slide=id.g313ae431324_0_15#slide=id.g313ae431324_0_15" target="_blank" rel="noopener">
+          View the research presentation <span aria-hidden="true">&nearr;</span>
+        </a>
+      </section>
+
       <section class="project-footer" aria-labelledby="footer-title">
         <p class="eyebrow"><span>HydroHeight</span> Remote river intelligence</p>
         <h2 id="footer-title">A camera can be<br />a water gauge.</h2>
@@ -261,6 +360,6 @@
       <span class="project-bottom-bar__file">HYDROHEIGHT // FILE 004</span>
     </footer>
 
-    <script src="hydroheight.js?v=20260716-4"></script>
+    <script src="hydroheight.js?v=20260717-6"></script>
   </body>
 </html>

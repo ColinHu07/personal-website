@@ -6,7 +6,12 @@
   var progress = document.querySelector(".page-progress span");
   var inspect = document.querySelector("[data-inspect]");
   var waterlineCanvas = document.querySelector("[data-waterline]");
+  var heroLiveBeam = document.querySelector(".beam-live");
+  var heroHistoryBeam = document.querySelector(".beam-history");
+  var originSection = document.querySelector(".origin-section");
+  var methodTransition = document.querySelector("[data-method-transition]");
   var geometryVisual = document.querySelector(".geometry-visual");
+  var geometryField = document.querySelector("[data-geometry-field]");
   var geometryOrigin = document.querySelector("[data-geo-origin]");
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   var ticking = false;
@@ -60,6 +65,16 @@
     return visible;
   }
 
+  function positionHeroBeam(beam, start, end) {
+    if (!beam) return;
+    var deltaX = end[0] - start[0];
+    var deltaY = end[1] - start[1];
+    beam.style.left = start[0].toFixed(2) + "px";
+    beam.style.top = start[1].toFixed(2) + "px";
+    beam.style.width = Math.hypot(deltaX, deltaY).toFixed(2) + "px";
+    beam.style.setProperty("--beam-angle", Math.atan2(deltaY, deltaX).toFixed(6) + "rad");
+  }
+
   function drawWaterline(amount) {
     if (!waterlineCanvas) return;
 
@@ -87,19 +102,26 @@
     var objectPositionX = window.innerWidth <= 620 ? 0.58 : 0.5;
     var offsetX = (width - renderedWidth) * objectPositionX;
     var offsetY = (height - renderedHeight) * 0.5;
-    var targetX = offsetX + waterlineLeft[0][0] * scale;
-    var targetY = offsetY + waterlineLeft[0][1] * scale;
-    if (world) {
-      world.style.setProperty("--target-x", (targetX / width * 100).toFixed(4) + "%");
-      world.style.setProperty("--target-y", (targetY / height * 100).toFixed(4) + "%");
-    }
-
     function mapPoint(point) {
       return [
         offsetX + point[0] * scale,
         offsetY + point[1] * scale
       ];
     }
+
+    var target = mapPoint(waterlineLeft[0]);
+    var cameraLens = mapPoint([493, 518]);
+    var historyTarget = mapPoint([waterlineLeft[0][0], 455]);
+    var targetX = target[0];
+    var targetY = target[1];
+    if (world) {
+      world.style.setProperty("--camera-x", (cameraLens[0] / width * 100).toFixed(4) + "%");
+      world.style.setProperty("--camera-y", (cameraLens[1] / height * 100).toFixed(4) + "%");
+      world.style.setProperty("--target-x", (targetX / width * 100).toFixed(4) + "%");
+      world.style.setProperty("--target-y", (targetY / height * 100).toFixed(4) + "%");
+    }
+    positionHeroBeam(heroLiveBeam, cameraLens, target);
+    positionHeroBeam(heroHistoryBeam, cameraLens, historyTarget);
 
     if (amount <= 0) return;
 
@@ -156,7 +178,7 @@
       scene.style.setProperty("--intro-opacity", clamp(1.06 - sceneProgress * 3.6, 0, 1).toFixed(4));
       scene.style.setProperty("--intro-y", (-70 * sceneProgress).toFixed(2) + "px");
       scene.style.setProperty("--beam-opacity", clamp(1.25 - sceneProgress * 1.75, 0, 0.95).toFixed(4));
-      scene.style.setProperty("--beam-scale", (1 - sceneProgress * 0.85).toFixed(4));
+      scene.style.setProperty("--beam-scale", "1");
       scene.style.setProperty("--history-opacity", clamp(0.57 - sceneProgress * 0.8, 0, 0.44).toFixed(4));
       scene.style.setProperty("--target-opacity", clamp(1.1 - sceneProgress * 0.4, 0.4, 1).toFixed(4));
       scene.style.setProperty("--target-scale", (1 - sceneProgress * 0.42).toFixed(4));
@@ -173,6 +195,32 @@
 
     drawWaterline(reduceMotion.matches ? 1 : clamp((sceneProgress - 0.5) / 0.34, 0, 1));
 
+    if (methodTransition) {
+      var transitionRect = methodTransition.getBoundingClientRect();
+      var handoff = reduceMotion.matches ? 1 : clamp(
+        (window.innerHeight - transitionRect.top) / (window.innerHeight + transitionRect.height),
+        0,
+        1
+      );
+      methodTransition.style.setProperty("--grid-opacity", (0.12 + handoff * 0.24).toFixed(4));
+      methodTransition.style.setProperty("--grid-y", (58 - handoff * 92).toFixed(2) + "px");
+      methodTransition.style.setProperty("--orbit-opacity", (0.16 + handoff * 0.52).toFixed(4));
+      methodTransition.style.setProperty("--orbit-x", ((1 - handoff) * 70).toFixed(2) + "px");
+      methodTransition.style.setProperty("--orbit-y", ((1 - handoff) * 42).toFixed(2) + "px");
+      methodTransition.style.setProperty("--orbit-scale", (0.82 + handoff * 0.18).toFixed(4));
+      methodTransition.style.setProperty("--rail-scale", (0.08 + handoff * 0.92).toFixed(4));
+      methodTransition.style.setProperty("--node-x", (8 + handoff * 72).toFixed(2) + "%");
+      methodTransition.style.setProperty("--copy-opacity", handoff.toFixed(4));
+      methodTransition.style.setProperty("--copy-y", ((1 - handoff) * 24).toFixed(2) + "px");
+      methodTransition.style.setProperty("--small-opacity", (0.2 + handoff * 0.8).toFixed(4));
+      methodTransition.style.setProperty("--small-y", ((1 - handoff) * -18).toFixed(2) + "px");
+      if (originSection) {
+        originSection.style.setProperty("--origin-opacity", (1 - handoff * 0.38).toFixed(4));
+        originSection.style.setProperty("--origin-y", (-34 * handoff).toFixed(2) + "px");
+        originSection.style.setProperty("--origin-scale", (1 - handoff * 0.018).toFixed(4));
+      }
+    }
+
     ticking = false;
   }
 
@@ -184,6 +232,28 @@
 
   function positionGeometryRays() {
     if (!geometryVisual || !geometryOrigin) return;
+
+    if (geometryField && geometryField.naturalWidth && geometryField.naturalHeight) {
+      var visualWidth = geometryVisual.clientWidth;
+      var visualHeight = geometryVisual.clientHeight;
+      var imageScale = Math.max(
+        visualWidth / geometryField.naturalWidth,
+        visualHeight / geometryField.naturalHeight
+      );
+      var imageOffsetX = (visualWidth - geometryField.naturalWidth * imageScale) / 2;
+      var imageOffsetY = (visualHeight - geometryField.naturalHeight * imageScale) / 2;
+      var mappedLensX = imageOffsetX + Number(geometryField.dataset.lensX) * imageScale;
+      var mappedLensY = imageOffsetY + Number(geometryField.dataset.lensY) * imageScale;
+      var mappedPierX = imageOffsetX + Number(geometryField.dataset.pierX) * imageScale;
+      var mappedReferenceY = imageOffsetY + Number(geometryField.dataset.referenceY) * imageScale;
+      var mappedLiveY = imageOffsetY + Number(geometryField.dataset.liveY) * imageScale;
+
+      geometryOrigin.style.left = mappedLensX.toFixed(2) + "px";
+      geometryOrigin.style.top = mappedLensY.toFixed(2) + "px";
+      geometryVisual.style.setProperty("--pier-x", mappedPierX.toFixed(2) + "px");
+      geometryVisual.style.setProperty("--reference-y", mappedReferenceY.toFixed(2) + "px");
+      geometryVisual.style.setProperty("--live-y", mappedLiveY.toFixed(2) + "px");
+    }
 
     var visualRect = geometryVisual.getBoundingClientRect();
     var originRect = geometryOrigin.getBoundingClientRect();
@@ -213,6 +283,10 @@
 
   function requestGeometryUpdate() {
     window.requestAnimationFrame(positionGeometryRays);
+  }
+
+  if (geometryField) {
+    geometryField.addEventListener("load", requestGeometryUpdate);
   }
 
   if (inspect && scene) {
