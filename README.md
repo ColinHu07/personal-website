@@ -14,7 +14,8 @@ no build step, works on GitHub Pages as-is.
 3. **Broadcast** — a white cursor flies in and clicks the Instagram icon; the reel
    feed blooms out of the click with three linked reels, real reel thumbnails, and a
    follow button.
-4. **Project Hangar** — six holographic project bays. Bay 01 links to the poker build.
+4. **Project Hangar** — six holographic project bays. Bay 03 opens the scroll-driven
+   CheatGPT responsible-AI demonstration.
 5. **Meta Display Optics** — a physically lit Three.js product model separates into
    parallel hardware layers during a full studio turntable, reassembles, and rotates
    to the wearer side. The camera then eases through the right display into a recreated
