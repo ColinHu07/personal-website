@@ -753,10 +753,12 @@ h1, h2, h3, p { text-wrap: pretty; }
 .delta-line::after { content: ""; position: absolute; left: -4px; width: 7px; height: 7px; border-left: 1px solid var(--ink); border-top: 1px solid var(--ink); }
 .delta-line::before { top: 0; transform: rotate(45deg); }
 .delta-line::after { bottom: 0; transform: rotate(225deg); }
-.geo-label { position: absolute; margin: 0; color: rgba(6, 21, 27, 0.68); font-family: "Rajdhani", sans-serif; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.geo-label { position: absolute; z-index: 4; margin: 0; color: rgba(6, 21, 27, 0.68); font-family: "Rajdhani", sans-serif; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
 .geo-label.camera { left: 8%; top: 70%; }
-.geo-label.reference { right: 4%; top: calc(var(--reference-y) - 28px); color: #99562f; }
-.geo-label.live { right: 4%; top: calc(var(--live-y) + 12px); color: #078d7c; }
+.geo-label.reference,
+.geo-label.live { right: calc(100% - var(--pier-x) + 14px); text-align: right; }
+.geo-label.reference { top: calc(var(--reference-y) - 28px); color: #99562f; }
+.geo-label.live { top: calc(var(--live-y) + 12px); color: #078d7c; }
 .delta-label { position: absolute; z-index: 4; right: 2.5%; top: 45.5%; margin: 0; font-family: "Orbitron", sans-serif; font-size: 1.2rem; font-weight: 700; }
 .geometry-copy { display: flex; flex-direction: column; justify-content: center; padding: clamp(4rem, 8vw, 9rem); }
 .geometry-copy .eyebrow { color: rgba(6, 21, 27, 0.56); }
@@ -863,7 +865,6 @@ h1, h2, h3, p { text-wrap: pretty; }
   .geo-camera-rig { left: 2%; top: 39%; width: 190px; }
   .geo-pier { width: 60px; }
   .geo-label.camera { left: 4%; top: 70%; }
-  .geo-label.reference, .geo-label.live { right: 3%; }
   .delta-line { right: 5%; }
   .delta-label { right: 1%; top: 46%; }
   .geometry-copy { padding: 5rem 1.2rem; }
