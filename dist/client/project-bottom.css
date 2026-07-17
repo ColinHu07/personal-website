@@ -1,0 +1,88 @@
+.project-bottom-bar,
+.project-bottom-bar * {
+  box-sizing: border-box;
+}
+
+.project-bottom-bar {
+  --project-bottom-accent: #5ce1ff;
+  position: relative;
+  z-index: 100;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  min-height: 74px;
+  padding: 1.45rem clamp(1.25rem, 5vw, 4rem);
+  color: #71848d;
+  background: #010506;
+  border-top: 1px solid rgba(92, 225, 255, 0.18);
+  font-family: "Rajdhani", "DM Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: clamp(0.58rem, 0.72vw, 0.68rem);
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+.project-bottom-bar a {
+  color: var(--project-bottom-accent);
+  text-decoration: none;
+}
+
+.project-bottom-bar__return,
+.project-bottom-bar__source {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: fit-content;
+  transition: color 180ms ease, text-shadow 180ms ease;
+}
+
+.project-bottom-bar__return {
+  justify-self: start;
+}
+
+.project-bottom-bar__source {
+  justify-self: center;
+  text-align: center;
+}
+
+.project-bottom-bar__file {
+  justify-self: end;
+  text-align: right;
+}
+
+.project-bottom-bar a:hover,
+.project-bottom-bar a:focus-visible {
+  color: #d9f9ff;
+  text-shadow: 0 0 14px rgba(92, 225, 255, 0.5);
+  outline: none;
+}
+
+.project-bottom-bar a:focus-visible {
+  border-radius: 2px;
+  box-shadow: 0 0 0 2px #010506, 0 0 0 3px var(--project-bottom-accent);
+}
+
+@media (max-width: 620px) {
+  .project-bottom-bar {
+    grid-template-columns: 1.05fr 0.95fr 0.9fr;
+    gap: 0.55rem;
+    min-height: 82px;
+    padding: 1rem;
+    font-size: clamp(0.5rem, 2.2vw, 0.6rem);
+    letter-spacing: 0.09em;
+  }
+
+  .project-bottom-bar__return,
+  .project-bottom-bar__source {
+    gap: 0.3rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-bottom-bar a {
+    transition: none;
+  }
+}
