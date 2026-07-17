@@ -113,11 +113,10 @@
     var lensFocus = range(sceneProgress, 0.46, 0.63);
     var scan = range(sceneProgress, 0.54, 0.68) * (1 - range(sceneProgress, 0.7, 0.77));
     var lensTint = range(sceneProgress, 0.53, 0.67);
-    var frameFade = 1 - range(sceneProgress, 0.72, 0.79);
     var hud = range(sceneProgress, 0.72, 0.79);
     var lensInterface = lensTint * (1 - hud);
-    var exam = 1 - hud * 0.34;
-    var desk = 1 - hud * 0.62;
+    var exam = 1 - hud * 0.14;
+    var desk = 1 - hud * 0.5;
     var baseScale = window.innerWidth <= 640 ? 0.5 : 0.49;
     var zoomScale = window.innerWidth <= 640 ? 0.98 : window.innerWidth <= 960 ? 0.8 : 0.84;
     var examScale = lerp(baseScale, zoomScale, zoom);
@@ -130,7 +129,7 @@
     viewport.style.setProperty("--exam-scale", examScale.toFixed(4));
     viewport.style.setProperty("--exam-y", lerp(2, 4.5, zoom).toFixed(3) + "vh");
     viewport.style.setProperty("--exam-rotate", lerp(-1.6, 0, zoom).toFixed(3) + "deg");
-    viewport.style.setProperty("--exam-blur", (hud * 0.7).toFixed(3) + "px");
+    viewport.style.setProperty("--exam-blur", (hud * 0.12).toFixed(3) + "px");
     viewport.style.setProperty("--focus-opacity", focus.toFixed(4));
     viewport.style.setProperty("--surround-opacity", (1 - zoom * 0.86).toFixed(4));
     viewport.style.setProperty("--pencil-opacity", (1 - pencilsOut).toFixed(4));
@@ -141,20 +140,20 @@
     viewport.style.setProperty("--scan-opacity", scan.toFixed(4));
     viewport.style.setProperty("--scan-y", (scan * 77).toFixed(3) + "%");
     viewport.style.setProperty("--glasses-x", (-lensFocus * (window.innerWidth <= 640 ? 12 : 17)).toFixed(3) + "vw");
-    viewport.style.setProperty("--glasses-y", (-105 + drop * 105 - lensFocus * 3).toFixed(3) + "vh");
+    viewport.style.setProperty("--glasses-y", (-105 + drop * 105 - lensFocus * (window.innerWidth <= 640 ? 7 : 16)).toFixed(3) + "vh");
     viewport.style.setProperty("--glasses-origin-x", (50 + lensFocus * 24).toFixed(3) + "%");
     viewport.style.setProperty("--glasses-rotate-x", (23 - drop * 21).toFixed(3) + "deg");
     viewport.style.setProperty("--glasses-rotate-z", (-3 + drop * 3).toFixed(3) + "deg");
-    viewport.style.setProperty("--glasses-scale", (0.62 + lensFocus * (window.innerWidth <= 640 ? 1.08 : 1.43)).toFixed(4));
-    viewport.style.setProperty("--glasses-opacity", (drop * frameFade).toFixed(4));
+    viewport.style.setProperty("--glasses-scale", (0.62 + lensFocus * (window.innerWidth <= 640 ? 1.08 : 1.76)).toFixed(4));
+    viewport.style.setProperty("--glasses-opacity", drop.toFixed(4));
     viewport.style.setProperty("--peripheral-opacity", (1 - lensFocus * 0.92).toFixed(4));
     viewport.style.setProperty("--brow-opacity", (1 - lensFocus * 0.76).toFixed(4));
     viewport.style.setProperty("--active-detail-opacity", (1 - lensFocus * 0.42).toFixed(4));
     viewport.style.setProperty("--lens-tint", lensTint.toFixed(4));
     viewport.style.setProperty("--lens-interface", lensInterface.toFixed(4));
     viewport.style.setProperty("--hud-opacity", hud.toFixed(4));
-    viewport.style.setProperty("--hud-scrim", (hud * 0.16).toFixed(4));
-    viewport.style.setProperty("--hud-blur", (hud * 1.2).toFixed(3) + "px");
+    viewport.style.setProperty("--hud-scrim", (hud * 0.04).toFixed(4));
+    viewport.style.setProperty("--hud-blur", (hud * 0.25).toFixed(3) + "px");
     viewport.style.setProperty("--hud-scale", (1.05 - hud * 0.05).toFixed(4));
     viewport.style.setProperty("--answer-complete", range(sceneProgress, 0.98, 0.996).toFixed(4));
     viewport.style.setProperty("--cue-opacity", Math.max(0, 1 - drop * 1.8).toFixed(4));
@@ -191,9 +190,11 @@
 
   function resizeCanvas() {
     if (!canvas || !context) return;
-    var rect = canvas.getBoundingClientRect();
-    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+    var renderScale = window.innerWidth <= 640 ? 1.8 : 2.15;
+    var width = canvas.offsetWidth || canvas.getBoundingClientRect().width;
+    var height = canvas.offsetHeight || canvas.getBoundingClientRect().height;
+    canvas.width = Math.max(1, Math.floor(width * renderScale * dpr));
+    canvas.height = Math.max(1, Math.floor(height * renderScale * dpr));
     context.setTransform(dpr, 0, 0, dpr, 0, 0);
     drawGeometry();
   }
@@ -232,7 +233,7 @@
     var Cp = point(81 / 8, -27 / 8);
 
     context.save();
-    context.strokeStyle = "rgba(167,255,106,0.055)";
+    context.strokeStyle = "rgba(85,185,255,0.055)";
     context.lineWidth = 1;
     for (var gx = Math.ceil(minX); gx <= Math.floor(maxX); gx += 2) {
       var gridX = point(gx, 0).x;
@@ -279,17 +280,17 @@
     }
 
     var baseAlpha = range(sceneProgress, 0.79, 0.83);
-    line(A, B, "#dfffd2", baseAlpha, false);
-    line(B, C, "#dfffd2", baseAlpha, false);
-    line(C, A, "#dfffd2", baseAlpha, false);
-    dot(A, "A", "#dfffd2", baseAlpha);
-    dot(B, "B", "#dfffd2", baseAlpha);
-    dot(C, "C", "#dfffd2", baseAlpha);
+    line(A, B, "#d9f2ff", baseAlpha, false);
+    line(B, C, "#d9f2ff", baseAlpha, false);
+    line(C, A, "#d9f2ff", baseAlpha, false);
+    dot(A, "A", "#d9f2ff", baseAlpha);
+    dot(B, "B", "#d9f2ff", baseAlpha);
+    dot(C, "C", "#d9f2ff", baseAlpha);
 
     var circleAlpha = range(sceneProgress, 0.84, 0.87);
     context.save();
     context.globalAlpha = circleAlpha * 0.5;
-    context.strokeStyle = "#a7ff6a";
+    context.strokeStyle = "#55b9ff";
     context.setLineDash([4, 6]);
     context.beginPath();
     context.arc(O.x, O.y, (65 / 8) * scale, 0, Math.PI * 2);
@@ -298,18 +299,18 @@
     dot(O, "O", "#ffcf66", circleAlpha);
 
     var rotatedAlpha = range(sceneProgress, 0.88, 0.93);
-    line(Ap, Bp, "#a7ff6a", rotatedAlpha, true);
-    line(Bp, Cp, "#a7ff6a", rotatedAlpha, true);
-    line(Cp, Ap, "#a7ff6a", rotatedAlpha, true);
-    dot(Ap, "A′", "#a7ff6a", rotatedAlpha);
-    dot(Bp, "B′", "#a7ff6a", rotatedAlpha);
-    dot(Cp, "C′", "#a7ff6a", rotatedAlpha);
+    line(Ap, Bp, "#55b9ff", rotatedAlpha, true);
+    line(Bp, Cp, "#55b9ff", rotatedAlpha, true);
+    line(Cp, Ap, "#55b9ff", rotatedAlpha, true);
+    dot(Ap, "A′", "#55b9ff", rotatedAlpha);
+    dot(Bp, "B′", "#55b9ff", rotatedAlpha);
+    dot(Cp, "C′", "#55b9ff", rotatedAlpha);
 
     var hexAlpha = range(sceneProgress, 0.94, 0.975);
     var polygon = [A, Ap, C, Cp, B, Bp];
     context.save();
     context.globalAlpha = hexAlpha;
-    context.fillStyle = "rgba(167,255,106,0.08)";
+    context.fillStyle = "rgba(85,185,255,0.08)";
     context.strokeStyle = "#ffcf66";
     context.lineWidth = 2.4;
     context.beginPath();

@@ -106,6 +106,72 @@
         </div>
       </section>
 
+      <section class="origin-section" id="background" aria-labelledby="origin-title">
+        <div class="origin-heading">
+          <p class="eyebrow"><span>Background</span> From an Iowa research lab to the field</p>
+          <h2 id="origin-title">It all started<br />at the river.</h2>
+        </div>
+
+        <div class="origin-story">
+          <p class="story-lead">
+            HydroHeight is a low-cost way to measure water level with a camera.
+            I began building it during the University of Iowa&rsquo;s Secondary Student
+            Training Program, working in the
+            <a href="https://hydroinformatics.uiowa.edu/about.php" target="_blank" rel="noopener">University of Iowa Hydroinformatics <span class="link-tail">Laboratory <i aria-hidden="true">&nearr;</i></span></a>
+            with Professor Yusuf Sermet and Professor Ibrahim Demir.
+          </p>
+          <p>
+            The prototype replaced a conventional stream gauge with a Raspberry Pi 4,
+            camera, GPS, and an inertial measurement unit. A computer-vision model
+            segments the waterline where it meets a known structure; the camera&rsquo;s
+            coordinates and orientation then turn that point in the image into a
+            physical elevation.
+          </p>
+          <p>
+            The work grew from a research prototype into part of a much larger line of
+            camera-based water monitoring. The underlying approach developed by Sermet
+            and Demir was ultimately protected by a
+            <a href="https://engineering.uiowa.edu/news-all/2025/04/new-ui-patent-transforms-water-level-measurement" target="_blank" rel="noopener">University of Iowa <span class="link-tail">patent.<i aria-hidden="true">&nearr;</i></span></a>
+            I took the idea one step further by adapting the workflow into a phone app,
+            making it possible to collect an image, location, and device pose on the go.
+          </p>
+        </div>
+
+        <ol class="origin-timeline" aria-label="HydroHeight project history">
+          <li>
+            <span>01 // SSTP</span>
+            <h3>Research begins</h3>
+            <p>A field-ready question: can an inexpensive camera become a reliable river gauge?</p>
+          </li>
+          <li>
+            <span>02 // UIHI Lab</span>
+            <h3>Prototype built</h3>
+            <p>Raspberry Pi imagery, waterline segmentation, GPS, IMU pose, and scene geometry.</p>
+          </li>
+          <li>
+            <span>03 // Patent</span>
+            <h3>Method protected</h3>
+            <p>The lab&rsquo;s camera-based liquid-stage measurement method became a UI patent.</p>
+          </li>
+          <li>
+            <span>04 // Mobile</span>
+            <h3>Carried anywhere</h3>
+            <p>I extended the same measurement logic into a phone app for use beyond a fixed rig.</p>
+          </li>
+        </ol>
+
+        <div class="research-stack" aria-label="Original research system components">
+          <p>Original research stack</p>
+          <ul>
+            <li><span>Capture</span> Raspberry Pi 4 + camera</li>
+            <li><span>Locate</span> GPS + altitude</li>
+            <li><span>Orient</span> IMU pitch + yaw</li>
+            <li><span>Segment</span> U-Net waterline model</li>
+            <li><span>Resolve</span> 3D viewing ray</li>
+          </ul>
+        </div>
+      </section>
+
       <section class="method-section" id="method" aria-labelledby="method-title">
         <div class="section-intro">
           <p class="eyebrow"><span>Method</span> From pixels to a physical reading</p>
@@ -144,12 +210,17 @@
 
       <section class="geometry-section" aria-labelledby="geometry-title">
         <div class="geometry-visual" aria-hidden="true">
-          <div class="geo-camera"><i></i></div>
-          <div class="geo-ray old"></div>
-          <div class="geo-ray current"></div>
-          <div class="geo-pier"></div>
           <div class="geo-water old"></div>
           <div class="geo-water current"></div>
+          <div class="geo-ray old" data-geo-ray="reference"></div>
+          <div class="geo-ray current" data-geo-ray="current"></div>
+          <div class="geo-pier"></div>
+          <span class="geo-target reference" data-geo-target="reference"></span>
+          <span class="geo-target current" data-geo-target="current"></span>
+          <div class="geo-camera-rig">
+            <img src="../../assets/hydroheight-camera-rig-v1.png" alt="" />
+            <span class="geo-ray-origin" data-geo-origin></span>
+          </div>
           <span class="delta-line"></span>
           <p class="geo-label camera">Known camera pose</p>
           <p class="geo-label reference">Reference level</p>

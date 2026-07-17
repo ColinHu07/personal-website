@@ -6,6 +6,7 @@
   var dealViewport = document.querySelector(".deal-viewport");
   var boardScene = document.getElementById("project-board");
   var boardViewport = document.querySelector(".board-viewport");
+  var processScene = document.getElementById("process");
   var storyScene = document.getElementById("story");
   var riverDealStack = document.querySelector(".river-deal-stack");
   var flightCards = Array.prototype.slice.call(document.querySelectorAll(".flight-card"));
@@ -56,7 +57,7 @@
       7: [[1, 1], [1, 3], [2, 2], [3, 1], [3, 3], [5, 1], [5, 3]],
       8: [[1, 1], [1, 3], [2, 2], [3, 1], [3, 3], [4, 2], [5, 1], [5, 3]],
       9: [[1, 1], [1, 3], [2, 1], [2, 3], [3, 2], [4, 1], [4, 3], [5, 1], [5, 3]],
-      10: [[1, 1], [1, 3], [2, 2], [2, 1], [2, 3], [4, 1], [4, 3], [4, 2], [5, 1], [5, 3]]
+      10: [[1, 1], [1, 3], [2, 2], [2, 1], [2, 3], [5, 1], [5, 3], [5, 2], [6, 1], [6, 3]]
     };
     return layouts[count] || layouts[1];
   }
@@ -162,7 +163,7 @@
   function updateChapter() {
     var middle = window.innerHeight * 0.52;
     var active = "deal";
-    [dealScene, boardScene, storyScene].forEach(function (scene) {
+    [dealScene, boardScene, storyScene, processScene].forEach(function (scene) {
       if (!scene) return;
       var rect = scene.getBoundingClientRect();
       if (rect.top <= middle && rect.bottom >= middle) active = scene.dataset.scene;

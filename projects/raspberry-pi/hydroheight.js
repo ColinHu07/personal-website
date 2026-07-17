@@ -6,6 +6,8 @@
   var progress = document.querySelector(".page-progress span");
   var inspect = document.querySelector("[data-inspect]");
   var waterlineCanvas = document.querySelector("[data-waterline]");
+  var geometryVisual = document.querySelector(".geometry-visual");
+  var geometryOrigin = document.querySelector("[data-geo-origin]");
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   var ticking = false;
 
@@ -180,6 +182,39 @@
     window.requestAnimationFrame(updateScroll);
   }
 
+  function positionGeometryRays() {
+    if (!geometryVisual || !geometryOrigin) return;
+
+    var visualRect = geometryVisual.getBoundingClientRect();
+    var originRect = geometryOrigin.getBoundingClientRect();
+    var originX = originRect.left + originRect.width / 2 - visualRect.left;
+    var originY = originRect.top + originRect.height / 2 - visualRect.top;
+    var rays = geometryVisual.querySelectorAll("[data-geo-ray]");
+
+    rays.forEach(function (ray) {
+      var key = ray.getAttribute("data-geo-ray");
+      var target = geometryVisual.querySelector('[data-geo-target="' + key + '"]');
+      if (!target) return;
+
+      var targetRect = target.getBoundingClientRect();
+      var targetX = targetRect.left + targetRect.width / 2 - visualRect.left;
+      var targetY = targetRect.top + targetRect.height / 2 - visualRect.top;
+      var deltaX = targetX - originX;
+      var deltaY = targetY - originY;
+
+      ray.style.left = originX.toFixed(2) + "px";
+      ray.style.top = (originY - 1).toFixed(2) + "px";
+      ray.style.width = Math.hypot(deltaX, deltaY).toFixed(2) + "px";
+      ray.style.transform = "rotate(" + Math.atan2(deltaY, deltaX).toFixed(6) + "rad)";
+    });
+
+    geometryVisual.classList.add("is-calibrated");
+  }
+
+  function requestGeometryUpdate() {
+    window.requestAnimationFrame(positionGeometryRays);
+  }
+
   if (inspect && scene) {
     inspect.addEventListener("click", function () {
       var destination = scene.offsetTop + (scene.offsetHeight - window.innerHeight) * 0.68;
@@ -198,6 +233,8 @@
 
   window.addEventListener("scroll", requestUpdate, { passive: true });
   window.addEventListener("resize", requestUpdate);
+  window.addEventListener("resize", requestGeometryUpdate);
   reduceMotion.addEventListener("change", requestUpdate);
+  requestGeometryUpdate();
   updateScroll();
 })();

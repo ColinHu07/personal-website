@@ -23,7 +23,7 @@
       href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Orbitron:wght@600;700;900&family=Rajdhani:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="cheatgpt.css?v=7" />
+    <link rel="stylesheet" href="cheatgpt.css?v=11" />
   </head>
   <body>
     <a class="skip-link" href="#story">Skip the demonstration</a>
@@ -117,73 +117,74 @@
 
           <div class="capture-beam" aria-hidden="true"></div>
 
-          <div class="glasses-wrap" aria-hidden="true">
+          <div class="glasses-wrap">
             <div class="temple temple-left"><span></span></div>
             <div class="temple temple-right"><span></span></div>
             <div class="glasses-front">
               <div class="frame-brow"></div>
               <div class="lens lens-left"><span></span></div>
               <div class="bridge"></div>
-              <div class="lens lens-right"><span></span></div>
+              <div class="lens lens-right">
+                <span aria-hidden="true"></span>
+
+                <section class="solver-hud" aria-label="Scroll-controlled solution display" aria-describedby="accessible-solution">
+                  <div class="hud-corner top-left" aria-hidden="true"></div>
+                  <div class="hud-corner top-right" aria-hidden="true"></div>
+                  <div class="hud-corner bottom-left" aria-hidden="true"></div>
+                  <div class="hud-corner bottom-right" aria-hidden="true"></div>
+
+                  <header class="hud-header">
+                    <div>
+                      <span class="live-dot"></span>
+                      CHEATGPT // LENS INFERENCE
+                    </div>
+                    <span id="hud-status">WAITING FOR CAPTURE</span>
+                  </header>
+
+                  <div class="hud-body">
+                    <article class="reasoning-panel" aria-label="A streamed assistant response solving Problem 10">
+                      <div class="chat-thread">
+                        <div class="user-message">
+                          <span>YOU</span>
+                          <p>Solve Problem 10. Show the coordinate setup and enough work to verify the answer.</p>
+                        </div>
+
+                        <div class="assistant-message">
+                          <div class="assistant-meta">
+                            <i aria-hidden="true">✦</i>
+                            <span>CHEATGPT</span>
+                            <em id="thinking-state">Thinking…</em>
+                          </div>
+                          <div class="answer-stream" id="answer-stream" aria-hidden="true"></div>
+                          <span class="typing-cursor" id="typing-cursor" aria-hidden="true"></span>
+                          <div class="answer-complete" id="answer-complete" aria-hidden="true">
+                            <span>FINAL ANSWER</span><strong>156</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+
+                    <figure class="geometry-panel">
+                      <canvas id="geometry-canvas" aria-label="Animated coordinate diagram of the original and rotated triangles"></canvas>
+                      <figcaption>
+                        <span>GEOMETRY MAP</span>
+                        <span id="geometry-caption">ACQUIRING POINTS…</span>
+                      </figcaption>
+                    </figure>
+                  </div>
+
+                  <div class="hud-progress" aria-hidden="true">
+                    <span data-progress="0"></span><span data-progress="1"></span><span data-progress="2"></span>
+                    <span data-progress="3"></span><span data-progress="4"></span><span data-progress="5"></span>
+                  </div>
+                  <p class="demo-disclaimer">PRE-RECORDED CONTROLLED DEMO</p>
+                </section>
+              </div>
               <div class="hinge-cap hinge-left"></div>
               <div class="hinge-cap hinge-right"></div>
-              <div class="camera-dot"></div>
               <div class="display-dot"></div>
             </div>
           </div>
-
-          <section class="solver-hud" aria-label="Scroll-controlled solution display" aria-describedby="accessible-solution">
-            <div class="hud-corner top-left"></div>
-            <div class="hud-corner top-right"></div>
-            <div class="hud-corner bottom-left"></div>
-            <div class="hud-corner bottom-right"></div>
-
-            <header class="hud-header">
-              <div>
-                <span class="live-dot"></span>
-                CHEATGPT // LENS INFERENCE
-              </div>
-              <span id="hud-status">WAITING FOR CAPTURE</span>
-            </header>
-
-            <div class="hud-body">
-              <article class="reasoning-panel" aria-label="A streamed assistant response solving Problem 10">
-                <div class="chat-thread">
-                  <div class="user-message">
-                    <span>YOU</span>
-                    <p>Solve Problem 10. Show the coordinate setup and enough work to verify the answer.</p>
-                  </div>
-
-                  <div class="assistant-message">
-                    <div class="assistant-meta">
-                      <i aria-hidden="true">✦</i>
-                      <span>CHEATGPT</span>
-                      <em id="thinking-state">Thinking…</em>
-                    </div>
-                    <div class="answer-stream" id="answer-stream" aria-hidden="true"></div>
-                    <span class="typing-cursor" id="typing-cursor" aria-hidden="true"></span>
-                    <div class="answer-complete" id="answer-complete" aria-hidden="true">
-                      <span>FINAL ANSWER</span><strong>156</strong>
-                    </div>
-                  </div>
-                </div>
-              </article>
-
-              <figure class="geometry-panel">
-                <canvas id="geometry-canvas" aria-label="Animated coordinate diagram of the original and rotated triangles"></canvas>
-                <figcaption>
-                  <span>GEOMETRY MAP</span>
-                  <span id="geometry-caption">ACQUIRING POINTS…</span>
-                </figcaption>
-              </figure>
-            </div>
-
-            <div class="hud-progress" aria-hidden="true">
-              <span data-progress="0"></span><span data-progress="1"></span><span data-progress="2"></span>
-              <span data-progress="3"></span><span data-progress="4"></span><span data-progress="5"></span>
-            </div>
-            <p class="demo-disclaimer">PRE-RECORDED, CONTROLLED DEMO // NOT A DEPLOYED TEST-TAKING TOOL</p>
-          </section>
 
           <div class="scroll-cue" aria-hidden="true">
             <span>SCROLL TO INSPECT THE TEST</span><i></i>
@@ -297,6 +298,6 @@
       nearest integer is 156.
     </div>
 
-    <script src="cheatgpt.js?v=6"></script>
+    <script src="cheatgpt.js?v=10"></script>
   </body>
 </html>

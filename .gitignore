@@ -10,3 +10,4 @@ shoot.js
 shoot-city.js
 smoke-test.js
 static-server.*.log
+tmp/

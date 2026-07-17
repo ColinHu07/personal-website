@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Orbitron:wght@600;700;900&family=Rajdhani:wght@500;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="poker-vision.css?v=13" />
+    <link rel="stylesheet" href="poker-vision.css?v=17" />
   </head>
   <body>
     <a class="skip-link" href="#project-board">Skip to project board</a>
@@ -42,6 +42,7 @@
       <a href="#deal" data-chapter="deal"><i></i><span>THE DEAL</span></a>
       <a href="#project-board" data-chapter="board"><i></i><span>THE BOARD</span></a>
       <a href="#story" data-chapter="story"><i></i><span>THE WHY</span></a>
+      <a href="#process" data-chapter="process"><i></i><span>THE BUILD</span></a>
     </nav>
 
     <main>
@@ -80,12 +81,12 @@
             <span class="flight-card back" data-x="-58" data-y="-37" data-r="-88" data-delay="0.00"></span>
             <span class="flight-card red" data-x="-39" data-y="-47" data-r="-43" data-delay="0.012"><b>A</b><i>♥</i></span>
             <span class="flight-card back" data-x="-18" data-y="-51" data-r="-25" data-delay="0.024"></span>
-            <span class="flight-card" data-x="6" data-y="-54" data-r="15" data-delay="0.034"><b>K</b><i>♠</i></span>
+            <span class="flight-card" data-x="9" data-y="-29" data-r="15" data-delay="0.034"><b>K</b><i>♠</i></span>
             <span class="flight-card red" data-x="31" data-y="-49" data-r="38" data-delay="0.045"><b>Q</b><i>♦</i></span>
             <span class="flight-card back" data-x="55" data-y="-35" data-r="82" data-delay="0.055"></span>
             <span class="flight-card" data-x="-63" data-y="-10" data-r="-102" data-delay="0.064"><b>J</b><i>♣</i></span>
             <span class="flight-card back" data-x="-43" data-y="5" data-r="-62" data-delay="0.073"></span>
-            <span class="flight-card red" data-x="-23" data-y="-19" data-r="-31" data-delay="0.082"><b>10</b><i>♥</i></span>
+            <span class="flight-card red" data-x="-17" data-y="-6" data-r="-31" data-delay="0.082"><b>10</b><i>♥</i></span>
             <span class="flight-card back" data-x="18" data-y="-17" data-r="30" data-delay="0.091"></span>
             <span class="flight-card" data-x="43" data-y="1" data-r="67" data-delay="0.10"><b>9</b><i>♠</i></span>
             <span class="flight-card back" data-x="63" data-y="-7" data-r="108" data-delay="0.109"></span>
@@ -206,7 +207,11 @@
 
       <section class="story-section" id="story" data-scene="story">
         <div class="story-card card-back" aria-hidden="true">
-          <div class="back-pattern">PV</div>
+          <div class="back-pattern joker-seal">
+            <span>♛</span>
+            <strong>JOKER</strong>
+            <small>THE WILD CARD</small>
+          </div>
         </div>
         <article class="story-copy">
           <p class="eyebrow">RIVER CARD // THE WHY</p>
@@ -225,6 +230,58 @@
           <p>Built for sandbox, replay, and explicitly consented demonstrations — not covert real-money play.</p>
         </div>
       </section>
+
+      <section class="process-section" id="process" data-scene="process">
+        <header class="process-heading">
+          <div class="process-title">
+            <p class="eyebrow">UNDER THE FELT // SYSTEM PIPELINE</p>
+            <h2>HOW THE TABLE<br />BECOMES A MOVE.</h2>
+          </div>
+          <p>
+            PokerVision is a complete loop: see the table, stabilize what was seen, solve the spot, and return one glanceable action to the display.
+          </p>
+        </header>
+
+        <div class="process-track">
+          <article class="process-step">
+            <span>01 // CAPTURE</span>
+            <h3>STREAM THE TABLE.</h3>
+            <p>Meta Wearables DAT streams frames from the glasses camera into the active Swift iOS app, with phone and captured-frame fallbacks for testing.</p>
+            <small>MWDAT CAMERA · SWIFT</small>
+          </article>
+          <article class="process-step">
+            <span>02 // DETECT</span>
+            <h3>FIND EVERY CARD.</h3>
+            <p>A YOLOv8 model runs through Apple Vision and Core ML, returning card labels, confidence scores, bounding boxes, and hero-versus-board zones.</p>
+            <small>YOLOV8 · VISION · CORE ML</small>
+          </article>
+          <article class="process-step">
+            <span>03 // STABILIZE</span>
+            <h3>TRUST MORE THAN ONE FRAME.</h3>
+            <p>Detections are fused across multiple observations. The hand only advances when two hero cards, a valid board, and every visible card are identified confidently.</p>
+            <small>STATE FUSION · CONFIDENCE GATE</small>
+          </article>
+          <article class="process-step">
+            <span>04 // SOLVE</span>
+            <h3>CALL THE DECISION LAYER.</h3>
+            <p>On the current GitHub main branch, the app sends structured card state to a FastAPI endpoint. Chen scoring handles preflop strength; Monte Carlo equity and pot odds guide postflop actions.</p>
+            <small>CURRENT MAIN · FASTAPI · TREYS</small>
+          </article>
+          <article class="process-step">
+            <span>05 // DISPLAY</span>
+            <h3>SHOW ONLY THE NEXT MOVE.</h3>
+            <p>The glasses receive a compact action such as CHECK, CALL, or RAISE, while the phone remains the debug mirror for detections, confidence warnings, and raw solver state.</p>
+            <small>DAT DISPLAY · PHONE DEBUG UI</small>
+          </article>
+        </div>
+
+        <aside class="confidence-rule">
+          <span>THE RULE</span>
+          <strong>UNCLEAR TABLE? DON’T GUESS.</strong>
+          <p>Low-confidence reads return “Look again” instead of manufacturing a recommendation.</p>
+          <a href="https://github.com/ColinHu07/poker" target="_blank" rel="noopener">INSPECT THE FULL BUILD <b>↗</b></a>
+        </aside>
+      </section>
     </main>
 
     <footer class="project-footer">
@@ -232,6 +289,6 @@
       <span>POKERVISION // FILE 001</span>
     </footer>
 
-    <script src="poker-vision.js?v=13"></script>
+    <script src="poker-vision.js?v=17"></script>
   </body>
 </html>
