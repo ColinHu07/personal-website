@@ -305,11 +305,30 @@ main { position: relative; z-index: 1; }
    ============================================================ */
 
 #hero .viewport {
+  --scene-exit: 0;
   display: grid;
   place-items: center;
   background:
     radial-gradient(ellipse 70% 55% at 50% 45%, rgba(23, 68, 105, 0.5), transparent 70%),
     linear-gradient(to bottom, #02070d, var(--bg-2));
+}
+
+/* The boot deck recedes into the orbital palette instead of exposing the
+   bottom edge of its sticky viewport. */
+#hero .viewport::after {
+  content: "";
+  position: absolute;
+  inset: -8vh 0 0;
+  z-index: 30;
+  pointer-events: none;
+  opacity: var(--scene-exit, 0);
+  transform: translate3d(0, calc((1 - var(--scene-exit, 0)) * 10vh), 0);
+  background:
+    radial-gradient(ellipse 62% 34% at 50% 100%, rgba(79, 216, 255, 0.12), transparent 72%),
+    linear-gradient(to bottom, rgba(2, 7, 13, 0.08), rgba(1, 6, 12, 0.9) 72%, #01060c 100%);
+  -webkit-backdrop-filter: blur(calc(var(--scene-exit, 0) * 8px));
+  backdrop-filter: blur(calc(var(--scene-exit, 0) * 8px));
+  will-change: opacity, transform;
 }
 
 .hud-corners span {
@@ -491,6 +510,7 @@ main { position: relative; z-index: 1; }
    ============================================================ */
 
 #city .viewport {
+  --scene-enter: 0;
   --city-in: 0;
   --scene-exit: 0;
   background: linear-gradient(to bottom, #01060c 0%, #04101d 55%, #051727 100%);
@@ -500,10 +520,14 @@ main { position: relative; z-index: 1; }
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 11;
   pointer-events: none;
-  opacity: 0;
-  background: none;
+  opacity: calc(1 - var(--scene-enter, 0));
+  transform: translate3d(0, calc(var(--scene-enter, 0) * -6vh), 0);
+  background: linear-gradient(to bottom, #01060c 0%, rgba(1, 6, 12, 0.92) 18%, rgba(3, 12, 22, 0.34) 56%, transparent 100%);
+  -webkit-backdrop-filter: blur(calc((1 - var(--scene-enter, 0)) * 3px));
+  backdrop-filter: blur(calc((1 - var(--scene-enter, 0)) * 3px));
+  will-change: opacity, transform;
 }
 
 .globe-canvas {
@@ -726,7 +750,7 @@ main { position: relative; z-index: 1; }
   opacity: var(--scene-exit, 0);
   background:
     radial-gradient(ellipse 70% 34% at 50% 100%, rgba(255, 79, 216, 0.22), transparent 72%),
-    linear-gradient(to bottom, rgba(10, 5, 34, 0.12) 0%, rgba(10, 5, 34, 0.42) 46%, rgba(10, 5, 34, 0.88) 78%, #0a0522 100%);
+    linear-gradient(to bottom, rgba(10, 5, 34, 0.12) 0%, rgba(15, 7, 39, 0.42) 46%, rgba(21, 9, 46, 0.88) 78%, #15092e 100%);
   backdrop-filter: blur(calc(var(--scene-exit, 0) * 8px)) saturate(calc(1 - var(--scene-exit, 0) * 0.25));
 }
 
@@ -1486,23 +1510,27 @@ main { position: relative; z-index: 1; }
   z-index: 6;
 }
 
-/* The optics scene rises through a neutral product-studio wash. Keep the
-   handoff inside this scene so it never blurs or covers the Hangar cards. */
-#glasses::before {
-  content: "";
+/* A full-frame entry veil carries the Hangar palette into the studio. Unlike
+   the former fixed-height band, it has no lower edge for mobile Safari to
+   reveal while the sticky viewport settles. */
+.optics-entry {
   position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
+  inset: 0;
   z-index: 24;
-  height: clamp(12rem, 32vh, 22rem);
   pointer-events: none;
+  opacity: calc((1 - var(--scene-enter, 0)) * 0.84);
+  transform: translate3d(0, calc(var(--scene-enter, 0) * -7vh), 0) scaleY(calc(1 + var(--scene-enter, 0) * 0.025));
   background:
-    radial-gradient(ellipse 62% 90% at 50% 100%, rgba(145, 158, 170, 0.14), transparent 70%),
-    linear-gradient(to bottom, var(--bg) 0%, rgba(7, 12, 17, 0.92) 36%, rgba(17, 20, 24, 0.62) 72%, transparent 100%);
+    radial-gradient(ellipse 70% 52% at 50% 58%, rgba(145, 158, 170, 0.08), transparent 72%),
+    linear-gradient(to bottom, var(--bg) 0%, rgba(7, 12, 17, 0.86) 14%, rgba(17, 20, 24, 0.22) 40%, transparent 76%);
+  -webkit-backdrop-filter: blur(calc((1 - var(--scene-enter, 0)) * 1px));
+  backdrop-filter: blur(calc((1 - var(--scene-enter, 0)) * 1px));
+  will-change: opacity, transform;
 }
 
 #glasses .viewport {
+  --scene-enter: 0;
+  --scene-exit: 0;
   --fold: 1;
   --explode: 0;
   --orbit: 0;
@@ -1534,8 +1562,8 @@ main { position: relative; z-index: 1; }
   pointer-events: none;
   opacity: var(--scene-exit, 0);
   background:
-    radial-gradient(ellipse 58% 42% at 50% 100%, rgba(23, 68, 105, 0.28), transparent 72%),
-    linear-gradient(to bottom, rgba(3, 10, 18, 0.18), rgba(3, 10, 18, 0.88) 76%, var(--bg) 100%);
+    radial-gradient(ellipse 58% 42% at 50% 52%, rgba(23, 68, 105, 0.24), transparent 72%),
+    linear-gradient(to bottom, rgba(3, 10, 18, 0.9), rgba(3, 10, 18, 0.98) 76%, var(--bg) 100%);
   backdrop-filter: blur(calc(var(--scene-exit, 0) * 10px)) saturate(calc(1 - var(--scene-exit, 0) * 0.35));
 }
 
@@ -2439,6 +2467,21 @@ main { position: relative; z-index: 1; }
   text-align: center;
 }
 
+/* Match the fully-dark Optics exit for the first pixels of Socials, then let
+   the radar field rise underneath it. This overlap removes the sticky-release
+   edge in both portrait and short landscape viewports. */
+#contact::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  right: 0;
+  left: 0;
+  z-index: 1;
+  height: clamp(10rem, 42vh, 20rem);
+  pointer-events: none;
+  background: linear-gradient(to bottom, var(--bg) 0%, rgba(3, 10, 18, 0.96) 22%, rgba(3, 10, 18, 0.62) 66%, transparent 100%);
+}
+
 /* transmission-grid background: radar sweep + signal constellation */
 .socials-canvas {
   position: absolute;
@@ -2447,12 +2490,14 @@ main { position: relative; z-index: 1; }
   height: 100%;
   z-index: 0;
   pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 clamp(8rem, 30vh, 16rem), #000 100%);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 clamp(8rem, 30vh, 16rem), #000 100%);
 }
 #contact .section-head,
 #contact .socials-grid,
 #contact .footer {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .socials-grid {
@@ -2594,7 +2639,10 @@ main { position: relative; z-index: 1; }
   #city.scene.scrub { height: 340vh; }
   #broadcast.scene.scrub { height: 240vh; }
   #glasses.scene.scrub { height: 390vh; }
-  .glasses-stage { width: 100vw; height: 100%; }
+  @supports (height: 100dvh) {
+    .scene.scrub .viewport { height: 100dvh; }
+  }
+  .glasses-stage { width: 100%; height: 100%; }
   .product-model-camera { width: 98vw; }
   .rb-temple-far {
     transform: translate3d(calc(var(--explode) * 78px), calc(var(--explode) * 40px), calc(var(--explode) * -77px)) rotateZ(calc(var(--explode) * 8deg));
@@ -2643,14 +2691,37 @@ main { position: relative; z-index: 1; }
     padding: 3.2rem 0.7rem 0.85rem;
   }
   .current-copilot-panel { padding: 0.8rem; }
-  .feed-grid { grid-template-columns: 1fr; }
+  .feed-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.55rem;
+    padding: 0.7rem;
+  }
   .reel-cover { aspect-ratio: 9 / 16; }
-  .feed-window { max-height: 82vh; overflow-y: auto; }
+  .feed-window { max-height: none; overflow: hidden; }
+  .reel-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.12rem;
+  }
+  .reel-meta strong { font-size: 0.58rem; letter-spacing: 0.12em; }
+  .reel-meta span { font-size: 0.48rem; letter-spacing: 0.1em; }
+  .reel-badge { left: 0.35rem; bottom: 0.35rem; font-size: 0.42rem; letter-spacing: 0.08em; }
+  .feed-follow { margin: 0 0.7rem 0.7rem; padding: 0.58rem; }
   .city-intro { top: auto; bottom: 14vh; transform: none; }
   .city-handoff-copy {
     width: 88vw;
     white-space: normal;
     line-height: 1.55;
+  }
+
+  /* Phone handoffs move through the frame as they fade, so section changes
+     read as depth transitions rather than horizontal cuts. */
+  .city-handoff,
+  #broadcast .viewport::after,
+  #glasses .viewport::after {
+    transform: translate3d(0, calc((1 - var(--scene-exit, 0)) * 7vh), 0) scaleY(1.03);
+    transform-origin: 50% 100%;
+    will-change: opacity, transform;
   }
 }
 
@@ -2678,12 +2749,20 @@ main { position: relative; z-index: 1; }
 }
 
 @media (orientation: landscape) and (max-height: 500px) {
+  .scene.scrub { height: 200vh; }
+  #hero.scene.scrub { height: 150vh; }
+  #city.scene.scrub { height: 340vh; }
+  #broadcast.scene.scrub { height: 240vh; }
+  #glasses.scene.scrub { height: 390vh; }
+  @supports (height: 100dvh) {
+    .scene.scrub .viewport { height: 100dvh; }
+  }
   .scene-dots,
   .hud-readout { display: none; }
   .site-nav nav a:not(:nth-child(-n+3)) { display: none; }
   .feed-window {
     max-height: 78svh;
-    overflow-y: auto;
+    overflow: hidden;
   }
   .city-intro {
     top: auto;
@@ -2708,6 +2787,28 @@ main { position: relative; z-index: 1; }
   .feed-grid { padding: 0.9rem; gap: 0.8rem; }
   .reel-cover { aspect-ratio: 9 / 16; }
   .feed-follow { padding: 0.55rem; }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .feed-window {
+    width: min(88vw, 720px);
+    max-height: 78svh;
+    overflow: hidden;
+  }
+  .feed-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.55rem;
+    padding: 0.55rem;
+  }
+  .reel-cover { aspect-ratio: 16 / 9; }
+  .reel-meta {
+    align-items: baseline;
+    flex-direction: row;
+    gap: 0.3rem;
+  }
+  .reel-meta strong { font-size: 0.62rem; letter-spacing: 0.12em; }
+  .reel-meta span { font-size: 0.48rem; letter-spacing: 0.08em; }
+  .feed-follow { margin: 0 0.55rem 0.55rem; padding: 0.45rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

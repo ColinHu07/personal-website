@@ -41,6 +41,7 @@
   var progressFill = document.getElementById("progress-fill");
   var dots = Array.prototype.slice.call(document.querySelectorAll(".scene-dots a"));
   var allScenes = Array.prototype.slice.call(document.querySelectorAll(".scene"));
+  var phoneTimeline = window.matchMedia("(max-width: 760px), (orientation: landscape) and (max-height: 500px)");
 
   var cityViewport = document.querySelector("#city .viewport");
   var cityFlightVideo = document.querySelector(".city-flight-video");
@@ -98,7 +99,15 @@
       var total = rect.height - vh;
       var p = total > 0 ? clamp01(-rect.top / total) : 0;
       var viewport = scene.querySelector(".viewport");
-      if (viewport) viewport.style.setProperty("--p", p.toFixed(4));
+      if (viewport) {
+        viewport.style.setProperty("--p", p.toFixed(4));
+        viewport.style.setProperty("--scene-enter", smoother(p / (phoneTimeline.matches ? 0.14 : 0.1)).toFixed(4));
+      }
+
+      if (scene.id === "hero" && viewport) {
+        var heroExitStart = phoneTimeline.matches ? 0.68 : 0.78;
+        viewport.style.setProperty("--scene-exit", smoother((p - heroExitStart) / (1 - heroExitStart)).toFixed(4));
+      }
 
       if (scene.id === "city") {
         cityP = p;
@@ -159,7 +168,8 @@
         glassesViewport.style.setProperty("--status-product", statusProduct.toFixed(4));
         glassesViewport.style.setProperty("--status-exploded", statusExploded.toFixed(4));
         glassesViewport.style.setProperty("--status-complete", statusComplete.toFixed(4));
-        glassesViewport.style.setProperty("--scene-exit", smoother((p - 0.975) / 0.025).toFixed(4));
+        var glassesExitStart = phoneTimeline.matches ? 0.9 : 0.96;
+        glassesViewport.style.setProperty("--scene-exit", smoother((p - glassesExitStart) / (1 - glassesExitStart)).toFixed(4));
 
         if (p > 0.91) glassesViewport.setAttribute("data-lens", "open");
         else glassesViewport.removeAttribute("data-lens");
