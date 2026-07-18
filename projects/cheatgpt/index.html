@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="CheatGPT — Colin Hu's controlled, scroll-driven demonstration of real-time AI inference in display glasses."
+    />
+    <meta name="theme-color" content="#03070b" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="CheatGPT // Colin Hu" />
+    <meta property="og:description" content="When inference becomes ambient: a controlled display-glasses proof of concept." />
+    <meta property="og:image" content="../../assets/cheatgpt-og-card.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CheatGPT // Colin Hu" />
+    <meta name="twitter:description" content="When inference becomes ambient: a controlled display-glasses proof of concept." />
+    <meta name="twitter:image" content="../../assets/cheatgpt-og-card.png" />
+    <title>CheatGPT // Colin Hu</title>
+    <link rel="icon" type="image/png" href="../../assets/hero-abstract.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Orbitron:wght@600;700;900&family=Rajdhani:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="cheatgpt.css?v=13" />
+    <link rel="stylesheet" href="../../project-bottom.css?v=20260717" />
+  </head>
+  <body>
+    <a class="skip-link" href="#story">Skip the demonstration</a>
+    <div class="grain" aria-hidden="true"></div>
+    <div class="scanlines" aria-hidden="true"></div>
+    <div class="scroll-meter" aria-hidden="true"><span id="scroll-fill"></span></div>
+
+    <header class="project-nav">
+      <a class="hangar-link" href="../../index.html#projects">
+        <span aria-hidden="true">&larr;</span>
+        <span>PROJECT HANGAR</span>
+      </a>
+      <div class="nav-file"><i aria-hidden="true"></i> FILE 003 // CHEATGPT</div>
+      <a class="nav-source" href="https://github.com/ColinHu07/cheating" target="_blank" rel="noopener">
+        SOURCE <span aria-hidden="true">↗</span>
+      </a>
+    </header>
+
+    <nav class="chapter-rail" aria-label="Project chapters">
+      <a href="#demo" data-chapter="demo"><i></i><span>THE DEMO</span></a>
+      <a href="#story" data-chapter="story"><i></i><span>THE STORY</span></a>
+      <a href="#redirect" data-chapter="redirect"><i></i><span>THE REDIRECT</span></a>
+    </nav>
+
+    <main>
+      <section class="solve-scroll" id="demo" data-chapter-section="demo">
+        <div class="solve-viewport" id="solve-viewport">
+          <div class="ambient-orb orb-one" aria-hidden="true"></div>
+          <div class="ambient-orb orb-two" aria-hidden="true"></div>
+
+          <div class="demo-title" aria-hidden="true">
+            <p>CHEATGPT // CONTROLLED DEMONSTRATION</p>
+            <h1>A HARD QUESTION.<br /><em>A VERY SMALL SCREEN.</em></h1>
+          </div>
+
+          <div class="desk-stage">
+            <div class="desk-light" aria-hidden="true"></div>
+
+            <div class="pencil pencil-left" aria-hidden="true">
+              <span class="eraser"></span><span class="ferrule"></span><span class="pencil-body"></span><span class="pencil-tip"></span>
+            </div>
+            <div class="pencil pencil-right" aria-hidden="true">
+              <span class="eraser"></span><span class="ferrule"></span><span class="pencil-body"></span><span class="pencil-tip"></span>
+            </div>
+
+            <article class="exam-sheet" aria-label="AIME test page showing Problems 9, 10, and 11">
+              <header class="exam-header">
+                <span>AMERICAN INVITATIONAL MATHEMATICS EXAMINATION</span>
+                <span>QUESTIONS 9–11</span>
+              </header>
+
+              <section class="exam-problem problem-nine">
+                <h2>Problem 9</h2>
+                <p>
+                  Joanne has a blank fair six-sided die and six stickers each displaying a different integer from 1 to 6.
+                  She rolls the die and places the stickers in order, covering an old sticker whenever that face appears again.
+                  Let <i>p</i> be the conditional probability that exactly one face is left blank, given that all even-numbered
+                  stickers are visible. If <i>p</i> = <i>m</i>/<i>n</i> in lowest terms, find <i>m + n</i>.
+                </p>
+                <span class="solution-link">Solution</span>
+              </section>
+
+              <section class="exam-problem problem-ten" aria-labelledby="problem-title">
+                <span class="focus-bracket bracket-left" aria-hidden="true"></span>
+                <span class="focus-bracket bracket-right" aria-hidden="true"></span>
+                <h2 id="problem-title">Problem 10</h2>
+                <p>
+                  Let △<i>ABC</i> have side lengths <i>AB</i> = 13, <i>BC</i> = 14, and
+                  <i>CA</i> = 15. Triangle △<i>A′B′C′</i> is obtained by rotating △<i>ABC</i>
+                  about its circumcenter so that <i>A′C′</i> is perpendicular to <i>BC</i>,
+                  with <i>A′</i> and <i>B</i> not on the same side of line <i>B′C′</i>.
+                  Find the integer closest to the area of hexagon <i>AA′CC′BB′</i>.
+                </p>
+                <span class="solution-link">Solution</span>
+              </section>
+
+              <section class="exam-problem problem-eleven">
+                <h2>Problem 11</h2>
+                <p>
+                  The integers from 1 to 64 are placed in some order into an 8 × 8 grid. Let <i>M</i> be the sum of the
+                  absolute differences between adjacent cells. Find the remainder when the maximum possible value of
+                  <i>M</i> is divided by 1000.
+                </p>
+                <span class="equation-line">M = ΣΣ (|aᵢ,ⱼ₊₁ − aᵢ,ⱼ| + |aᵢ₊₁,ⱼ − aᵢ,ⱼ|)</span>
+                <span class="solution-link">Solution</span>
+              </section>
+
+              <footer class="exam-footer"><span>AIME</span><span>10</span></footer>
+            </article>
+          </div>
+
+          <div class="capture-beam" aria-hidden="true"></div>
+
+          <div class="glasses-wrap">
+            <div class="temple temple-left"><span></span></div>
+            <div class="temple temple-right"><span></span></div>
+            <div class="glasses-front">
+              <div class="frame-brow"></div>
+              <div class="lens lens-left"><span></span></div>
+              <div class="bridge"></div>
+              <div class="lens lens-right">
+                <span aria-hidden="true"></span>
+
+                <section class="solver-hud" aria-label="Scroll-controlled solution display" aria-describedby="accessible-solution">
+                  <div class="hud-corner top-left" aria-hidden="true"></div>
+                  <div class="hud-corner top-right" aria-hidden="true"></div>
+                  <div class="hud-corner bottom-left" aria-hidden="true"></div>
+                  <div class="hud-corner bottom-right" aria-hidden="true"></div>
+
+                  <header class="hud-header">
+                    <div>
+                      <span class="live-dot"></span>
+                      CHEATGPT // LENS INFERENCE
+                    </div>
+                    <span id="hud-status">WAITING FOR CAPTURE</span>
+                  </header>
+
+                  <div class="hud-body">
+                    <article class="reasoning-panel" aria-label="A streamed assistant response solving Problem 10">
+                      <div class="chat-thread">
+                        <div class="user-message">
+                          <span>YOU</span>
+                          <p>Solve Problem 10. Show the coordinate setup and enough work to verify the answer.</p>
+                        </div>
+
+                        <div class="assistant-message">
+                          <div class="assistant-meta">
+                            <i aria-hidden="true">✦</i>
+                            <span>CHEATGPT</span>
+                            <em id="thinking-state">Thinking…</em>
+                          </div>
+                          <div class="answer-stream" id="answer-stream" aria-hidden="true"></div>
+                          <span class="typing-cursor" id="typing-cursor" aria-hidden="true"></span>
+                          <div class="answer-complete" id="answer-complete" aria-hidden="true">
+                            <span>FINAL ANSWER</span><strong>156</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </article>
+
+                    <figure class="geometry-panel">
+                      <canvas id="geometry-canvas" aria-label="Animated coordinate diagram of the original and rotated triangles"></canvas>
+                      <figcaption>
+                        <span>GEOMETRY MAP</span>
+                        <span id="geometry-caption">ACQUIRING POINTS…</span>
+                      </figcaption>
+                    </figure>
+                  </div>
+
+                  <div class="hud-progress" aria-hidden="true">
+                    <span data-progress="0"></span><span data-progress="1"></span><span data-progress="2"></span>
+                    <span data-progress="3"></span><span data-progress="4"></span><span data-progress="5"></span>
+                  </div>
+                  <p class="demo-disclaimer">PRE-RECORDED CONTROLLED DEMO</p>
+                </section>
+              </div>
+              <div class="hinge-cap hinge-left"></div>
+              <div class="hinge-cap hinge-right"></div>
+              <div class="display-dot"></div>
+            </div>
+          </div>
+
+          <div class="scroll-cue" aria-hidden="true">
+            <span>SCROLL TO INSPECT THE TEST</span><i></i>
+          </div>
+        </div>
+      </section>
+
+      <section class="story-section" id="story" data-chapter-section="story">
+        <div class="story-index" aria-hidden="true">04</div>
+        <article class="story-copy reveal">
+          <p class="eyebrow">THE STORY // WHY BUILD THE PROOF?</p>
+          <h2>I MISSED THE DOOR.<br /><em>THE TRUST MODEL MISSED THE MOMENT.</em></h2>
+          <p class="story-lead">
+            I scored a 126 on the AMC 12 and an 11 on the AIME, producing a USAMO
+            qualification index of 236. That score would have qualified in every earlier
+            year. Instead, the COVID-disrupted competition cycle produced a record-high
+            cutoff and left me just outside.
+          </p>
+          <p>
+            It was not just some random statistical fluke. The cutoff spike arrived during
+            COVID-era testing, amid alleged reports of AI-assisted test-taking. That made a
+            bigger problem impossible to ignore: an assessment built around what a student
+            can see and write can no longer assume those are the only systems in the room.
+          </p>
+          <p>
+            I built CheatGPT as a visible proof of concept—not to take a test for me, but
+            to show how little friction now separates a camera, an inference model, and a
+            private display. The demonstration above is deliberately staged and
+            pre-recorded. It exposes the capability without publishing a covert cheating playbook.
+          </p>
+          <p class="story-punchline">
+            For the record: I do not even wear glasses. Consider that my least technical—and
+            most literal—way of saying I do not condone using them to cheat.
+          </p>
+          <a class="github-cta" href="https://github.com/ColinHu07/cheating" target="_blank" rel="noopener">
+            <span>OPEN SOURCE // PROJECT REPOSITORY</span>
+            <strong>Explore the CheatGPT build</strong>
+            <em>View the code, architecture, and demo files&nbsp;&nbsp;↗</em>
+          </a>
+        </article>
+
+        <aside class="thesis-card reveal">
+          <span>THESIS // 001</span>
+          <blockquote>“When inference becomes ambient, integrity has to be designed—not assumed.”</blockquote>
+          <p>
+            Better assessments can emphasize oral defense, process artifacts, unique data,
+            and teacher-visible iteration—not an arms race of surveillance.
+          </p>
+        </aside>
+      </section>
+
+      <section class="redirect-section" id="redirect" data-chapter-section="redirect">
+        <div class="redirect-head reveal">
+          <p class="eyebrow">THE REDIRECT // SAME PIPELINE, BETTER PURPOSE</p>
+          <h2>REAL-TIME INFERENCE<br />CAN STILL DO GOOD.</h2>
+          <p>
+            Camera → context → inference → display is morally neutral. The product choices
+            around consent, timing, and what the system returns are what redirect it.
+          </p>
+        </div>
+
+        <div class="use-grid">
+          <article class="use-card reveal">
+            <span>01 // ACCESS</span>
+            <h3>See what others hear.</h3>
+            <p>Live captions, translation, sign reading, object cues, and navigation prompts for people with hearing or visual impairments.</p>
+            <small>RETURN: CONTEXT, NOT CONTROL</small>
+          </article>
+          <article class="use-card reveal">
+            <span>02 // LEARN</span>
+            <h3>Coach without answering.</h3>
+            <p>A Socratic tutor can detect the step where reasoning breaks, offer one hint, and reserve full solutions for post-attempt review.</p>
+            <small>RETURN: THE NEXT QUESTION</small>
+          </article>
+          <article class="use-card reveal">
+            <span>03 // BUILD</span>
+            <h3>Keep hands on the work.</h3>
+            <p>Technicians, nurses, and makers can see checklists, diagrams, and verified procedures while both hands stay on the task.</p>
+            <small>RETURN: VERIFIED GUIDANCE</small>
+          </article>
+          <article class="use-card reveal">
+            <span>04 // PROTECT</span>
+            <h3>Catch the missed step.</h3>
+            <p>Consent-based prompts can flag a skipped safety check, a medication mismatch, or an equipment state that deserves a second look.</p>
+            <small>RETURN: A PAUSE, NOT A VERDICT</small>
+          </article>
+        </div>
+
+        <div class="guardrail reveal">
+          <span>DESIGN RULE</span>
+          <p>
+            A constructive version should be visible, consent-based, auditable, and easy to
+            pause. It should preserve human agency and withhold outputs when the context
+            makes assistance inappropriate.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="project-bottom-bar" aria-label="Project navigation">
+      <a class="project-bottom-bar__return" href="../../index.html#projects"><span aria-hidden="true">&larr;</span> RETURN TO PROJECT HANGAR</a>
+      <a class="project-bottom-bar__source" href="https://github.com/ColinHu07/cheating" target="_blank" rel="noopener">VIEW SOURCE ON GITHUB <span aria-hidden="true">&nearr;</span></a>
+      <span class="project-bottom-bar__file">CHEATGPT // FILE 003</span>
+    </footer>
+
+    <div class="sr-only" id="accessible-solution">
+      The controlled demonstration solves the problem by placing A at 5 comma 12, B at 0 comma 0,
+      and C at 14 comma 0. The circumcenter is 7 comma 33 eighths. Rotating negative 36.87 degrees
+      gives A prime at 81 eighths comma 93 eighths, C prime at 81 eighths comma negative 27 eighths,
+      and B prime at negative 43 fortieths comma 201 fortieths. The shoelace area is 155.7, whose
+      nearest integer is 156.
+    </div>
+
+    <script src="cheatgpt.js?v=10"></script>
+  </body>
+</html>
