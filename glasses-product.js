@@ -711,16 +711,14 @@ if (canvas && viewport) {
   backdropContext.fillRect(0, 0, 512, 512);
   const backdropTexture = new THREE.CanvasTexture(backdropCanvas);
   backdropTexture.colorSpace = THREE.SRGBColorSpace;
-  const backdrop = new THREE.Mesh(
-    new THREE.PlaneGeometry(46, 29),
-    new THREE.MeshBasicMaterial({ map: backdropTexture, fog: false })
-  );
-  backdrop.position.set(0, 1.2, -11);
-  scene.add(backdrop);
+  // Use the gradient as the renderer background instead of a finite plane.
+  // The old plane's top and bottom edges were visible as thick horizontal
+  // bands in portrait viewports because the mobile camera sits farther back.
+  scene.background = backdropTexture;
 
   const floor = new THREE.Mesh(
-    new THREE.PlaneGeometry(36, 28),
-    new THREE.MeshStandardMaterial({ color: 0x15191d, roughness: 0.82, metalness: 0.08 })
+    new THREE.PlaneGeometry(90, 90),
+    new THREE.ShadowMaterial({ color: 0x000000, opacity: 0.2, transparent: true })
   );
   floor.rotation.x = -Math.PI / 2;
   floor.position.y = -3.05;
