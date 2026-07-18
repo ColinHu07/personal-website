@@ -35,7 +35,13 @@
 }
 
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; background: var(--ink); }
+html {
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
+  scroll-behavior: smooth;
+  background: var(--ink);
+}
 body {
   margin: 0;
   overflow-x: hidden;
@@ -87,7 +93,13 @@ a { color: inherit; }
   letter-spacing: 0.18em;
   text-transform: uppercase;
 }
-.back-link { text-decoration: none; transition: color 180ms ease; }
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: none;
+  transition: color 180ms ease;
+}
 .back-link:hover,
 .back-link:focus-visible { color: var(--aqua); outline: none; }
 .back-link span { color: var(--aqua); margin-right: 0.45rem; }
@@ -124,6 +136,7 @@ a { color: inherit; }
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100svh;
   min-height: 650px;
   overflow: hidden;
   isolation: isolate;
@@ -423,6 +436,7 @@ h1, h2, h3, p { text-wrap: pretty; }
   letter-spacing: 0.18em;
   text-transform: uppercase;
   cursor: pointer;
+  min-height: 44px;
   opacity: var(--inspect-opacity);
 }
 .inspect-button i { position: relative; width: 38px; height: 38px; border: 1px solid rgba(183, 255, 239, 0.34); border-radius: 50%; }
@@ -992,7 +1006,7 @@ h1, h2, h3, p { text-wrap: pretty; }
 .threshold-validation strong { display: block; margin-top: 1.2rem; font-family: "Orbitron", sans-serif; font-size: clamp(1.15rem, 2vw, 1.7rem); }
 .threshold-validation p { margin: 0.75rem 0 0; color: var(--muted); font-size: 0.82rem; line-height: 1.6; }
 .threshold-evidence strong { color: var(--aqua-bright); }
-.threshold-source { display: inline-flex; gap: 0.65rem; align-items: center; margin-top: 2rem; color: var(--aqua-bright); font-family: "Rajdhani", sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-decoration: none; text-transform: uppercase; }
+.threshold-source { display: inline-flex; gap: 0.65rem; align-items: center; min-height: 44px; margin-top: 2rem; color: var(--aqua-bright); font-family: "Rajdhani", sans-serif; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em; text-decoration: none; text-transform: uppercase; }
 .threshold-source span { transition: transform 180ms ease; }
 .threshold-source:hover span,
 .threshold-source:focus-visible span { transform: translate(3px, -3px); }
@@ -1116,6 +1130,38 @@ h1, h2, h3, p { text-wrap: pretty; }
   .macro-rule > span { grid-row: auto; }
   .macro-rule p { text-align: left; }
   .project-footer { min-height: 84vh; padding-inline: 1.2rem; }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .hydro-stage {
+    height: 100svh;
+    min-height: 0;
+  }
+  .hydro-nav { min-height: 54px; }
+  .hero-copy {
+    top: 17%;
+    left: 2rem;
+    width: min(52vw, 520px);
+  }
+  .hero-copy h1 {
+    margin: 0.55rem 0 0.7rem;
+    font-size: clamp(2.7rem, 16svh, 4.2rem);
+  }
+  .hero-deck {
+    max-width: 48ch;
+    font-size: 0.82rem;
+    line-height: 1.42;
+  }
+  .hero-meta { display: none; }
+  .measurement-readout {
+    right: 2rem;
+    bottom: 5%;
+    width: min(245px, 30vw);
+    padding: 0.7rem 0.8rem;
+  }
+  .reading { padding-block: 0.55rem; }
+  .reading strong { font-size: 1.55rem; }
+  .inspect-button { left: 2rem; bottom: 3%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -26,6 +26,9 @@
 }
 
 .project-bottom-bar a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: var(--project-bottom-accent);
   text-decoration: none;
 }

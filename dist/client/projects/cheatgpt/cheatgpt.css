@@ -15,7 +15,13 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; background: var(--black); }
+html {
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
+  scroll-behavior: smooth;
+  background: var(--black);
+}
 body {
   min-width: 320px;
   overflow-x: hidden;
@@ -38,6 +44,7 @@ a { color: inherit; }
   background: var(--green);
   font: 700 0.78rem var(--hud);
   letter-spacing: 0.14em;
+  min-height: 44px;
   text-decoration: none;
   transform: translate(-50%, -180%);
   transition: transform 0.2s ease;
@@ -89,12 +96,18 @@ a { color: inherit; }
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 1.15rem clamp(1rem, 4vw, 3.5rem);
+  padding: 0.55rem clamp(1rem, 4vw, 3.5rem);
   font: 700 0.72rem var(--hud);
   letter-spacing: 0.2em;
   background: linear-gradient(to bottom, rgba(2, 4, 6, 0.92), transparent);
 }
-.project-nav a { color: var(--muted); text-decoration: none; }
+.project-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--muted);
+  text-decoration: none;
+}
 .project-nav a:hover,
 .project-nav a:focus-visible { color: var(--green); outline: none; }
 .hangar-link { display: flex; gap: 0.55rem; align-items: center; }
@@ -143,6 +156,7 @@ a { color: inherit; }
   font: 700 0.64rem var(--hud);
   letter-spacing: 0.18em;
   text-decoration: none;
+  min-height: 44px;
 }
 .chapter-rail i {
   width: 8px;
@@ -201,6 +215,7 @@ a { color: inherit; }
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100svh;
   overflow: hidden;
   isolation: isolate;
   background:

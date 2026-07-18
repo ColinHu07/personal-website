@@ -22,7 +22,12 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { scroll-behavior: smooth; }
+html {
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
+  scroll-behavior: smooth;
+}
 
 body {
   background: var(--bg);
@@ -114,7 +119,7 @@ body[data-active-scene="city"] .vignette { opacity: 0; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.1rem clamp(1.2rem, 4vw, 3rem);
+  padding: 0.55rem clamp(1.2rem, 4vw, 3rem);
   background: linear-gradient(to bottom, rgba(3, 10, 18, 0.85), transparent);
 }
 
@@ -127,6 +132,7 @@ body[data-active-scene="city"] .vignette { opacity: 0; }
   font-family: var(--font-display);
   font-size: 0.95rem;
   letter-spacing: 0.14em;
+  min-height: 44px;
 }
 .brand-core {
   width: 14px;
@@ -152,6 +158,10 @@ body[data-active-scene="city"] .vignette { opacity: 0; }
   gap: clamp(0.8rem, 2.4vw, 1.8rem);
 }
 .site-nav nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-inline: 4px;
   color: var(--text-dim);
   text-decoration: none;
   font-family: var(--font-hud);
@@ -228,6 +238,7 @@ main { position: relative; z-index: 1; }
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100svh;
   overflow: hidden;
 }
 
@@ -2089,6 +2100,9 @@ main { position: relative; z-index: 1; }
   box-shadow: 0 0 10px #ff5d68;
 }
 .lens-project-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: #fff;
   text-decoration: none;
   border: 1px solid rgba(255, 255, 255, 0.34);
@@ -2647,6 +2661,10 @@ main { position: relative; z-index: 1; }
     width: 92vw;
     aspect-ratio: 0.8;
     max-height: 78vh;
+    max-height: 78svh;
+    transform:
+      translate3d(calc((1 - var(--feed)) * 1vw), calc((1 - var(--feed)) * -2vh), 0)
+      scale(calc(1.04 - var(--feed) * 0.04));
   }
   .current-poker-layout {
     grid-template-columns: 1fr;
@@ -2659,6 +2677,31 @@ main { position: relative; z-index: 1; }
   }
   .current-poker-layout .hole-block { margin-top: 0.5rem; }
   .current-copilot-panel { gap: 0.3rem; }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .scene-dots,
+  .hud-readout { display: none; }
+  .site-nav nav a:not(:nth-child(-n+3)) { display: none; }
+  .feed-window {
+    max-height: 78svh;
+    overflow-y: auto;
+  }
+  .city-intro {
+    top: auto;
+    bottom: 8svh;
+    max-height: calc(100svh - 5rem);
+    overflow-y: auto;
+    transform: none;
+  }
+  .lens-frame {
+    width: auto;
+    height: min(78svh, 320px);
+    max-width: 92vw;
+    transform:
+      translate3d(calc((1 - var(--feed)) * 1vw), calc((1 - var(--feed)) * -1vh), 0)
+      scale(calc(1.04 - var(--feed) * 0.04));
+  }
 }
 
 /* short windows: compact reel covers so no card gets clipped */

@@ -26,6 +26,9 @@
 }
 
 html {
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
   scroll-behavior: smooth;
   background: var(--ink);
 }
@@ -89,6 +92,10 @@ body {
 }
 
 .flood-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  min-width: 44px;
   width: fit-content;
   color: var(--paper);
   text-decoration: none;
@@ -581,6 +588,7 @@ body {
 .story-actions a {
   display: inline-flex;
   align-items: center;
+  min-height: 44px;
   gap: 0.7rem;
   padding: 0.8rem 1rem;
   color: var(--paper);
@@ -646,6 +654,8 @@ body {
 
 .chapter-index a {
   display: flex;
+  align-items: center;
+  min-height: 44px;
   gap: 0.7rem;
   padding: 0.9rem;
   color: rgba(255, 255, 255, 0.66);
@@ -1301,7 +1311,7 @@ body.motion-ready .story-reveal.is-visible {
   }
 
   .opening-copy h1 {
-    font-size: clamp(3.65rem, 21vw, 6.4rem);
+    font-size: clamp(3.3rem, 18.5vw, 5.6rem);
   }
 
   .mask-legend {
@@ -1374,6 +1384,24 @@ body.motion-ready .story-reveal.is-visible {
   .wide-process img {
     min-width: 760px;
   }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .scan-viewport {
+    height: 100svh;
+    min-height: 0;
+  }
+  .flood-nav { padding-block: 0.45rem; }
+  .scene-index,
+  .coordinate-readout { top: 3.8rem; }
+  .opening-copy { bottom: 1.35rem; }
+  .opening-copy h1 { font-size: clamp(3.3rem, 20svh, 5rem); }
+  .opening-deck {
+    margin-top: 0.65rem;
+    font-size: 0.82rem;
+    line-height: 1.4;
+  }
+  .scroll-prompt { bottom: 1rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
