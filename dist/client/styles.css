@@ -22,18 +22,14 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
-html {
-  max-width: 100%;
-  overflow-x: hidden;
-  overflow-x: clip;
-  scroll-behavior: smooth;
-}
+html { scroll-behavior: smooth; }
 
 body {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-body);
   overflow-x: hidden;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -238,7 +234,6 @@ main { position: relative; z-index: 1; }
   position: sticky;
   top: 0;
   height: 100vh;
-  height: 100svh;
   overflow: hidden;
 }
 
@@ -398,6 +393,9 @@ main { position: relative; z-index: 1; }
 .hero-copy {
   position: relative;
   z-index: 5;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   text-align: center;
   padding: 0 1.4rem;
   transform: translateY(calc(var(--p, 0) * -12vh));
