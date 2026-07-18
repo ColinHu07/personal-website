@@ -12,7 +12,15 @@
   "use strict";
 
   var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var DPR = Math.min(window.devicePixelRatio || 1, 2);
+  var phonePerformance = window.matchMedia("(max-width: 760px), (orientation: landscape) and (max-height: 500px)");
+  var isPhonePerformance = phonePerformance.matches;
+  var MOBILE_FRAME_INTERVAL = 1000 / 40;
+  var DPR = Math.min(window.devicePixelRatio || 1, isPhonePerformance ? 1.25 : 2);
+  var pageVisible = !document.hidden;
+
+  document.addEventListener("visibilitychange", function () {
+    pageVisible = !document.hidden;
+  });
 
   function clamp01(v) {
     return v < 0 ? 0 : v > 1 ? 1 : v;
@@ -261,12 +269,20 @@
       });
     }
 
-    (function drawParticles() {
+    var particleLastFrame = -Infinity;
+    (function drawParticles(time) {
+      requestAnimationFrame(drawParticles);
+      if (!pageVisible) return;
+      if (isPhonePerformance && time - particleLastFrame < MOBILE_FRAME_INTERVAL) return;
+      var motionStep = Number.isFinite(particleLastFrame)
+        ? Math.min(2.5, (time - particleLastFrame) / (1000 / 60))
+        : 1;
+      particleLastFrame = time;
       ctx.clearRect(0, 0, W, H);
       for (var i = 0; i < particles.length; i++) {
         var pt = particles[i];
-        pt.x += pt.vx;
-        pt.y += pt.vy;
+        pt.x += pt.vx * motionStep;
+        pt.y += pt.vy * motionStep;
         if (pt.x < -10) pt.x = W + 10;
         if (pt.x > W + 10) pt.x = -10;
         if (pt.y < -10) pt.y = H + 10;
@@ -291,8 +307,7 @@
           }
         }
       }
-      requestAnimationFrame(drawParticles);
-    })();
+    })(0);
   }
 
   /* ============================================================
@@ -441,7 +456,12 @@
       return { x: GCX + x * GR, y: GCY - y * GR, z: z, ux: x, uy: y };
     }
 
+    var globeLastFrame = -Infinity;
     function drawGlobe(time) {
+      if (!prefersReduced) requestAnimationFrame(drawGlobe);
+      if (!pageVisible) return;
+      if (isPhonePerformance && time - globeLastFrame < MOBILE_FRAME_INTERVAL) return;
+      globeLastFrame = time;
       if (cityP < 0.5 && isInView(cityViewport)) {
         gtx.clearRect(0, 0, GW, GH);
 
@@ -592,7 +612,6 @@
           });
         }
       }
-      requestAnimationFrame(drawGlobe);
     }
     if (!prefersReduced) requestAnimationFrame(drawGlobe);
     else drawGlobe(0);
@@ -1857,11 +1876,15 @@
       }
     }
 
+    var cityLastFrame = -Infinity;
     (function cityLoop(time) {
-      if (cityP > 0.28 && isInView(cityViewport) && !prefersReduced) {
+      requestAnimationFrame(cityLoop);
+      if (!pageVisible || prefersReduced) return;
+      if (isPhonePerformance && time - cityLastFrame < MOBILE_FRAME_INTERVAL) return;
+      cityLastFrame = time;
+      if (cityP > 0.28 && isInView(cityViewport)) {
         drawCityFrame(time || 0);
       }
-      requestAnimationFrame(cityLoop);
     })(0);
     if (prefersReduced) drawCityFrame(4000);
   }
@@ -2362,11 +2385,15 @@
       }
     }
 
+    var stageLastFrame = -Infinity;
     (function stageLoop(time) {
+      requestAnimationFrame(stageLoop);
+      if (!pageVisible) return;
+      if (isPhonePerformance && time - stageLastFrame < MOBILE_FRAME_INTERVAL) return;
+      stageLastFrame = time;
       if (isInView(concertViewport) && concertP < 0.97) {
         drawStage(time || 0);
       }
-      requestAnimationFrame(stageLoop);
     })(0);
   }
   /* ---------- concert crowd light sticks ---------- */
@@ -3067,7 +3094,12 @@
       sctx.stroke();
     }
 
+    var socialsLastFrame = -Infinity;
     (function socialsLoop(time) {
+      requestAnimationFrame(socialsLoop);
+      if (!pageVisible) return;
+      if (isPhonePerformance && time - socialsLastFrame < MOBILE_FRAME_INTERVAL) return;
+      socialsLastFrame = time;
       var contactRect = contactSection.getBoundingClientRect();
       var socialsFocused =
         contactRect.top < window.innerHeight * 0.58 &&
@@ -3078,7 +3110,6 @@
       } else {
         socialsStartTime = null;
       }
-      requestAnimationFrame(socialsLoop);
     })(0);
   }
 

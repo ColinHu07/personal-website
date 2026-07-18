@@ -23,6 +23,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
+html.instant-hangar { scroll-behavior: auto; }
 
 body {
   background: var(--bg);
@@ -2809,6 +2810,34 @@ main { position: relative; z-index: 1; }
   .reel-meta strong { font-size: 0.62rem; letter-spacing: 0.12em; }
   .reel-meta span { font-size: 0.48rem; letter-spacing: 0.08em; }
   .feed-follow { margin: 0 0.55rem 0.55rem; padding: 0.45rem; }
+}
+
+/* Mobile Safari pays a large compositing cost for live backdrop blurs while
+   sticky canvases move underneath them. The gradients already provide the
+   same scene depth on a phone, so keep the handoffs but remove that extra
+   GPU pass. Static glass panels use a slightly more opaque fallback. */
+@media (max-width: 760px), (orientation: landscape) and (max-height: 500px) {
+  #hero .viewport::after,
+  #city .viewport::before,
+  .city-handoff,
+  #broadcast::before,
+  #broadcast .viewport::after,
+  #glasses .viewport::after,
+  .city-intro,
+  .feed-window,
+  .reel-badge,
+  .display-advice,
+  .current-copilot-panel,
+  .lens-project-link,
+  .holo-card,
+  .social-tile {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .city-intro { background: rgba(2, 9, 17, 0.9); }
+  .display-advice,
+  .current-copilot-panel { background-color: rgba(92, 92, 98, 0.94); }
 }
 
 @media (prefers-reduced-motion: reduce) {

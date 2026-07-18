@@ -6,6 +6,14 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
+    <script>
+      // A project-page return should land on the Hangar immediately. Setting
+      // this before the stylesheet loads prevents the browser from animating
+      // the cross-document hash jump from the top of the homepage.
+      if (new URLSearchParams(window.location.search).get("return") === "hangar") {
+        document.documentElement.classList.add("instant-hangar");
+      }
+    </script>
     <meta
       name="description"
       content="Colin Hu — personal site. A Jarvis-style holographic interface: projects, experiments, and contact."
@@ -18,7 +26,7 @@
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=jarvis-84" />
+    <link rel="stylesheet" href="styles.css?v=jarvis-85" />
   </head>
   <body>
     <canvas id="particle-field" aria-hidden="true"></canvas>
@@ -647,8 +655,31 @@
         previewUrl.searchParams.set("preview", "jarvis80");
         window.history.replaceState(null, "", previewUrl);
       }
+      if (document.documentElement.classList.contains("instant-hangar")) {
+        var hangarTarget = document.getElementById("projects");
+        var finishHangarReturn = function () {
+          if (hangarTarget) hangarTarget.scrollIntoView({ behavior: "auto", block: "start" });
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              if (hangarTarget) hangarTarget.scrollIntoView({ behavior: "auto", block: "start" });
+              document.documentElement.classList.remove("instant-hangar");
+            });
+          });
+        };
+
+        if (hangarTarget) hangarTarget.scrollIntoView({ behavior: "auto", block: "start" });
+        var hangarUrl = new URL(window.location.href);
+        hangarUrl.searchParams.delete("return");
+        window.history.replaceState(
+          null,
+          "",
+          hangarUrl.pathname + (hangarUrl.search || "") + hangarUrl.hash
+        );
+        if (document.readyState === "complete") finishHangarReturn();
+        else window.addEventListener("load", finishHangarReturn, { once: true });
+      }
     </script>
-    <script src="script.js?v=jarvis-81"></script>
-    <script type="module" src="glasses-product.js?v=jarvis-81"></script>
+    <script src="script.js?v=jarvis-82"></script>
+    <script type="module" src="glasses-product.js?v=jarvis-82"></script>
   </body>
 </html>

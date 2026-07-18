@@ -4,6 +4,7 @@ const canvas = document.querySelector(".glasses-product-canvas");
 const viewport = document.querySelector("#glasses .viewport");
 
 if (canvas && viewport) {
+  const phonePerformance = window.matchMedia("(max-width: 760px), (orientation: landscape) and (max-height: 500px)").matches;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0c0f12);
   scene.fog = new THREE.FogExp2(0x0c0f12, 0.021);
@@ -14,8 +15,8 @@ if (canvas && viewport) {
     alpha: false,
     powerPreference: "high-performance",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.shadowMap.enabled = true;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, phonePerformance ? 1.25 : 2));
+  renderer.shadowMap.enabled = !phonePerformance;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -736,7 +737,7 @@ if (canvas && viewport) {
   const key = new THREE.SpotLight(0xffe7d6, 190, 34, Math.PI / 4.6, 0.5, 1.35);
   key.position.set(-7.5, 8.5, 10.5);
   key.target.position.set(-0.8, 0.4, 0);
-  key.castShadow = true;
+  key.castShadow = !phonePerformance;
   key.shadow.mapSize.set(1024, 1024);
   key.shadow.bias = -0.0003;
   scene.add(key, key.target);
@@ -764,8 +765,11 @@ if (canvas && viewport) {
   scene.add(shadow);
 
   let baseCameraDistance = 14;
-  let isVisible = true;
+  let isVisible = false;
+  let frameHandle = 0;
+  let lastRenderTime = -Infinity;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const mobileFrameInterval = 1000 / 40;
   const tmpTarget = new THREE.Vector3();
   const baseCamera = new THREE.Vector3();
   const targetCamera = new THREE.Vector3();
@@ -775,7 +779,7 @@ if (canvas && viewport) {
   const clamp01 = (value) => Math.max(0, Math.min(1, value));
   const mix = (a, b, amount) => a + (b - a) * amount;
   const readVar = (name) => {
-    const raw = getComputedStyle(viewport).getPropertyValue(name);
+    const raw = viewport.style.getPropertyValue(name) || getComputedStyle(viewport).getPropertyValue(name);
     return clamp01(parseFloat(raw) || 0);
   };
 
@@ -796,14 +800,20 @@ if (canvas && viewport) {
   resize();
   window.addEventListener("resize", resize, { passive: true });
 
-  const observer = new IntersectionObserver((entries) => {
-    isVisible = entries[0] ? entries[0].isIntersecting : false;
-  }, { rootMargin: "120% 0px" });
-  observer.observe(viewport);
+  const scheduleRender = () => {
+    if (!frameHandle && isVisible && !document.hidden) {
+      frameHandle = requestAnimationFrame(render);
+    }
+  };
 
-  const render = () => {
-    requestAnimationFrame(render);
-    if (!isVisible && !reducedMotion) return;
+  const render = (time = 0) => {
+    frameHandle = 0;
+    if (!isVisible || document.hidden) return;
+    if (phonePerformance && time - lastRenderTime < mobileFrameInterval) {
+      scheduleRender();
+      return;
+    }
+    lastRenderTime = time;
 
     const explodeAmount = reducedMotion ? 0 : readVar("--explode");
     const templeFold = reducedMotion ? 0 : readVar("--fold");
@@ -890,7 +900,26 @@ if (canvas && viewport) {
 
     shadow.material.opacity = 0.28 * (1 - diveAmount);
     renderer.render(scene, camera);
+    if (!reducedMotion) scheduleRender();
   };
 
-  render();
+  const observer = new IntersectionObserver((entries) => {
+    isVisible = entries[0] ? entries[0].isIntersecting : false;
+    if (isVisible) {
+      scheduleRender();
+    } else if (frameHandle) {
+      cancelAnimationFrame(frameHandle);
+      frameHandle = 0;
+    }
+  }, { rootMargin: "35% 0px" });
+  observer.observe(viewport);
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && frameHandle) {
+      cancelAnimationFrame(frameHandle);
+      frameHandle = 0;
+    } else {
+      scheduleRender();
+    }
+  });
 }
