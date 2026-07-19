@@ -15,7 +15,7 @@ if (canvas && viewport) {
     alpha: false,
     powerPreference: "high-performance",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, phonePerformance ? 1.25 : 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, phonePerformance ? 1 : 2));
   renderer.shadowMap.enabled = !phonePerformance;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -767,9 +767,7 @@ if (canvas && viewport) {
   let baseCameraDistance = 14;
   let isVisible = false;
   let frameHandle = 0;
-  let lastRenderTime = -Infinity;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const mobileFrameInterval = 1000 / 40;
   const tmpTarget = new THREE.Vector3();
   const baseCamera = new THREE.Vector3();
   const targetCamera = new THREE.Vector3();
@@ -809,11 +807,6 @@ if (canvas && viewport) {
   const render = (time = 0) => {
     frameHandle = 0;
     if (!isVisible || document.hidden) return;
-    if (phonePerformance && time - lastRenderTime < mobileFrameInterval) {
-      scheduleRender();
-      return;
-    }
-    lastRenderTime = time;
 
     const explodeAmount = reducedMotion ? 0 : readVar("--explode");
     const templeFold = reducedMotion ? 0 : readVar("--fold");

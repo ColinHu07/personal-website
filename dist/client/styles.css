@@ -232,11 +232,18 @@ main { position: relative; z-index: 1; }
 #glasses.scene.scrub { height: 450vh; }
 
 .scene.scrub .viewport {
+  position: -webkit-sticky;
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
+
+/* Adjacent scene color fields overlap by a physical pixel so fractional
+   mobile scroll positions and desktop zoom never expose the document
+   background as a horizontal divider. */
+main > .scene + .scene { margin-top: -1px; }
 
 .scene.flow {
   position: relative;
