@@ -36,6 +36,7 @@ html {
 body {
   min-width: 320px;
   overflow-x: hidden;
+  overflow-x: clip;
   color: var(--paper);
   background: var(--ink);
   font-family: "Inter", sans-serif;
@@ -139,14 +140,27 @@ body {
 }
 
 .scan-viewport {
+  position: -webkit-sticky;
   position: sticky;
   top: 0;
   height: 100vh;
-  height: 100svh;
+  height: 100dvh;
   min-height: 560px;
   overflow: hidden;
   isolation: isolate;
   background: #080d06;
+}
+.scan-viewport::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  z-index: 13;
+  height: 56vh;
+  pointer-events: none;
+  opacity: var(--story-alpha);
+  background: linear-gradient(to bottom, transparent 0%, rgba(5, 7, 5, 0.46) 48%, var(--ink) 100%);
 }
 
 .ambient-map {
@@ -502,6 +516,7 @@ body {
   color: var(--paper);
   background: var(--ink);
 }
+.scan-journey + .story-content { margin-top: -1px; }
 
 .story-content::before {
   content: "";
@@ -1388,7 +1403,7 @@ body.motion-ready .story-reveal.is-visible {
 
 @media (orientation: landscape) and (max-height: 500px) {
   .scan-viewport {
-    height: 100svh;
+    height: 100dvh;
     min-height: 0;
   }
   .flood-nav { padding-block: 0.45rem; }

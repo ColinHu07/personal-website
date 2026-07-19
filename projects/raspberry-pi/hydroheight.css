@@ -45,6 +45,7 @@ html {
 body {
   margin: 0;
   overflow-x: hidden;
+  overflow-x: clip;
   color: var(--paper);
   background: var(--ink);
   font-family: "Inter", sans-serif;
@@ -133,14 +134,16 @@ a { color: inherit; }
 
 .hydro-scene { position: relative; height: 330vh; background: #02090d; }
 .hydro-stage {
+  position: -webkit-sticky;
   position: sticky;
   top: 0;
   height: 100vh;
-  height: 100svh;
+  height: 100dvh;
   min-height: 650px;
   overflow: hidden;
   isolation: isolate;
 }
+main > section + section { margin-top: -1px; }
 .world {
   --mx: 0px;
   --my: 0px;
@@ -1134,7 +1137,7 @@ h1, h2, h3, p { text-wrap: pretty; }
 
 @media (orientation: landscape) and (max-height: 500px) {
   .hydro-stage {
-    height: 100svh;
+    height: 100dvh;
     min-height: 0;
   }
   .hydro-nav { min-height: 54px; }

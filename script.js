@@ -14,8 +14,8 @@
   var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var phonePerformance = window.matchMedia("(max-width: 760px), (orientation: landscape) and (max-height: 500px)");
   var isPhonePerformance = phonePerformance.matches;
-  var MOBILE_FRAME_INTERVAL = 1000 / 40;
-  var DPR = Math.min(window.devicePixelRatio || 1, isPhonePerformance ? 1.25 : 2);
+  var MOBILE_FRAME_INTERVAL = 1000 / 30;
+  var DPR = Math.min(window.devicePixelRatio || 1, isPhonePerformance ? 1 : 2);
   var pageVisible = !document.hidden;
 
   document.addEventListener("visibilitychange", function () {
@@ -104,6 +104,13 @@
 
     scrubScenes.forEach(function (scene) {
       var rect = scene.getBoundingClientRect();
+      var nearScene = rect.bottom > -vh * 0.5 && rect.top < vh * 1.5;
+      if (!nearScene) {
+        if (scene.id === "city" && cityFlightVideo && !cityFlightVideo.paused) {
+          cityFlightVideo.pause();
+        }
+        return;
+      }
       var total = rect.height - vh;
       var p = total > 0 ? clamp01(-rect.top / total) : 0;
       var viewport = scene.querySelector(".viewport");
@@ -339,6 +346,7 @@
   if (globeCanvas) {
     var gtx = globeCanvas.getContext("2d");
     var GW, GH, GR, GCX, GCY;
+    var globeHalo, globeOcean, globeShade;
 
     // WebGL canvas for the textured earth sits directly under the HUD canvas
     var glCanvas = document.createElement("canvas");
@@ -354,12 +362,32 @@
       GR = Math.min(GW, GH) * 0.31;
       GCX = GW / 2;
       GCY = GH / 2;
+      globeHalo = gtx.createRadialGradient(GCX, GCY, GR * 0.88, GCX, GCY, GR * 1.3);
+      globeHalo.addColorStop(0, "rgba(70,170,255,0)");
+      globeHalo.addColorStop(0.5, "rgba(70,170,255,0.16)");
+      globeHalo.addColorStop(0.75, "rgba(70,170,255,0.05)");
+      globeHalo.addColorStop(1, "rgba(70,170,255,0)");
+      globeOcean = gtx.createRadialGradient(
+        GCX - GR * 0.35, GCY - GR * 0.4, GR * 0.1,
+        GCX, GCY, GR
+      );
+      globeOcean.addColorStop(0, "rgba(70,150,220,0.6)");
+      globeOcean.addColorStop(0.45, "rgba(24,84,150,0.72)");
+      globeOcean.addColorStop(0.85, "rgba(8,40,84,0.85)");
+      globeOcean.addColorStop(1, "rgba(4,20,46,0.95)");
+      globeShade = gtx.createRadialGradient(
+        GCX - GR * 0.5, GCY - GR * 0.45, GR * 0.2,
+        GCX + GR * 0.25, GCY + GR * 0.25, GR * 1.35
+      );
+      globeShade.addColorStop(0, "rgba(0,0,0,0)");
+      globeShade.addColorStop(0.66, "rgba(2,8,20,0.04)");
+      globeShade.addColorStop(1, "rgba(2,8,20,0.5)");
       if (gl) gl.viewport(0, 0, GW, GH);
     };
 
     /* --- WebGL earth --- */
-    var gl = glCanvas.getContext("webgl", { alpha: true, antialias: true }) ||
-             glCanvas.getContext("experimental-webgl", { alpha: true, antialias: true });
+    var gl = glCanvas.getContext("webgl", { alpha: true, antialias: !isPhonePerformance }) ||
+             glCanvas.getContext("experimental-webgl", { alpha: true, antialias: !isPhonePerformance });
     var glReady = false;
     var uRotLoc, uCenterLoc, uRadiusLoc, uResLoc;
 
@@ -456,12 +484,9 @@
       return { x: GCX + x * GR, y: GCY - y * GR, z: z, ux: x, uy: y };
     }
 
-    var globeLastFrame = -Infinity;
     function drawGlobe(time) {
       if (!prefersReduced) requestAnimationFrame(drawGlobe);
       if (!pageVisible) return;
-      if (isPhonePerformance && time - globeLastFrame < MOBILE_FRAME_INTERVAL) return;
-      globeLastFrame = time;
       if (cityP < 0.5 && isInView(cityViewport)) {
         gtx.clearRect(0, 0, GW, GH);
 
@@ -494,27 +519,14 @@
         }
 
         // --- atmosphere halo ---
-        var halo = gtx.createRadialGradient(GCX, GCY, GR * 0.88, GCX, GCY, GR * 1.3);
-        halo.addColorStop(0, "rgba(70,170,255,0)");
-        halo.addColorStop(0.5, "rgba(70,170,255,0.16)");
-        halo.addColorStop(0.75, "rgba(70,170,255,0.05)");
-        halo.addColorStop(1, "rgba(70,170,255,0)");
-        gtx.fillStyle = halo;
+        gtx.fillStyle = globeHalo;
         gtx.beginPath();
         gtx.arc(GCX, GCY, GR * 1.3, 0, Math.PI * 2);
         gtx.fill();
 
         // deep-space backing while the texture streams in
         if (!glReady) {
-          var ocean = gtx.createRadialGradient(
-            GCX - GR * 0.35, GCY - GR * 0.4, GR * 0.1,
-            GCX, GCY, GR
-          );
-          ocean.addColorStop(0, "rgba(70,150,220,0.6)");
-          ocean.addColorStop(0.45, "rgba(24,84,150,0.72)");
-          ocean.addColorStop(0.85, "rgba(8,40,84,0.85)");
-          ocean.addColorStop(1, "rgba(4,20,46,0.95)");
-          gtx.fillStyle = ocean;
+          gtx.fillStyle = globeOcean;
           gtx.beginPath();
           gtx.arc(GCX, GCY, GR, 0, Math.PI * 2);
           gtx.fill();
@@ -527,14 +539,7 @@
         gtx.clip();
 
         // night-side falloff toward the lower right
-        var shade = gtx.createRadialGradient(
-          GCX - GR * 0.5, GCY - GR * 0.45, GR * 0.2,
-          GCX + GR * 0.25, GCY + GR * 0.25, GR * 1.35
-        );
-        shade.addColorStop(0, "rgba(0,0,0,0)");
-        shade.addColorStop(0.66, "rgba(2,8,20,0.04)");
-        shade.addColorStop(1, "rgba(2,8,20,0.5)");
-        gtx.fillStyle = shade;
+        gtx.fillStyle = globeShade;
         gtx.fillRect(GCX - GR, GCY - GR, GR * 2, GR * 2);
 
         // faint holographic scanlines

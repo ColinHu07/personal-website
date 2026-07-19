@@ -157,6 +157,7 @@
     viewport.style.setProperty("--hud-scale", (1.05 - hud * 0.05).toFixed(4));
     viewport.style.setProperty("--answer-complete", range(sceneProgress, 0.98, 0.996).toFixed(4));
     viewport.style.setProperty("--cue-opacity", Math.max(0, 1 - drop * 1.8).toFixed(4));
+    viewport.style.setProperty("--scene-handoff", range(sceneProgress, 0.91, 0.985).toFixed(4));
 
     updateAnswerStream(range(sceneProgress, 0.79, 0.99));
 

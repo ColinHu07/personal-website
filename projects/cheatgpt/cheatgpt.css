@@ -25,6 +25,7 @@ html {
 body {
   min-width: 320px;
   overflow-x: hidden;
+  overflow-x: clip;
   color: var(--ink);
   background: var(--black);
   font-family: var(--body);
@@ -212,15 +213,28 @@ a { color: inherit; }
   --hud-scale: 1.05;
   --answer-complete: 0;
   --cue-opacity: 1;
+  --scene-handoff: 0;
+  position: -webkit-sticky;
   position: sticky;
   top: 0;
   height: 100vh;
-  height: 100svh;
+  height: 100dvh;
   overflow: hidden;
   isolation: isolate;
   background:
     radial-gradient(ellipse at 54% 28%, rgba(255, 232, 194, 0.21), transparent 38%),
     linear-gradient(145deg, #6c422a, #3d2419 58%, #24140f);
+}
+.solve-handoff {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  z-index: 60;
+  height: 58vh;
+  pointer-events: none;
+  opacity: var(--scene-handoff);
+  background: linear-gradient(to bottom, transparent 0%, rgba(5, 8, 11, 0.48) 48%, #05080b 100%);
 }
 .solve-viewport::before {
   content: "";
@@ -995,6 +1009,7 @@ a { color: inherit; }
   overflow: hidden;
   padding: clamp(6rem, 14vh, 10rem) clamp(1.25rem, 7vw, 6.5rem);
 }
+main > section + section { margin-top: -1px; }
 .story-section {
   min-height: 105vh;
   display: grid;
