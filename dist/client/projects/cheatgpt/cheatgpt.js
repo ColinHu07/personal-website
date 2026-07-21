@@ -200,6 +200,16 @@
     drawGeometry();
   }
 
+  // On a cold mobile load the sticky lens can finish sizing after this script
+  // runs. Follow the actual CSS box so the diagram is never left at the tiny
+  // provisional dimensions reported by embedded Safari.
+  if (canvas && "ResizeObserver" in window) {
+    var canvasSizeObserver = new ResizeObserver(function () {
+      resizeCanvas();
+    });
+    canvasSizeObserver.observe(canvas);
+  }
+
   function drawGeometry() {
     if (!canvas || !context) return;
     var width = canvas.width / dpr;
@@ -352,6 +362,10 @@
     resizeCanvas();
     updateScroll();
   });
+  window.addEventListener("load", function () {
+    resizeCanvas();
+    updateScroll();
+  }, { once: true });
   window.addEventListener("pageshow", function () {
     resizeCanvas();
     updateScroll();
