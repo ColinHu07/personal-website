@@ -17,7 +17,15 @@
   var MOBILE_FRAME_INTERVAL = 1000 / 30;
   var DPR = Math.min(window.devicePixelRatio || 1, isPhonePerformance ? 1 : 2);
   var pageVisible = !document.hidden;
+  var siteInteractive = !document.documentElement.classList.contains("site-preloading");
   var runtimeSyncs = [];
+
+  window.addEventListener("site:ready", function () {
+    siteInteractive = true;
+    runtimeSyncs.forEach(function (syncRuntime) {
+      syncRuntime();
+    });
+  });
 
   document.addEventListener("visibilitychange", function () {
     pageVisible = !document.hidden;
@@ -69,7 +77,7 @@
     }
 
     function syncRuntime() {
-      var shouldRun = intersecting && pageVisible;
+      var shouldRun = intersecting && pageVisible && siteInteractive;
       target.dataset.runtime = shouldRun ? "active" : "sleeping";
       if (shouldRun && !frameId) frameId = requestAnimationFrame(frame);
       if (!shouldRun && frameId) {
@@ -298,6 +306,7 @@
       dot.classList.toggle("active", dot.dataset.dot === active);
     });
     document.body.dataset.activeScene = active || "";
+    window.dispatchEvent(new CustomEvent("scene:sync"));
   }
 
   var ticking = false;

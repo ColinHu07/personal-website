@@ -5,22 +5,25 @@ const viewport = document.querySelector("#glasses .viewport");
 
 if (canvas && viewport) {
   const phonePerformance = window.matchMedia("(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)").matches;
+  const safariPerformance = /^((?!chrome|chromium|android).)*safari/i.test(navigator.userAgent);
+  const retinaPerformance = (window.devicePixelRatio || 1) > 1.5;
+  const leanPerformance = phonePerformance || safariPerformance || retinaPerformance;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0c0f12);
   scene.fog = new THREE.FogExp2(0x0c0f12, 0.021);
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: !phonePerformance,
+    antialias: !leanPerformance,
     alpha: false,
     powerPreference: "high-performance",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, phonePerformance ? 0.8 : 2));
-  renderer.shadowMap.enabled = !phonePerformance;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, phonePerformance ? 0.8 : leanPerformance ? 1 : 1.5));
+  renderer.shadowMap.enabled = !leanPerformance;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = phonePerformance ? 1.5 : 1.3;
+  renderer.toneMappingExposure = leanPerformance ? 1.5 : 1.3;
 
   const camera = new THREE.PerspectiveCamera(35, 1, 0.025, 80);
   scene.add(camera);
@@ -33,7 +36,7 @@ if (canvas && viewport) {
   // multiply fragment-shader work on a phone. Keep the same colors, opacity,
   // metalness, and roughness with a cheaper standard-lighting material there.
   const surfaceMaterial = (options) => {
-    if (!phonePerformance) return new THREE.MeshPhysicalMaterial(options);
+    if (!leanPerformance) return new THREE.MeshPhysicalMaterial(options);
     const mobileOptions = { ...options };
     [
       "clearcoat",
@@ -45,10 +48,10 @@ if (canvas && viewport) {
     ].forEach((property) => delete mobileOptions[property]);
     return new THREE.MeshStandardMaterial(mobileOptions);
   };
-  const detail = (desktop, mobile) => phonePerformance ? mobile : desktop;
+  const detail = (desktop, lean) => leanPerformance ? lean : desktop;
 
   const frameMaterial = surfaceMaterial({
-    color: phonePerformance ? 0x252a30 : 0x121519,
+    color: leanPerformance ? 0x252a30 : 0x121519,
     metalness: 0.08,
     roughness: 0.13,
     clearcoat: 1,
@@ -57,14 +60,14 @@ if (canvas && viewport) {
     side: THREE.DoubleSide,
   });
   const innerAcetateMaterial = surfaceMaterial({
-    color: phonePerformance ? 0x2b3138 : 0x1b2026,
+    color: leanPerformance ? 0x2b3138 : 0x1b2026,
     metalness: 0.12,
     roughness: 0.2,
     clearcoat: 0.9,
     clearcoatRoughness: 0.1,
   });
   const lensMaterial = surfaceMaterial({
-    color: phonePerformance ? 0x304854 : 0x26353d,
+    color: leanPerformance ? 0x304854 : 0x26353d,
     metalness: 0.05,
     roughness: 0.12,
     transmission: 0.34,
@@ -77,7 +80,7 @@ if (canvas && viewport) {
     side: THREE.DoubleSide,
   });
   const lensEdgeMaterial = surfaceMaterial({
-    color: phonePerformance ? 0x425763 : 0x31424a,
+    color: leanPerformance ? 0x425763 : 0x31424a,
     metalness: 0.18,
     roughness: 0.18,
     transparent: true,
@@ -184,8 +187,8 @@ if (canvas && viewport) {
       bevelEnabled: bevel > 0,
       bevelSize: bevel,
       bevelThickness: bevel,
-      bevelSegments: phonePerformance ? Math.min(bevelSegments, 2) : bevelSegments,
-      curveSegments: phonePerformance ? 20 : 64,
+      bevelSegments: leanPerformance ? Math.min(bevelSegments, 2) : bevelSegments,
+      curveSegments: leanPerformance ? 20 : 64,
       steps: 1,
     });
     geometry.translate(0, 0, -depth / 2);
@@ -745,17 +748,17 @@ if (canvas && viewport) {
   floor.receiveShadow = true;
   scene.add(floor);
 
-  const ambient = new THREE.HemisphereLight(0xb8cedc, 0x111318, phonePerformance ? 3.1 : 1.65);
+  const ambient = new THREE.HemisphereLight(0xb8cedc, 0x111318, leanPerformance ? 3.1 : 1.65);
   scene.add(ambient);
 
-  const frontFill = new THREE.DirectionalLight(0xc8dbe7, phonePerformance ? 2.35 : 0.9);
+  const frontFill = new THREE.DirectionalLight(0xc8dbe7, leanPerformance ? 2.35 : 0.9);
   frontFill.position.set(0, 3.5, 9);
   scene.add(frontFill);
 
   const key = new THREE.SpotLight(0xffe7d6, 190, 34, Math.PI / 4.6, 0.5, 1.35);
   key.position.set(-7.5, 8.5, 10.5);
   key.target.position.set(-0.8, 0.4, 0);
-  key.castShadow = !phonePerformance;
+  key.castShadow = !leanPerformance;
   key.shadow.mapSize.set(1024, 1024);
   key.shadow.bias = -0.0003;
   scene.add(key, key.target);
@@ -763,14 +766,14 @@ if (canvas && viewport) {
   const fill = new THREE.SpotLight(0x80cfff, 150, 30, Math.PI / 4, 0.62, 1.25);
   fill.position.set(8, 4.5, 7);
   fill.target.position.set(1.5, 0, -0.8);
-  if (!phonePerformance) scene.add(fill, fill.target);
+  if (!leanPerformance) scene.add(fill, fill.target);
 
   const warmRim = new THREE.PointLight(0xff9c67, 85, 24, 1.7);
   warmRim.position.set(-6, -0.2, -6);
 
   const coolRim = new THREE.PointLight(0x6bb9ff, 115, 24, 1.65);
   coolRim.position.set(7, 2.2, -6.5);
-  if (!phonePerformance) scene.add(warmRim, coolRim);
+  if (!leanPerformance) scene.add(warmRim, coolRim);
 
   const shadow = new THREE.Mesh(
     new THREE.CircleGeometry(5.2, detail(80, 32)),
@@ -844,13 +847,13 @@ if (canvas && viewport) {
     }
   };
 
-  const render = (time = 0) => {
+  const render = (time = 0, force = false) => {
     frameHandle = 0;
     if (fallbackTimer) {
       clearTimeout(fallbackTimer);
       fallbackTimer = 0;
     }
-    if (!isVisible || document.hidden) return;
+    if ((!isVisible && !force) || document.hidden) return;
     if (phonePerformance && time - lastRenderTime < phoneFrameInterval) {
       fallbackTimer = window.setTimeout(scheduleRender, phoneFrameInterval - (time - lastRenderTime));
       return;
@@ -959,10 +962,14 @@ if (canvas && viewport) {
     }
   };
 
-  viewport.dataset.glassesRenderProfile = phonePerformance ? "mobile" : "full";
+  viewport.dataset.glassesRenderProfile = phonePerformance ? "mobile" : leanPerformance ? "lite" : "full";
   resize();
+  // Compile every shader and draw the first frame before the startup cover is
+  // released. Later scroll input only updates transforms and material values.
+  render(performance.now(), true);
   window.addEventListener("resize", resize, { passive: true });
   window.addEventListener("scroll", scheduleRender, { passive: true });
+  window.addEventListener("scene:sync", scheduleRender);
   window.addEventListener("pageshow", scheduleRender);
 
   canvas.addEventListener("webglcontextlost", (event) => {
