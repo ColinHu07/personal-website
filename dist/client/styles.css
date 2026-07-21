@@ -2897,6 +2897,7 @@ main > .scene + .scene { margin-top: -1px; }
    same scene depth on a phone, so keep the handoffs but remove that extra
    GPU pass. Static glass panels use a slightly more opaque fallback. */
 @media (max-width: 760px), (orientation: landscape) and (max-height: 500px) {
+  .optics-entry,
   #hero .viewport::after,
   #city .viewport::before,
   .city-handoff,
@@ -2918,6 +2919,31 @@ main > .scene + .scene { margin-top: -1px; }
   .city-intro { background: rgba(2, 9, 17, 0.9); }
   .display-advice,
   .current-copilot-panel { background-color: rgba(92, 92, 98, 0.94); }
+
+  /* Full-screen animated blur, clip-path, and blend-mode passes were the
+     remaining glasses-scene bottleneck on iOS. Opacity and transforms stay on
+     the compositor and preserve the lens-dive handoff without dropped frames. */
+  .lens-view {
+    clip-path: none;
+    filter: none;
+    transform: translate3d(0, calc((1 - var(--feed)) * 3vh), 0)
+      scale(calc(0.9 + var(--feed) * 0.1));
+    will-change: opacity, transform;
+  }
+
+  .lens-glass-transition,
+  .lens-view::before,
+  .display-glass-sheen {
+    mix-blend-mode: normal;
+  }
+
+  .lens-glass-transition::after,
+  .display-world::before,
+  .felt-table,
+  .world-cards,
+  .chip-cluster {
+    filter: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

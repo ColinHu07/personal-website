@@ -15,12 +15,12 @@ if (canvas && viewport) {
     alpha: false,
     powerPreference: "high-performance",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, phonePerformance ? 1 : 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, phonePerformance ? 0.8 : 2));
   renderer.shadowMap.enabled = !phonePerformance;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.3;
+  renderer.toneMappingExposure = phonePerformance ? 1.5 : 1.3;
 
   const camera = new THREE.PerspectiveCamera(35, 1, 0.025, 80);
   scene.add(camera);
@@ -29,8 +29,26 @@ if (canvas && viewport) {
   product.position.y = 0.25;
   scene.add(product);
 
-  const frameMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0x121519,
+  // Clearcoat and transmission look excellent at desktop resolution, but they
+  // multiply fragment-shader work on a phone. Keep the same colors, opacity,
+  // metalness, and roughness with a cheaper standard-lighting material there.
+  const surfaceMaterial = (options) => {
+    if (!phonePerformance) return new THREE.MeshPhysicalMaterial(options);
+    const mobileOptions = { ...options };
+    [
+      "clearcoat",
+      "clearcoatRoughness",
+      "ior",
+      "reflectivity",
+      "thickness",
+      "transmission",
+    ].forEach((property) => delete mobileOptions[property]);
+    return new THREE.MeshStandardMaterial(mobileOptions);
+  };
+  const detail = (desktop, mobile) => phonePerformance ? mobile : desktop;
+
+  const frameMaterial = surfaceMaterial({
+    color: phonePerformance ? 0x252a30 : 0x121519,
     metalness: 0.08,
     roughness: 0.13,
     clearcoat: 1,
@@ -38,15 +56,15 @@ if (canvas && viewport) {
     reflectivity: 0.92,
     side: THREE.DoubleSide,
   });
-  const innerAcetateMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0x1b2026,
+  const innerAcetateMaterial = surfaceMaterial({
+    color: phonePerformance ? 0x2b3138 : 0x1b2026,
     metalness: 0.12,
     roughness: 0.2,
     clearcoat: 0.9,
     clearcoatRoughness: 0.1,
   });
-  const lensMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0x26353d,
+  const lensMaterial = surfaceMaterial({
+    color: phonePerformance ? 0x304854 : 0x26353d,
     metalness: 0.05,
     roughness: 0.12,
     transmission: 0.34,
@@ -58,8 +76,8 @@ if (canvas && viewport) {
     clearcoatRoughness: 0.05,
     side: THREE.DoubleSide,
   });
-  const lensEdgeMaterial = new THREE.MeshPhysicalMaterial({
-    color: 0x31424a,
+  const lensEdgeMaterial = surfaceMaterial({
+    color: phonePerformance ? 0x425763 : 0x31424a,
     metalness: 0.18,
     roughness: 0.18,
     transparent: true,
@@ -76,7 +94,7 @@ if (canvas && viewport) {
     metalness: 0.82,
     roughness: 0.27,
   });
-  const opticMaterial = new THREE.MeshPhysicalMaterial({
+  const opticMaterial = surfaceMaterial({
     color: 0x071d28,
     emissive: 0x123d54,
     emissiveIntensity: 0.28,
@@ -85,7 +103,7 @@ if (canvas && viewport) {
     clearcoat: 1,
     clearcoatRoughness: 0.03,
   });
-  const waveguideMaterial = new THREE.MeshPhysicalMaterial({
+  const waveguideMaterial = surfaceMaterial({
     color: 0x8ddcf3,
     emissive: 0x3b9cb8,
     emissiveIntensity: 0.12,
@@ -107,7 +125,7 @@ if (canvas && viewport) {
     metalness: 0.48,
     roughness: 0.31,
   });
-  const batteryMaterial = new THREE.MeshPhysicalMaterial({
+  const batteryMaterial = surfaceMaterial({
     color: 0x5f6871,
     metalness: 0.62,
     roughness: 0.28,
@@ -166,8 +184,8 @@ if (canvas && viewport) {
       bevelEnabled: bevel > 0,
       bevelSize: bevel,
       bevelThickness: bevel,
-      bevelSegments,
-      curveSegments: 64,
+      bevelSegments: phonePerformance ? Math.min(bevelSegments, 2) : bevelSegments,
+      curveSegments: phonePerformance ? 20 : 64,
       steps: 1,
     });
     geometry.translate(0, 0, -depth / 2);
@@ -434,7 +452,7 @@ if (canvas && viewport) {
     metaMark.renderOrder = 4;
     group.add(metaMark);
 
-    const mic = new THREE.Mesh(new THREE.SphereGeometry(0.026, 18, 12), darkMetalMaterial);
+    const mic = new THREE.Mesh(new THREE.SphereGeometry(0.026, detail(18, 10), detail(12, 8)), darkMetalMaterial);
     mic.position.set(side * 0.175, -0.12, -2.72);
     group.add(mic);
     return group;
@@ -449,7 +467,7 @@ if (canvas && viewport) {
     block.position.z = -0.15;
     block.castShadow = true;
     group.add(block);
-    const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.54, 24), metalMaterial);
+    const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 0.54, detail(24, 12)), metalMaterial);
     pin.rotation.z = Math.PI / 2;
     pin.position.z = 0.04;
     group.add(pin);
@@ -460,20 +478,20 @@ if (canvas && viewport) {
 
   const cameraModule = new THREE.Group();
   cameraModule.position.set(-4.4, 0.84, 0.14);
-  const cameraHousing = new THREE.Mesh(new THREE.CylinderGeometry(0.195, 0.195, 0.075, 64), darkMetalMaterial);
+  const cameraHousing = new THREE.Mesh(new THREE.CylinderGeometry(0.195, 0.195, 0.075, detail(64, 20)), darkMetalMaterial);
   cameraHousing.rotation.x = Math.PI / 2;
   cameraHousing.castShadow = true;
   cameraModule.add(cameraHousing);
-  const cameraBezel = new THREE.Mesh(new THREE.TorusGeometry(0.145, 0.016, 18, 64), metalMaterial);
+  const cameraBezel = new THREE.Mesh(new THREE.TorusGeometry(0.145, 0.016, detail(18, 8), detail(64, 24)), metalMaterial);
   cameraBezel.position.z = 0.058;
   cameraModule.add(cameraBezel);
-  const cameraGlass = new THREE.Mesh(new THREE.CylinderGeometry(0.128, 0.128, 0.028, 64), opticMaterial);
+  const cameraGlass = new THREE.Mesh(new THREE.CylinderGeometry(0.128, 0.128, 0.028, detail(64, 20)), opticMaterial);
   cameraGlass.rotation.x = Math.PI / 2;
   cameraGlass.position.z = 0.072;
   cameraModule.add(cameraGlass);
   const cameraAperture = new THREE.Mesh(
-    new THREE.CircleGeometry(0.064, 48),
-    new THREE.MeshPhysicalMaterial({
+    new THREE.CircleGeometry(0.064, detail(48, 18)),
+    surfaceMaterial({
       color: 0x020609,
       emissive: 0x061924,
       emissiveIntensity: 0.22,
@@ -485,7 +503,7 @@ if (canvas && viewport) {
   );
   cameraAperture.position.z = 0.092;
   cameraModule.add(cameraAperture);
-  const cameraGlint = new THREE.Mesh(new THREE.SphereGeometry(0.021, 20, 12), new THREE.MeshBasicMaterial({ color: 0xcff5ff }));
+  const cameraGlint = new THREE.Mesh(new THREE.SphereGeometry(0.021, detail(20, 10), detail(12, 8)), new THREE.MeshBasicMaterial({ color: 0xcff5ff }));
   cameraGlint.position.set(-0.036, 0.044, 0.102);
   cameraModule.add(cameraGlint);
   const cameraSensorBody = new THREE.Mesh(
@@ -498,11 +516,11 @@ if (canvas && viewport) {
 
   const statusLight = new THREE.Group();
   statusLight.position.set(4.4, 0.84, 0.155);
-  const lightRing = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.018, 16, 48), darkMetalMaterial);
+  const lightRing = new THREE.Mesh(new THREE.TorusGeometry(0.09, 0.018, detail(16, 8), detail(48, 20)), darkMetalMaterial);
   statusLight.add(lightRing);
   const lightGlass = new THREE.Mesh(
-    new THREE.CircleGeometry(0.071, 48),
-    new THREE.MeshPhysicalMaterial({
+    new THREE.CircleGeometry(0.071, detail(48, 18)),
+    surfaceMaterial({
       color: 0xc9c8bb,
       emissive: 0x746f58,
       emissiveIntensity: 0.12,
@@ -529,13 +547,13 @@ if (canvas && viewport) {
   const displayChip = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.24, 0.08), siliconMaterial);
   displayChip.position.set(-0.12, 0, -0.44);
   displayEngine.add(displayChip);
-  const projector = new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.115, 0.055, 28), opticMaterial);
+  const projector = new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.115, 0.055, detail(28, 12)), opticMaterial);
   projector.rotation.x = Math.PI / 2;
   projector.position.set(0.18, 0, 0.39);
   displayEngine.add(projector);
   [0.31, 0.39, 0.47].forEach((z, index) => {
     const optic = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.092 - index * 0.012, 0.092 - index * 0.012, 0.026, 28),
+      new THREE.CylinderGeometry(0.092 - index * 0.012, 0.092 - index * 0.012, 0.026, detail(28, 12)),
       index === 1 ? waveguideMaterial : opticMaterial
     );
     optic.rotation.x = Math.PI / 2;
@@ -548,7 +566,7 @@ if (canvas && viewport) {
   const waveguideLens = new THREE.Mesh(makeLensGeometry(-1, 0.022), waveguideMaterial);
   waveguideLens.position.z = 0.19;
   waveguide.add(waveguideLens);
-  const combiner = new THREE.Mesh(new THREE.RingGeometry(0.38, 0.5, 48), waveguideMaterial);
+  const combiner = new THREE.Mesh(new THREE.RingGeometry(0.38, 0.5, detail(48, 20)), waveguideMaterial);
   combiner.position.set(-2.75, 0.12, 0.235);
   combiner.scale.y = 0.72;
   waveguide.add(combiner);
@@ -608,14 +626,14 @@ if (canvas && viewport) {
   const makeSpeakerModule = (side) => {
     const group = new THREE.Group();
     group.position.set(side * 4.38, 0.18, -4.35);
-    const driver = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.13, 32), darkMetalMaterial);
+    const driver = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.13, detail(32, 16)), darkMetalMaterial);
     driver.rotation.z = Math.PI / 2;
     group.add(driver);
-    const diaphragm = new THREE.Mesh(new THREE.CircleGeometry(0.175, 32), copperMaterial);
+    const diaphragm = new THREE.Mesh(new THREE.CircleGeometry(0.175, detail(32, 16)), copperMaterial);
     diaphragm.rotation.y = side * Math.PI / 2;
     diaphragm.position.x = side * 0.072;
     group.add(diaphragm);
-    const acousticPort = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.018, 12, 36), metalMaterial);
+    const acousticPort = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.018, detail(12, 8), detail(36, 16)), metalMaterial);
     acousticPort.rotation.y = Math.PI / 2;
     acousticPort.position.x = side * 0.078;
     group.add(acousticPort);
@@ -651,11 +669,11 @@ if (canvas && viewport) {
     [-3.9, 0.92, -0.48],
     [3.92, 0.9, -0.5],
   ].forEach(([x, y, z]) => {
-    const capsule = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.075, 20), darkMetalMaterial);
+    const capsule = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.075, detail(20, 10)), darkMetalMaterial);
     capsule.rotation.z = Math.PI / 2;
     capsule.position.set(x, y, z);
     microphoneArray.add(capsule);
-    const port = new THREE.Mesh(new THREE.CircleGeometry(0.025, 18), opticMaterial);
+    const port = new THREE.Mesh(new THREE.CircleGeometry(0.025, detail(18, 10)), opticMaterial);
     port.rotation.y = Math.PI / 2;
     port.position.set(x - 0.042, y, z);
     microphoneArray.add(port);
@@ -727,10 +745,10 @@ if (canvas && viewport) {
   floor.receiveShadow = true;
   scene.add(floor);
 
-  const ambient = new THREE.HemisphereLight(0xb8cedc, 0x111318, 1.65);
+  const ambient = new THREE.HemisphereLight(0xb8cedc, 0x111318, phonePerformance ? 3.1 : 1.65);
   scene.add(ambient);
 
-  const frontFill = new THREE.DirectionalLight(0xc8dbe7, 0.9);
+  const frontFill = new THREE.DirectionalLight(0xc8dbe7, phonePerformance ? 2.35 : 0.9);
   frontFill.position.set(0, 3.5, 9);
   scene.add(frontFill);
 
@@ -745,18 +763,17 @@ if (canvas && viewport) {
   const fill = new THREE.SpotLight(0x80cfff, 150, 30, Math.PI / 4, 0.62, 1.25);
   fill.position.set(8, 4.5, 7);
   fill.target.position.set(1.5, 0, -0.8);
-  scene.add(fill, fill.target);
+  if (!phonePerformance) scene.add(fill, fill.target);
 
   const warmRim = new THREE.PointLight(0xff9c67, 85, 24, 1.7);
   warmRim.position.set(-6, -0.2, -6);
-  scene.add(warmRim);
 
   const coolRim = new THREE.PointLight(0x6bb9ff, 115, 24, 1.65);
   coolRim.position.set(7, 2.2, -6.5);
-  scene.add(coolRim);
+  if (!phonePerformance) scene.add(warmRim, coolRim);
 
   const shadow = new THREE.Mesh(
-    new THREE.CircleGeometry(5.2, 80),
+    new THREE.CircleGeometry(5.2, detail(80, 32)),
     new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.28, depthWrite: false })
   );
   shadow.rotation.x = -Math.PI / 2;
@@ -767,17 +784,23 @@ if (canvas && viewport) {
   let baseCameraDistance = 14;
   let isVisible = false;
   let frameHandle = 0;
+  let fallbackTimer = 0;
+  let lastRenderTime = -Infinity;
+  // The mobile shader/geometry path is inexpensive enough to follow 60 Hz
+  // scroll input without the uneven stepping of the previous 30 fps cap.
+  const phoneFrameInterval = 1000 / 60;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const tmpTarget = new THREE.Vector3();
   const baseCamera = new THREE.Vector3();
   const targetCamera = new THREE.Vector3();
+  const cameraLookAt = new THREE.Vector3();
   const origin = new THREE.Vector3(0, 0.05, 0);
   const rightLensCenter = new THREE.Vector3(-2.6, 0.02, 0.17);
 
   const clamp01 = (value) => Math.max(0, Math.min(1, value));
   const mix = (a, b, amount) => a + (b - a) * amount;
-  const readVar = (name) => {
-    const raw = viewport.style.getPropertyValue(name) || getComputedStyle(viewport).getPropertyValue(name);
+  const readVar = (styles, name) => {
+    const raw = styles.getPropertyValue(name);
     return clamp01(parseFloat(raw) || 0);
   };
 
@@ -794,25 +817,55 @@ if (canvas && viewport) {
     camera.aspect = aspect;
     camera.updateProjectionMatrix();
     renderer.setSize(width, height, false);
+    scheduleRender();
   };
-  resize();
-  window.addEventListener("resize", resize, { passive: true });
 
   const scheduleRender = () => {
+    // Sticky elements are reported inconsistently by IntersectionObserver in
+    // some iOS/WebKit builds. The scrub engine's active-scene marker is the
+    // reliable source while scrolling, with geometry as an initial fallback.
+    const activeScene = document.body.dataset.activeScene;
+    if (activeScene) {
+      isVisible = activeScene === "glasses";
+    } else {
+      const viewportRect = viewport.getBoundingClientRect();
+      isVisible = viewportRect.bottom > 0 && viewportRect.top < window.innerHeight;
+    }
     if (!frameHandle && isVisible && !document.hidden) {
       frameHandle = requestAnimationFrame(render);
+      if (phonePerformance && !fallbackTimer) {
+        fallbackTimer = window.setTimeout(() => {
+          fallbackTimer = 0;
+          if (frameHandle) cancelAnimationFrame(frameHandle);
+          frameHandle = 0;
+          render(performance.now());
+        }, 70);
+      }
     }
   };
 
   const render = (time = 0) => {
     frameHandle = 0;
+    if (fallbackTimer) {
+      clearTimeout(fallbackTimer);
+      fallbackTimer = 0;
+    }
     if (!isVisible || document.hidden) return;
+    if (phonePerformance && time - lastRenderTime < phoneFrameInterval) {
+      fallbackTimer = window.setTimeout(scheduleRender, phoneFrameInterval - (time - lastRenderTime));
+      return;
+    }
+    lastRenderTime = time;
 
-    const explodeAmount = reducedMotion ? 0 : readVar("--explode");
-    const templeFold = reducedMotion ? 0 : readVar("--fold");
-    const orbitAmount = reducedMotion ? 1 : readVar("--orbit");
-    const wearerTurn = reducedMotion ? 1 : readVar("--turn");
-    const diveAmount = reducedMotion ? 0 : readVar("--dive");
+    // The scrub engine writes inline values while this scene is near. Fall
+    // back to one computed-style read only for the model's initial frame.
+    const inlineStyles = viewport.style;
+    const styles = inlineStyles.getPropertyValue("--orbit") ? inlineStyles : getComputedStyle(viewport);
+    const explodeAmount = reducedMotion ? 0 : readVar(styles, "--explode");
+    const templeFold = reducedMotion ? 0 : readVar(styles, "--fold");
+    const orbitAmount = reducedMotion ? 1 : readVar(styles, "--orbit");
+    const wearerTurn = reducedMotion ? 1 : readVar(styles, "--turn");
+    const diveAmount = reducedMotion ? 0 : readVar(styles, "--dive");
 
     // The folded temples remain legible through the tinted prescription glass
     // in the opening product shot, then the lenses settle to their deeper
@@ -889,7 +942,8 @@ if (canvas && viewport) {
     camera.position.x += glideArc * 0.5;
     camera.position.y += glideArc * 0.22;
     camera.position.z += glideArc * 0.26;
-    camera.lookAt(origin.clone().lerp(tmpTarget, diveAmount));
+    cameraLookAt.copy(origin).lerp(tmpTarget, diveAmount);
+    camera.lookAt(cameraLookAt);
 
     shadow.material.opacity = 0.28 * (1 - diveAmount);
     try {
@@ -903,8 +957,13 @@ if (canvas && viewport) {
       viewport.classList.add("glasses-webgl-failed");
       return;
     }
-    if (!reducedMotion) scheduleRender();
   };
+
+  viewport.dataset.glassesRenderProfile = phonePerformance ? "mobile" : "full";
+  resize();
+  window.addEventListener("resize", resize, { passive: true });
+  window.addEventListener("scroll", scheduleRender, { passive: true });
+  window.addEventListener("pageshow", scheduleRender);
 
   canvas.addEventListener("webglcontextlost", (event) => {
     event.preventDefault();
@@ -912,25 +971,31 @@ if (canvas && viewport) {
     viewport.classList.add("glasses-webgl-failed");
     if (frameHandle) cancelAnimationFrame(frameHandle);
     frameHandle = 0;
+    if (fallbackTimer) clearTimeout(fallbackTimer);
+    fallbackTimer = 0;
   });
 
   const observer = new IntersectionObserver((entries) => {
     isVisible = entries[0] ? entries[0].isIntersecting : false;
     if (isVisible) {
       scheduleRender();
-    } else if (frameHandle) {
-      cancelAnimationFrame(frameHandle);
+    } else {
+      if (frameHandle) cancelAnimationFrame(frameHandle);
       frameHandle = 0;
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      fallbackTimer = 0;
     }
   }, { rootMargin: "35% 0px" });
   observer.observe(viewport);
 
   document.addEventListener("visibilitychange", () => {
-    if (document.hidden && frameHandle) {
-      cancelAnimationFrame(frameHandle);
+    if (document.hidden) {
+      if (frameHandle) cancelAnimationFrame(frameHandle);
       frameHandle = 0;
-    } else {
-      scheduleRender();
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      fallbackTimer = 0;
+      return;
     }
+    scheduleRender();
   });
 }
