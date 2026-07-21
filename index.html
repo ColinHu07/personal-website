@@ -33,7 +33,7 @@
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=jarvis-89" />
+    <link rel="stylesheet" href="styles.css?v=jarvis-90" />
   </head>
   <body>
     <canvas id="particle-field" aria-hidden="true"></canvas>
@@ -702,7 +702,7 @@
         if (glassesModuleRequested) return;
         glassesModuleRequested = true;
         if (glassesViewport) glassesViewport.classList.add("glasses-webgl-loading");
-        import("./glasses-product.js?v=jarvis-84").catch(function () {
+        import("./glasses-product.js?v=jarvis-85").catch(function () {
           if (glassesViewport) glassesViewport.classList.add("glasses-webgl-failed");
         });
       }
