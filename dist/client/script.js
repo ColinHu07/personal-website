@@ -14,6 +14,8 @@
   var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var phonePerformance = window.matchMedia("(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)");
   var isPhonePerformance = phonePerformance.matches;
+  var isSafariPerformance = /^((?!chrome|chromium|android).)*safari/i.test(navigator.userAgent);
+  var SCROLL_FALLBACK_DELAY = isPhonePerformance || isSafariPerformance ? 48 : 90;
   var MOBILE_FRAME_INTERVAL = 1000 / 30;
   var DPR = Math.min(window.devicePixelRatio || 1, isPhonePerformance ? 1 : 2);
   var pageVisible = !document.hidden;
@@ -327,10 +329,10 @@
     function () {
       if (!ticking) {
         ticking = true;
-        // WKWebView can pause requestAnimationFrame while a page is opened
-        // inside Messages or while iOS Low Power Mode is active. Keep the
-        // smooth rAF path, but guarantee one update after scrolling settles.
-        scrollFallbackTimer = setTimeout(flushScrollUpdate, 90);
+        // WebKit can defer requestAnimationFrame during momentum scrolling.
+        // Keep the normal rAF path, but refresh Safari's scrub target soon
+        // enough for the glasses renderer's frame-rescue timer to use it.
+        scrollFallbackTimer = setTimeout(flushScrollUpdate, SCROLL_FALLBACK_DELAY);
         requestAnimationFrame(flushScrollUpdate);
       }
     },

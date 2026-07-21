@@ -6,19 +6,23 @@ const viewport = document.querySelector("#glasses .viewport");
 if (canvas && viewport) {
   const phonePerformance = window.matchMedia("(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)").matches;
   const safariPerformance = /^((?!chrome|chromium|android).)*safari/i.test(navigator.userAgent);
-  const retinaPerformance = (window.devicePixelRatio || 1) > 1.5;
-  const leanPerformance = phonePerformance || safariPerformance || retinaPerformance;
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  // Safari keeps the cheaper material/compositor profile, but a Retina desktop
+  // must not inherit the sub-CSS-pixel phone buffer that made edges visibly
+  // blocky. Phones render at one CSS pixel; desktops keep a crisp 1.5x cap.
+  const leanPerformance = phonePerformance || safariPerformance;
+  const renderPixelRatio = phonePerformance ? 1 : 1.5;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0c0f12);
   scene.fog = leanPerformance ? null : new THREE.FogExp2(0x0c0f12, 0.021);
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: !leanPerformance,
+    antialias: !phonePerformance,
     alpha: false,
     powerPreference: "high-performance",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, phonePerformance ? 0.75 : leanPerformance ? 0.7 : 1.5));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, renderPixelRatio));
   renderer.shadowMap.enabled = !leanPerformance;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -790,11 +794,20 @@ if (canvas && viewport) {
   let isVisible = false;
   let frameHandle = 0;
   let fallbackTimer = 0;
-  let lastRenderTime = -Infinity;
-  // The mobile shader/geometry path is inexpensive enough to follow 60 Hz
-  // scroll input without the uneven stepping of the previous 30 fps cap.
-  const phoneFrameInterval = 1000 / 60;
+  let lastRenderTime = 0;
+  const needsFrameFallback = phonePerformance || safariPerformance;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const motionKeys = ["explode", "fold", "orbit", "turn", "dive"];
+  const motionState = {
+    initialized: false,
+    explode: 0,
+    fold: 1,
+    orbit: 0,
+    turn: 0,
+    dive: 0,
+  };
+  const motionFollowRate = 30;
+  const motionEpsilon = 0.0005;
   const tmpTarget = new THREE.Vector3();
   const baseCamera = new THREE.Vector3();
   const targetCamera = new THREE.Vector3();
@@ -838,7 +851,10 @@ if (canvas && viewport) {
     }
     if (!frameHandle && isVisible && !document.hidden) {
       frameHandle = requestAnimationFrame(render);
-      if (phonePerformance && !fallbackTimer) {
+      // Safari can defer animation callbacks during momentum scrolling or
+      // screen capture. Cancel the stranded callback and draw the latest state
+      // directly so later scroll events cannot collapse into one large jump.
+      if (needsFrameFallback && !fallbackTimer) {
         fallbackTimer = window.setTimeout(() => {
           fallbackTimer = 0;
           if (frameHandle) cancelAnimationFrame(frameHandle);
@@ -856,21 +872,38 @@ if (canvas && viewport) {
       fallbackTimer = 0;
     }
     if ((!isVisible && !force) || document.hidden) return;
-    if (phonePerformance && !force && time - lastRenderTime < phoneFrameInterval) {
-      fallbackTimer = window.setTimeout(scheduleRender, phoneFrameInterval - (time - lastRenderTime));
-      return;
-    }
-    lastRenderTime = time;
 
     // The scrub engine writes inline values while this scene is near. Fall
     // back to one computed-style read only for the model's initial frame.
     const inlineStyles = viewport.style;
     const styles = inlineStyles.getPropertyValue("--orbit") ? inlineStyles : getComputedStyle(viewport);
-    const explodeAmount = reducedMotion ? 0 : readVar(styles, "--explode");
-    const templeFold = reducedMotion ? 0 : readVar(styles, "--fold");
-    const orbitAmount = reducedMotion ? 1 : readVar(styles, "--orbit");
-    const wearerTurn = reducedMotion ? 1 : readVar(styles, "--turn");
-    const diveAmount = reducedMotion ? 0 : readVar(styles, "--dive");
+    const targetState = {
+      explode: reducedMotion ? 0 : readVar(styles, "--explode"),
+      fold: reducedMotion ? 0 : readVar(styles, "--fold"),
+      orbit: reducedMotion ? 1 : readVar(styles, "--orbit"),
+      turn: reducedMotion ? 1 : readVar(styles, "--turn"),
+      dive: reducedMotion ? 0 : readVar(styles, "--dive"),
+    };
+    const elapsedSeconds = lastRenderTime
+      ? Math.min(0.064, Math.max(0, (time - lastRenderTime) / 1000))
+      : 1 / 60;
+    const followAmount = force || reducedMotion || !motionState.initialized
+      ? 1
+      : 1 - Math.exp(-elapsedSeconds * motionFollowRate);
+    motionKeys.forEach((keyName) => {
+      motionState[keyName] = mix(motionState[keyName], targetState[keyName], followAmount);
+    });
+    motionState.initialized = true;
+    lastRenderTime = time;
+
+    const explodeAmount = motionState.explode;
+    const templeFold = motionState.fold;
+    const orbitAmount = motionState.orbit;
+    const wearerTurn = motionState.turn;
+    const diveAmount = motionState.dive;
+    const motionSettled = motionKeys.every(
+      (keyName) => Math.abs(targetState[keyName] - motionState[keyName]) < motionEpsilon
+    );
 
     // The folded temples remain legible through the tinted prescription glass
     // in the opening product shot, then the lenses settle to their deeper
@@ -962,6 +995,9 @@ if (canvas && viewport) {
       viewport.classList.add("glasses-webgl-failed");
       return;
     }
+    // Keep drawing only while the rendered pose is catching up with the latest
+    // scroll target. This restores fluid motion without an always-on GPU loop.
+    if (!force && !reducedMotion && !motionSettled) scheduleRender();
   };
 
   viewport.dataset.glassesRenderProfile = phonePerformance ? "mobile" : leanPerformance ? "lite" : "full";
@@ -981,17 +1017,17 @@ if (canvas && viewport) {
     [0, 0, 1, 1, 0.35],
     [0, 0, 1, 1, 1],
   ];
-  prewarmStates.forEach((state, stateIndex) => {
+  prewarmStates.forEach((state) => {
     prewarmProperties.forEach((property, propertyIndex) => {
       viewport.style.setProperty(property, String(state[propertyIndex]));
     });
-    render(performance.now() + stateIndex * 20, true);
+    render(performance.now(), true);
   });
   restoredProperties.forEach((value, property) => {
     if (value) viewport.style.setProperty(property, value);
     else viewport.style.removeProperty(property);
   });
-  render(performance.now() + prewarmStates.length * 20, true);
+  render(performance.now(), true);
   viewport.dataset.glassesPrewarm = "complete";
   window.addEventListener("resize", resize, { passive: true });
   window.addEventListener("scroll", scheduleRender, { passive: true });
