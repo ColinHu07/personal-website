@@ -66,12 +66,12 @@
     var intersecting = false;
     var frameId = 0;
     var lastFrame = -Infinity;
-    var mobileInterval = options.mobileInterval || MOBILE_FRAME_INTERVAL;
+    var mobileInterval = options.mobileInterval == null ? MOBILE_FRAME_INTERVAL : options.mobileInterval;
 
     function frame(time) {
       frameId = 0;
       if (!intersecting || !pageVisible) return;
-      if (!isPhonePerformance || time - lastFrame >= mobileInterval) {
+      if (!isPhonePerformance || mobileInterval <= 0 || time - lastFrame >= mobileInterval) {
         lastFrame = time;
         renderFrame(time || 0);
       }
@@ -2581,6 +2581,13 @@
     var constellationPaths = [];
     var planets = [];
     var socialsStartTime = null;
+    var socialsLastFrameTime = null;
+    var socialsFrameSampleStart = null;
+    var socialsFrameSampleCount = 0;
+    var socialsPixelRatio = isPhonePerformance || isSafariPerformance ? 1 : 1.25;
+    var radarGlowScale = isPhonePerformance || isSafariPerformance ? 0.55 : 0.72;
+    var constellationCanvas = document.createElement("canvas");
+    var constellationContext = constellationCanvas.getContext("2d");
     var NODE_COLORS = [
       [255, 79, 216],   // instagram
       [255, 71, 87],    // youtube
@@ -2859,11 +2866,56 @@
       });
     }
 
+    // The dense character trace does not need to be rebuilt every animation
+    // frame. Rendering it once removes hundreds of line segments and shadow
+    // operations from the radar's hot path while keeping the moving stars,
+    // sweep reveal, planets, and pings fully animated.
+    function rebuildConstellationCache() {
+      constellationCanvas.width = Math.max(1, Math.round(XW * socialsPixelRatio));
+      constellationCanvas.height = Math.max(1, Math.round(XH * socialsPixelRatio));
+      constellationContext.setTransform(socialsPixelRatio, 0, 0, socialsPixelRatio, 0, 0);
+      constellationContext.clearRect(0, 0, XW, XH);
+      constellationContext.lineCap = "round";
+      constellationContext.lineJoin = "round";
+
+      for (var pathDrawIndex = 0; pathDrawIndex < constellationPaths.length; pathDrawIndex++) {
+        var constellationPath = constellationPaths[pathDrawIndex];
+        var pathNodeIndices = constellationPath.nodes;
+        if (!pathNodeIndices.length) continue;
+        var pathColor = constellationPath.color || [255, 211, 72];
+
+        constellationContext.beginPath();
+        var firstPathNode = nodes[pathNodeIndices[0]];
+        constellationContext.moveTo(firstPathNode.x, firstPathNode.y);
+        for (var pathPointIndex = 1; pathPointIndex < pathNodeIndices.length; pathPointIndex++) {
+          var pathPoint = nodes[pathNodeIndices[pathPointIndex]];
+          constellationContext.lineTo(pathPoint.x, pathPoint.y);
+        }
+        if (constellationPath.closed) constellationContext.closePath();
+
+        if (constellationPath.fillAlpha > 0) {
+          constellationContext.fillStyle = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + "," + constellationPath.fillAlpha.toFixed(2) + ")";
+          constellationContext.fill();
+        }
+
+        constellationContext.shadowColor = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + ",0.72)";
+        constellationContext.shadowBlur = 10 * radarGlowScale;
+        constellationContext.strokeStyle = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + ",0.24)";
+        constellationContext.lineWidth = constellationPath.lineWidth * 2.4;
+        constellationContext.stroke();
+
+        constellationContext.shadowBlur = 0;
+        constellationContext.strokeStyle = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + ",0.88)";
+        constellationContext.lineWidth = constellationPath.lineWidth;
+        constellationContext.stroke();
+      }
+    }
+
     var resizeSocials = function () {
       XW = socialsCanvas.offsetWidth;
       XH = socialsCanvas.offsetHeight;
-      socialsCanvas.width = XW * DPR;
-      socialsCanvas.height = XH * DPR;
+      socialsCanvas.width = Math.max(1, Math.round(XW * socialsPixelRatio));
+      socialsCanvas.height = Math.max(1, Math.round(XH * socialsPixelRatio));
       nodes = [];
       constellationPaths = [];
       planets = [];
@@ -3001,6 +3053,8 @@
           ping: 0,
         });
       }
+      rebuildConstellationCache();
+      socialsCanvas.dataset.radarProfile = isPhonePerformance ? "mobile" : isSafariPerformance ? "safari" : "desktop";
     };
     var socialsInitialized = false;
     whenSceneNear(contactSection, function () {
@@ -3011,7 +3065,20 @@
     }, "220% 0px");
 
     function drawSocials(time) {
-      sctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      if (socialsFrameSampleStart == null) socialsFrameSampleStart = time;
+      socialsFrameSampleCount += 1;
+      if (time - socialsFrameSampleStart >= 1000) {
+        socialsCanvas.dataset.radarFps = String(Math.round(
+          (socialsFrameSampleCount - 1) * 1000 / Math.max(1, time - socialsFrameSampleStart)
+        ));
+        socialsFrameSampleStart = time;
+        socialsFrameSampleCount = 1;
+      }
+      var frameScale = socialsLastFrameTime == null
+        ? 1
+        : Math.min(4, Math.max(0.25, (time - socialsLastFrameTime) / (1000 / 60)));
+      socialsLastFrameTime = time;
+      sctx.setTransform(socialsPixelRatio, 0, 0, socialsPixelRatio, 0, 0);
       sctx.clearRect(0, 0, XW, XH);
 
       var cx = XW / 2;
@@ -3050,7 +3117,7 @@
         if (planetAngle < 0) planetAngle += TAU;
         var planetDiff = (sweep - planetAngle + TAU) % TAU;
         if (planetDiff < 0.075) planet.ping = 1;
-        planet.ping *= 0.957;
+        planet.ping *= Math.pow(0.957, frameScale);
 
         var pc = planet.color;
         var planetGlow = sctx.createRadialGradient(
@@ -3069,7 +3136,9 @@
         sctx.arc(px, py, planet.r * 1.15, 0, TAU);
         sctx.fillStyle = planetGlow;
         sctx.shadowColor = "rgba(" + pc[0] + "," + pc[1] + "," + pc[2] + ",0.55)";
-        sctx.shadowBlur = 8 + planet.ping * 18;
+        // The radial sprite already carries the idle glow. Reserve the costly
+        // canvas shadow filter for the brief sweep ping only.
+        sctx.shadowBlur = planet.ping > 0.02 ? (2 + planet.ping * 16) * radarGlowScale : 0;
         sctx.fill();
 
         sctx.beginPath();
@@ -3127,6 +3196,9 @@
       // flare together as the radar beam crosses them.
       for (var n = 0; n < nodes.length; n++) {
         var nd = nodes[n];
+        // Hidden trace samples only build the cached silhouette. Updating
+        // their trigonometry every frame was the radar's largest CPU cost.
+        if (nd.character && !nd.visibleStar) continue;
         nd.drawX = nd.x + Math.sin(time * 0.0003 + nd.phase) * 14 * nd.drift;
         nd.drawY = nd.y + Math.cos(time * 0.00024 + nd.phase * 1.7) * 10 * nd.drift;
 
@@ -3143,7 +3215,7 @@
           nd.connectionReveal = 0;
         }
         if (diff < 0.052) nd.ping = 1;
-        nd.ping *= 0.952;
+        nd.ping *= Math.pow(0.952, frameScale);
       }
 
       // The second pass reveals complete antialiased paths through a sector
@@ -3159,39 +3231,7 @@
           sctx.clip();
         }
 
-        sctx.lineCap = "round";
-        sctx.lineJoin = "round";
-        for (var pathDrawIndex = 0; pathDrawIndex < constellationPaths.length; pathDrawIndex++) {
-          var constellationPath = constellationPaths[pathDrawIndex];
-          var pathNodeIndices = constellationPath.nodes;
-          if (!pathNodeIndices.length) continue;
-          var pathColor = constellationPath.color || [255, 211, 72];
-
-          sctx.beginPath();
-          var firstPathNode = nodes[pathNodeIndices[0]];
-          sctx.moveTo(firstPathNode.drawX, firstPathNode.drawY);
-          for (var pathPointIndex = 1; pathPointIndex < pathNodeIndices.length; pathPointIndex++) {
-            var pathPoint = nodes[pathNodeIndices[pathPointIndex]];
-            sctx.lineTo(pathPoint.drawX, pathPoint.drawY);
-          }
-          if (constellationPath.closed) sctx.closePath();
-
-          if (constellationPath.fillAlpha > 0) {
-            sctx.fillStyle = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + "," + constellationPath.fillAlpha.toFixed(2) + ")";
-            sctx.fill();
-          }
-
-          sctx.shadowColor = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + ",0.72)";
-          sctx.shadowBlur = 10;
-          sctx.strokeStyle = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + ",0.24)";
-          sctx.lineWidth = constellationPath.lineWidth * 2.4;
-          sctx.stroke();
-
-          sctx.shadowBlur = 0;
-          sctx.strokeStyle = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + ",0.88)";
-          sctx.lineWidth = constellationPath.lineWidth;
-          sctx.stroke();
-        }
+        sctx.drawImage(constellationCanvas, 0, 0, XW, XH);
         sctx.restore();
       }
 
@@ -3216,7 +3256,10 @@
         sctx.arc(nx, ny, starRadius + ndDraw.ping * 1.8, 0, Math.PI * 2);
         sctx.fillStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + base.toFixed(2) + ")";
         sctx.shadowColor = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + (0.25 + ndDraw.ping * 0.7).toFixed(2) + ")";
-        sctx.shadowBlur = 2 + brightness * 4 + selected * 4 + ndDraw.ping * 12;
+        var starNeedsGlow = ndDraw.spark || ndDraw.ping > 0.02 || selected > 0.02;
+        sctx.shadowBlur = starNeedsGlow
+          ? (2 + brightness * 4 + selected * 4 + ndDraw.ping * 12) * radarGlowScale
+          : 0;
         sctx.fill();
 
         if (ndDraw.ping > 0.38 && ndDraw.spark) {
@@ -3255,9 +3298,14 @@
         drawSocials((time || 0) - socialsStartTime);
       } else {
         socialsStartTime = null;
+        socialsLastFrameTime = null;
+        socialsFrameSampleStart = null;
+        socialsFrameSampleCount = 0;
       }
     }
-    runSceneAnimation(contactSection, socialsLoop, { rootMargin: "20% 0px" });
+    // This scene is lightweight enough after caching to follow every display
+    // refresh. A zero interval bypasses the shared phone-only 30 fps limiter.
+    runSceneAnimation(contactSection, socialsLoop, { rootMargin: "20% 0px", mobileInterval: 0 });
   }
 
   /* ---------- reveal-on-scroll for flow sections ---------- */
