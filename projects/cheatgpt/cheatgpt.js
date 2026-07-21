@@ -103,7 +103,7 @@
     var vh = window.innerHeight;
     var rect = scene.getBoundingClientRect();
     var total = Math.max(1, rect.height - vh);
-    sceneProgress = clamp(-rect.top / total, 0, 1);
+    sceneProgress = prefersReduced ? 1 : clamp(-rect.top / total, 0, 1);
 
     var zoom = range(sceneProgress, 0.08, 0.31);
     var titleFade = 1 - range(sceneProgress, 0.12, 0.24);
@@ -327,18 +327,40 @@
   }
 
   var queued = false;
+  var scrollFallbackTimer = 0;
+
+  function flushScrollUpdate() {
+    if (!queued) return;
+    queued = false;
+    if (scrollFallbackTimer) {
+      clearTimeout(scrollFallbackTimer);
+      scrollFallbackTimer = 0;
+    }
+    updateScroll();
+  }
+
   window.addEventListener("scroll", function () {
     if (queued) return;
     queued = true;
-    window.requestAnimationFrame(function () {
-      updateScroll();
-      queued = false;
-    });
+    // Embedded Safari may pause animation frames during or immediately after
+    // a touch scroll. The timeout makes the HUD settle to the correct frame.
+    scrollFallbackTimer = window.setTimeout(flushScrollUpdate, 90);
+    window.requestAnimationFrame(flushScrollUpdate);
   }, { passive: true });
 
   window.addEventListener("resize", function () {
     resizeCanvas();
     updateScroll();
+  });
+  window.addEventListener("pageshow", function () {
+    resizeCanvas();
+    updateScroll();
+  });
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) {
+      resizeCanvas();
+      updateScroll();
+    }
   });
 
   var revealNodes = document.querySelectorAll(".reveal");
@@ -359,8 +381,9 @@
   resizeCanvas();
   updateScroll();
   if (prefersReduced) {
-    answerStream.textContent = solutionText;
-    thinkingState.textContent = "Done";
+    updateAnswerStream(1);
+    answerStream.scrollTop = answerStream.scrollHeight;
     setActiveStep(5);
+    drawGeometry();
   }
 })();
