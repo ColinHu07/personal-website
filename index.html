@@ -33,7 +33,7 @@
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=jarvis-88" />
+    <link rel="stylesheet" href="styles.css?v=jarvis-89" />
   </head>
   <body>
     <canvas id="particle-field" aria-hidden="true"></canvas>
@@ -689,7 +689,7 @@
         else window.addEventListener("load", finishHangarReturn, { once: true });
       }
     </script>
-    <script src="script.js?v=jarvis-85"></script>
+    <script src="script.js?v=jarvis-86"></script>
     <script type="module">
       var glassesScene = document.getElementById("glasses");
       var glassesViewport = glassesScene && glassesScene.querySelector(".viewport");
@@ -713,7 +713,7 @@
             glassesLoader.disconnect();
             loadGlassesModule();
           }
-        }, { rootMargin: "500% 0px" });
+        }, { rootMargin: deferGlassesOnPhone ? "180% 0px" : "500% 0px" });
         glassesLoader.observe(glassesScene);
       }
 
@@ -727,7 +727,7 @@
 
       // On phones, constructing the Three.js model while the visitor is still near
       // the globe causes a noticeable scroll hitch. The observer already starts the
-      // download five viewports before the scene, which is early enough without
+      // download shortly before the scene, which is early enough without
       // competing with the first scenes for memory and main-thread time.
       if (!deferGlassesOnPhone || !("IntersectionObserver" in window)) {
         if (document.readyState === "complete") queueGlassesModule();
