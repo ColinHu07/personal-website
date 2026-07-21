@@ -538,6 +538,42 @@ main > .scene + .scene { margin-top: -1px; }
   will-change: opacity, transform;
 }
 
+.globe-fallback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 7;
+  width: min(62vw, 62vh);
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid rgba(150, 220, 255, 0.45);
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: calc(1 - max(var(--p, 0) - 0.34, 0) * 9);
+  transform: translate3d(-50%, -50%, 0) scale(calc(1 + max(var(--p, 0) - 0.3, 0) * 14));
+  background:
+    radial-gradient(circle at 34% 28%, transparent 0 30%, rgba(1, 9, 20, 0.08) 58%, rgba(1, 7, 16, 0.72) 100%),
+    url("assets/earth-texture-mobile.jpg") center / auto 100% no-repeat,
+    #082653;
+  box-shadow:
+    0 0 24px rgba(70, 170, 255, 0.22),
+    0 0 78px rgba(70, 170, 255, 0.14),
+    inset -28px -18px 36px rgba(0, 3, 12, 0.48);
+  filter: saturate(0.88) brightness(0.78);
+  transition: opacity 0.24s ease;
+  will-change: opacity, transform;
+}
+
+.globe-fallback::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0 7px, rgba(160, 225, 255, 0.04) 7px 8px);
+  mix-blend-mode: screen;
+}
+
+#city .viewport.globe-webgl-ready .globe-fallback { opacity: 0; }
+
 .globe-canvas {
   position: absolute;
   inset: 0;
@@ -549,6 +585,8 @@ main > .scene + .scene { margin-top: -1px; }
   opacity: calc(1 - max(var(--p, 0) - 0.34, 0) * 9);
   pointer-events: none;
 }
+.globe-canvas.globe-gl { z-index: 6; }
+#city .viewport > .globe-canvas:not(.globe-gl) { z-index: 8; }
 
 .globe-hud {
   position: absolute;
@@ -1645,18 +1683,29 @@ main > .scene + .scene { margin-top: -1px; }
   display: block;
   width: 100%;
   height: 100%;
-  opacity: calc(1 - var(--feed));
+  opacity: 0;
+  transition: opacity 0.24s ease;
   will-change: opacity;
 }
 
-/* The earlier illustrated prototype stays out of the rendered product shot;
-   glasses-product.js supplies the physically lit 3D scene. */
-.product-model-camera,
+/* The code-native model is an immediate, lightweight fallback. It remains
+   visible until the first real Three.js frame renders, and stays available if
+   a phone declines or loses its WebGL context. */
 .product-keylight,
 .product-floor,
 .right-lens-target {
   display: none;
 }
+
+#glasses .viewport.glasses-webgl-ready .glasses-product-canvas {
+  opacity: calc(1 - var(--feed));
+}
+
+#glasses .viewport.glasses-webgl-ready .product-model-camera {
+  opacity: 0;
+}
+
+#glasses .viewport.glasses-webgl-failed .glasses-product-canvas { display: none; }
 
 .product-keylight {
   position: absolute;
@@ -1695,6 +1744,7 @@ main > .scene + .scene { margin-top: -1px; }
     translate3d(calc(var(--dive) * -18vw), calc(var(--dive) * 11vh), 0)
     scale(calc(1 + var(--dive) * 10.2));
   opacity: calc(1 - var(--hud) * 1.08);
+  transition: opacity 0.24s ease;
   will-change: transform, opacity;
 }
 

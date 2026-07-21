@@ -12,7 +12,7 @@
   "use strict";
 
   var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var phonePerformance = window.matchMedia("(max-width: 760px), (orientation: landscape) and (max-height: 500px)");
+  var phonePerformance = window.matchMedia("(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)");
   var isPhonePerformance = phonePerformance.matches;
   var MOBILE_FRAME_INTERVAL = 1000 / 30;
   var DPR = Math.min(window.devicePixelRatio || 1, isPhonePerformance ? 1 : 2);
@@ -53,6 +53,7 @@
 
   var cityViewport = document.querySelector("#city .viewport");
   var cityFlightVideo = document.querySelector(".city-flight-video");
+  var cityFlightRequested = false;
   var montageLabel = document.getElementById("montage-label");
   var concertViewport = document.querySelector("#concert .viewport");
   var glassesViewport = document.querySelector("#glasses .viewport");
@@ -78,6 +79,11 @@
     updateCityFlightLabel(flyP);
 
     if (!cityFlightVideo) return;
+    if (!cityFlightRequested && cityP > 0.12 && isInView(cityViewport)) {
+      cityFlightRequested = true;
+      cityFlightVideo.preload = "auto";
+      cityFlightVideo.load();
+    }
     cityFlightVideo.playbackRate = 0.58;
 
     var shouldFly = cityP > 0.27 && cityP < 0.99 && isInView(cityViewport) && !prefersReduced;
@@ -456,7 +462,8 @@
 
           var tex = gl.createTexture();
           var texImg = new Image();
-          texImg.src = "assets/earth-texture.jpg";
+          texImg.decoding = "async";
+          texImg.fetchPriority = "high";
           texImg.onload = function () {
             gl.bindTexture(gl.TEXTURE_2D, tex);
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, gl.RGB, gl.UNSIGNED_BYTE, texImg);
@@ -465,9 +472,26 @@
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             glReady = true;
+            if (cityViewport) cityViewport.classList.add("globe-webgl-ready");
           };
+          texImg.onerror = function () {
+            glReady = false;
+            if (cityViewport) cityViewport.classList.add("globe-webgl-failed");
+          };
+          texImg.src = isPhonePerformance
+            ? "assets/earth-texture-mobile.jpg"
+            : "assets/earth-texture.jpg";
         }
       }
+
+      glCanvas.addEventListener("webglcontextlost", function (event) {
+        event.preventDefault();
+        glReady = false;
+        if (cityViewport) {
+          cityViewport.classList.remove("globe-webgl-ready");
+          cityViewport.classList.add("globe-webgl-failed");
+        }
+      });
     }
 
     resizeGlobe();
