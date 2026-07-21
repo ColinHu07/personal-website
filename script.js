@@ -17,9 +17,13 @@
   var MOBILE_FRAME_INTERVAL = 1000 / 30;
   var DPR = Math.min(window.devicePixelRatio || 1, isPhonePerformance ? 1 : 2);
   var pageVisible = !document.hidden;
+  var runtimeSyncs = [];
 
   document.addEventListener("visibilitychange", function () {
     pageVisible = !document.hidden;
+    runtimeSyncs.forEach(function (syncRuntime) {
+      syncRuntime();
+    });
   });
 
   function clamp01(v) {
@@ -43,6 +47,65 @@
     return r.bottom > 0 && r.top < window.innerHeight;
   }
 
+  // Run expensive canvases only while their scene is on screen. Pausing the
+  // requestAnimationFrame chain entirely (instead of merely skipping its draw)
+  // keeps offscreen scenes from competing with scrolling on mobile Safari.
+  function runSceneAnimation(target, renderFrame, options) {
+    if (!target || typeof renderFrame !== "function") return;
+    options = options || {};
+    var intersecting = false;
+    var frameId = 0;
+    var lastFrame = -Infinity;
+    var mobileInterval = options.mobileInterval || MOBILE_FRAME_INTERVAL;
+
+    function frame(time) {
+      frameId = 0;
+      if (!intersecting || !pageVisible) return;
+      if (!isPhonePerformance || time - lastFrame >= mobileInterval) {
+        lastFrame = time;
+        renderFrame(time || 0);
+      }
+      frameId = requestAnimationFrame(frame);
+    }
+
+    function syncRuntime() {
+      var shouldRun = intersecting && pageVisible;
+      target.dataset.runtime = shouldRun ? "active" : "sleeping";
+      if (shouldRun && !frameId) frameId = requestAnimationFrame(frame);
+      if (!shouldRun && frameId) {
+        cancelAnimationFrame(frameId);
+        frameId = 0;
+      }
+    }
+
+    runtimeSyncs.push(syncRuntime);
+    if ("IntersectionObserver" in window) {
+      var observer = new IntersectionObserver(function (entries) {
+        intersecting = Boolean(entries[0] && entries[0].isIntersecting);
+        syncRuntime();
+      }, { rootMargin: options.rootMargin || "25% 0px", threshold: 0 });
+      observer.observe(target);
+    } else {
+      intersecting = true;
+      syncRuntime();
+    }
+  }
+
+  function whenSceneNear(target, callback, rootMargin) {
+    if (!target || typeof callback !== "function") return;
+    if (!("IntersectionObserver" in window)) {
+      callback();
+      return;
+    }
+    var observer = new IntersectionObserver(function (entries) {
+      if (entries[0] && entries[0].isIntersecting) {
+        observer.disconnect();
+        callback();
+      }
+    }, { rootMargin: rootMargin || "200% 0px", threshold: 0 });
+    observer.observe(target);
+  }
+
   /* ---------- scroll scrub engine ---------- */
 
   var scrubScenes = Array.prototype.slice.call(document.querySelectorAll(".scene.scrub"));
@@ -60,6 +123,23 @@
   var broadcastViewport = document.querySelector("#broadcast .viewport");
   var cityP = 0;
   var concertP = 0;
+
+  // CSS animations are also paused outside the current/adjacent scene. The
+  // generous margin lets the next transition warm up before it becomes visible.
+  if ("IntersectionObserver" in window) {
+    var sceneRuntimeObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        entry.target.classList.toggle("scene-runtime-active", entry.isIntersecting);
+      });
+    }, { rootMargin: "40% 0px", threshold: 0 });
+    allScenes.forEach(function (scene) {
+      sceneRuntimeObserver.observe(scene);
+    });
+  } else {
+    allScenes.forEach(function (scene) {
+      scene.classList.add("scene-runtime-active");
+    });
+  }
 
   var CITY_FLIGHT_STOPS = [
     "EAST RIVER RUN",
@@ -299,11 +379,7 @@
       });
     }
 
-    var particleLastFrame = -Infinity;
-    (function drawParticles(time) {
-      requestAnimationFrame(drawParticles);
-      if (!pageVisible) return;
-      if (isPhonePerformance && time - particleLastFrame < MOBILE_FRAME_INTERVAL) return;
+    function drawParticles(time) {
       var motionStep = Number.isFinite(particleLastFrame)
         ? Math.min(2.5, (time - particleLastFrame) / (1000 / 60))
         : 1;
@@ -337,7 +413,11 @@
           }
         }
       }
-    })(0);
+    }
+    var particleLastFrame = -Infinity;
+    runSceneAnimation(document.getElementById("hero"), drawParticles, {
+      rootMargin: "70% 0px",
+    });
   }
 
   /* ============================================================
@@ -528,8 +608,6 @@
     }
 
     function drawGlobe(time) {
-      if (!prefersReduced) requestAnimationFrame(drawGlobe);
-      if (!pageVisible) return;
       if (cityP < 0.5 && isInView(cityViewport)) {
         gtx.clearRect(0, 0, GW, GH);
 
@@ -666,7 +744,7 @@
         }
       }
     }
-    if (!prefersReduced) requestAnimationFrame(drawGlobe);
+    if (!prefersReduced) runSceneAnimation(cityViewport, drawGlobe, { rootMargin: "55% 0px" });
     else drawGlobe(0);
   }
 
@@ -1929,16 +2007,13 @@
       }
     }
 
-    var cityLastFrame = -Infinity;
-    (function cityLoop(time) {
-      requestAnimationFrame(cityLoop);
-      if (!pageVisible || prefersReduced) return;
-      if (isPhonePerformance && time - cityLastFrame < MOBILE_FRAME_INTERVAL) return;
-      cityLastFrame = time;
+    function cityLoop(time) {
+      if (prefersReduced) return;
       if (cityP > 0.28 && isInView(cityViewport)) {
         drawCityFrame(time || 0);
       }
-    })(0);
+    }
+    runSceneAnimation(cityViewport, cityLoop, { rootMargin: "25% 0px" });
     if (prefersReduced) drawCityFrame(4000);
   }
 
@@ -1969,7 +2044,7 @@
   var TILE_W = 512, TILE_H = 288;
   var FRAME_COUNT = 48;
   var POSE_FRAME = 34;               // arms-up finger-gun pose (all four, clean)
-  var FLEET = 5200;                  // burst particles at detonation
+  var FLEET = isPhonePerformance ? 1800 : 5200; // scale the burst to the phone GPU budget
   var GUN_X = 0.72, GUN_Y = 0.12;    // raised finger-gun in tile coords (frame 34)
   var BL_X = 0.5, BL_Y = 0.40;       // blast center behind the dancers
 
@@ -1996,9 +2071,6 @@
       stageCanvas.width = SW * DPR;
       stageCanvas.height = SH * DPR;
     };
-    resizeStage();
-    window.addEventListener("resize", resizeStage);
-
     var droneSeed = new Float32Array(FLEET);
     for (var ds = 0; ds < FLEET; ds++) {
       var sd = ((ds + 1) * 9301 + 49297) % 233280;
@@ -2015,7 +2087,8 @@
     var poseTargets = null; // particle sources for the detonation
 
     var sheet = new Image();
-    sheet.src = SHEET_URL;
+    sheet.decoding = "async";
+    sheet.fetchPriority = "low";
     sheet.onload = function () {
       sheetReady = true;
       try {
@@ -2054,6 +2127,16 @@
         poseTargets = null;
       }
     };
+
+    var stageAssetsRequested = false;
+    function requestStageAssets() {
+      if (stageAssetsRequested) return;
+      stageAssetsRequested = true;
+      resizeStage();
+      window.addEventListener("resize", resizeStage);
+      sheet.src = SHEET_URL;
+    }
+    whenSceneNear(concertViewport || stageCanvas, requestStageAssets, "260% 0px");
 
     // contain-fit the 16:9 tile into the stage canvas so the raised
     // arms and the footwork are never cropped away
@@ -2438,16 +2521,12 @@
       }
     }
 
-    var stageLastFrame = -Infinity;
-    (function stageLoop(time) {
-      requestAnimationFrame(stageLoop);
-      if (!pageVisible) return;
-      if (isPhonePerformance && time - stageLastFrame < MOBILE_FRAME_INTERVAL) return;
-      stageLastFrame = time;
+    function stageLoop(time) {
       if (isInView(concertViewport) && concertP < 0.97) {
         drawStage(time || 0);
       }
-    })(0);
+    }
+    runSceneAnimation(concertViewport, stageLoop, { rootMargin: "20% 0px" });
   }
   /* ---------- concert crowd light sticks ---------- */
 
@@ -2469,9 +2548,11 @@
     }
   }
 
-  buildCrowd("#concert .crowd.row-back", 90, 30, 60);
-  buildCrowd("#concert .crowd.row-mid", 64, 45, 85);
-  buildCrowd("#concert .crowd.row-front", 42, 65, 120);
+  whenSceneNear(concertViewport, function () {
+    buildCrowd("#concert .crowd.row-back", isPhonePerformance ? 48 : 90, 30, 60);
+    buildCrowd("#concert .crowd.row-mid", isPhonePerformance ? 36 : 64, 45, 85);
+    buildCrowd("#concert .crowd.row-front", isPhonePerformance ? 26 : 42, 65, 120);
+  }, "220% 0px");
 
   /* ============================================================
      SOCIALS BACKGROUND (scene 06) — open-channels transmission
@@ -2910,8 +2991,13 @@
         });
       }
     };
-    resizeSocials();
-    window.addEventListener("resize", resizeSocials);
+    var socialsInitialized = false;
+    whenSceneNear(contactSection, function () {
+      if (socialsInitialized) return;
+      socialsInitialized = true;
+      resizeSocials();
+      window.addEventListener("resize", resizeSocials);
+    }, "220% 0px");
 
     function drawSocials(time) {
       sctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -3147,12 +3233,8 @@
       sctx.stroke();
     }
 
-    var socialsLastFrame = -Infinity;
-    (function socialsLoop(time) {
-      requestAnimationFrame(socialsLoop);
-      if (!pageVisible) return;
-      if (isPhonePerformance && time - socialsLastFrame < MOBILE_FRAME_INTERVAL) return;
-      socialsLastFrame = time;
+    function socialsLoop(time) {
+      if (!socialsInitialized) return;
       var contactRect = contactSection.getBoundingClientRect();
       var socialsFocused =
         contactRect.top < window.innerHeight * 0.58 &&
@@ -3163,7 +3245,8 @@
       } else {
         socialsStartTime = null;
       }
-    })(0);
+    }
+    runSceneAnimation(contactSection, socialsLoop, { rootMargin: "20% 0px" });
   }
 
   /* ---------- reveal-on-scroll for flow sections ---------- */

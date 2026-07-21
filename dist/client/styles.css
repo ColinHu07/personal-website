@@ -34,6 +34,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Keep decorative CSS timelines dormant until their scene approaches the
+   viewport. This materially reduces compositing work during phone scrolling. */
+.scene:not(.scene-runtime-active) * {
+  animation-play-state: paused !important;
+}
+
 ::selection { background: var(--cyan); color: #001320; }
 
 /* ---------- global chrome ---------- */
