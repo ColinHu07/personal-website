@@ -159,11 +159,11 @@
     viewport.style.setProperty("--cue-opacity", Math.max(0, 1 - drop * 1.8).toFixed(4));
     viewport.style.setProperty("--scene-handoff", range(sceneProgress, 0.91, 0.985).toFixed(4));
 
-    updateAnswerStream(range(sceneProgress, 0.79, 0.99));
+    updateAnswerStream(range(sceneProgress, 0.765, 0.975));
 
-    var nextStep = sceneProgress < 0.79
+    var nextStep = sceneProgress < 0.77
       ? -1
-      : Math.min(5, Math.floor((sceneProgress - 0.79) / (0.205 / 6)));
+      : Math.min(5, Math.floor((sceneProgress - 0.77) / (0.21 / 6)));
     setActiveStep(nextStep);
 
     var doc = document.documentElement;
@@ -206,13 +206,16 @@
     var height = canvas.height / dpr;
     context.clearRect(0, 0, width, height);
 
-    var padX = Math.max(34, width * 0.12);
-    var padY = Math.max(36, height * 0.12);
+    var padX = Math.min(Math.max(8, width * 0.12), width * 0.24);
+    var padY = Math.min(Math.max(8, height * 0.12), height * 0.24);
     var minX = -2;
     var maxX = 16;
     var minY = -5;
     var maxY = 13;
-    var scale = Math.min((width - padX * 2) / (maxX - minX), (height - padY * 2) / (maxY - minY));
+    var scale = Math.max(0.1, Math.min(
+      (width - padX * 2) / (maxX - minX),
+      (height - padY * 2) / (maxY - minY)
+    ));
     var plotWidth = (maxX - minX) * scale;
     var plotHeight = (maxY - minY) * scale;
     var offsetX = (width - plotWidth) / 2;
@@ -280,7 +283,7 @@
       context.restore();
     }
 
-    var baseAlpha = range(sceneProgress, 0.79, 0.83);
+    var baseAlpha = range(sceneProgress, 0.77, 0.82);
     line(A, B, "#d9f2ff", baseAlpha, false);
     line(B, C, "#d9f2ff", baseAlpha, false);
     line(C, A, "#d9f2ff", baseAlpha, false);

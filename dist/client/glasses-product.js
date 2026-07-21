@@ -4,14 +4,14 @@ const canvas = document.querySelector(".glasses-product-canvas");
 const viewport = document.querySelector("#glasses .viewport");
 
 if (canvas && viewport) {
-  const phonePerformance = window.matchMedia("(max-width: 760px), (orientation: landscape) and (max-height: 500px)").matches;
+  const phonePerformance = window.matchMedia("(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)").matches;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0c0f12);
   scene.fog = new THREE.FogExp2(0x0c0f12, 0.021);
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: true,
+    antialias: !phonePerformance,
     alpha: false,
     powerPreference: "high-performance",
   });
@@ -892,9 +892,27 @@ if (canvas && viewport) {
     camera.lookAt(origin.clone().lerp(tmpTarget, diveAmount));
 
     shadow.material.opacity = 0.28 * (1 - diveAmount);
-    renderer.render(scene, camera);
+    try {
+      renderer.render(scene, camera);
+      if (!viewport.classList.contains("glasses-webgl-ready")) {
+        viewport.classList.remove("glasses-webgl-loading", "glasses-webgl-failed");
+        viewport.classList.add("glasses-webgl-ready");
+      }
+    } catch (error) {
+      viewport.classList.remove("glasses-webgl-ready", "glasses-webgl-loading");
+      viewport.classList.add("glasses-webgl-failed");
+      return;
+    }
     if (!reducedMotion) scheduleRender();
   };
+
+  canvas.addEventListener("webglcontextlost", (event) => {
+    event.preventDefault();
+    viewport.classList.remove("glasses-webgl-ready", "glasses-webgl-loading");
+    viewport.classList.add("glasses-webgl-failed");
+    if (frameHandle) cancelAnimationFrame(frameHandle);
+    frameHandle = 0;
+  });
 
   const observer = new IntersectionObserver((entries) => {
     isVisible = entries[0] ? entries[0].isIntersecting : false;

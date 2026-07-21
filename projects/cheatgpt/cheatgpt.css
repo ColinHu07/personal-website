@@ -1219,6 +1219,34 @@ main > section + section { margin-top: -1px; }
   .answer-complete { margin-left: 1.65rem; padding: 0.3rem 0.5rem; }
   .answer-complete strong { font-size: 1rem; }
   .geometry-panel figcaption { font-size: 0.54rem; }
+  .lens-right .hud-body {
+    grid-template-columns: minmax(0, 1.28fr) minmax(0, 0.72fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: 0.22rem;
+    padding: 0.3rem 0 0.2rem;
+  }
+  .lens-right .reasoning-panel,
+  .lens-right .geometry-panel { min-width: 0; }
+  .lens-right .reasoning-panel { padding: 0.28rem; }
+  .lens-right .user-message { display: none; }
+  .lens-right .assistant-meta { gap: 0.16rem; }
+  .lens-right .assistant-meta i { width: 0.6rem; height: 0.6rem; }
+  .lens-right .answer-stream {
+    margin-top: 0.2rem;
+    padding: 0 0.08rem 0.1rem;
+    font-size: 0.36rem;
+    line-height: 1.42;
+  }
+  .lens-right .answer-complete {
+    margin-left: 0;
+    padding: 0.12rem 0.2rem;
+  }
+  .lens-right .geometry-panel figcaption {
+    right: 0.22rem;
+    bottom: 0.2rem;
+    left: 0.22rem;
+    font-size: 0.2rem;
+  }
   .demo-disclaimer { display: none; }
   .story-section,
   .redirect-section { padding-right: 1.1rem; padding-left: 1.1rem; }
