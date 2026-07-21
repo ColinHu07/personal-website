@@ -12,6 +12,8 @@
       // the cross-document hash jump from the top of the homepage.
       if (new URLSearchParams(window.location.search).get("return") === "hangar") {
         document.documentElement.classList.add("instant-hangar");
+      } else {
+        document.documentElement.classList.add("site-preloading");
       }
     </script>
     <meta
@@ -29,13 +31,22 @@
       media="(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)"
       fetchpriority="high"
     />
+    <link rel="modulepreload" href="glasses-product.js?v=jarvis-86" />
+    <link rel="modulepreload" href="assets/vendor/three.module.min.js" />
+    <link rel="modulepreload" href="assets/vendor/three.core.min.js" />
     <link
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=jarvis-90" />
+    <link rel="stylesheet" href="styles.css?v=jarvis-91" />
   </head>
   <body>
+    <div class="site-loader" role="status" aria-live="polite" aria-label="Preparing the interactive site">
+      <span class="site-loader-core" aria-hidden="true"></span>
+      <strong>CALIBRATING OPTICS</strong>
+      <span class="site-loader-track" aria-hidden="true"><i></i></span>
+      <small>PREPARING INTERACTIVE SYSTEMS</small>
+    </div>
     <canvas id="particle-field" aria-hidden="true"></canvas>
     <div class="scanlines" aria-hidden="true"></div>
     <div class="vignette" aria-hidden="true"></div>
@@ -689,50 +700,73 @@
         else window.addEventListener("load", finishHangarReturn, { once: true });
       }
     </script>
-    <script src="script.js?v=jarvis-86"></script>
+    <script src="script.js?v=jarvis-87"></script>
     <script type="module">
       var glassesScene = document.getElementById("glasses");
       var glassesViewport = glassesScene && glassesScene.querySelector(".viewport");
       var glassesModuleRequested = false;
-      var deferGlassesOnPhone = window.matchMedia(
-        "(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)"
-      ).matches;
+      var preloadRoot = document.documentElement;
+      var preloadStartedAt = performance.now();
+      var pageLoadComplete = document.readyState === "complete";
+      var glassesLoadComplete = false;
+      var preloadRevealed = !preloadRoot.classList.contains("site-preloading");
+
+      function revealPreloadedSite() {
+        if (preloadRevealed || !pageLoadComplete || !glassesLoadComplete) return;
+        preloadRevealed = true;
+        var remaining = Math.max(0, 420 - (performance.now() - preloadStartedAt));
+        setTimeout(function () {
+          requestAnimationFrame(function () {
+            var deepLinkTarget = window.location.hash
+              ? document.getElementById(decodeURIComponent(window.location.hash.slice(1)))
+              : null;
+            if (deepLinkTarget) preloadRoot.classList.add("instant-preload-anchor");
+            preloadRoot.classList.add("site-ready");
+            preloadRoot.classList.remove("site-preloading");
+            if (deepLinkTarget) deepLinkTarget.scrollIntoView({ behavior: "auto", block: "start" });
+            requestAnimationFrame(function () {
+              if (deepLinkTarget) deepLinkTarget.scrollIntoView({ behavior: "auto", block: "start" });
+              preloadRoot.classList.remove("instant-preload-anchor");
+              window.dispatchEvent(new CustomEvent("site:ready"));
+            });
+          });
+        }, remaining);
+      }
+
+      if (!pageLoadComplete) {
+        window.addEventListener("load", function () {
+          pageLoadComplete = true;
+          revealPreloadedSite();
+        }, { once: true });
+      }
 
       function loadGlassesModule() {
-        if (glassesModuleRequested) return;
+        if (glassesModuleRequested) return Promise.resolve();
         glassesModuleRequested = true;
         if (glassesViewport) glassesViewport.classList.add("glasses-webgl-loading");
-        import("./glasses-product.js?v=jarvis-85").catch(function () {
+        return import("./glasses-product.js?v=jarvis-86").then(function () {
+          glassesLoadComplete = true;
+          revealPreloadedSite();
+        }).catch(function () {
           if (glassesViewport) glassesViewport.classList.add("glasses-webgl-failed");
+          glassesLoadComplete = true;
+          revealPreloadedSite();
         });
       }
 
-      if (glassesScene && "IntersectionObserver" in window) {
-        var glassesLoader = new IntersectionObserver(function (entries) {
-          if (entries[0] && entries[0].isIntersecting) {
-            glassesLoader.disconnect();
-            loadGlassesModule();
-          }
-        }, { rootMargin: deferGlassesOnPhone ? "180% 0px" : "500% 0px" });
-        glassesLoader.observe(glassesScene);
-      }
+      // Build and compile the complete optics scene while the startup cover is
+      // still visible. Entering the scene later never has to construct shaders,
+      // geometry, or the first WebGL frame during a user's scroll gesture.
+      loadGlassesModule();
 
-      function queueGlassesModule() {
-        if ("requestIdleCallback" in window) {
-          requestIdleCallback(loadGlassesModule, { timeout: 2400 });
-        } else {
-          setTimeout(loadGlassesModule, 1200);
-        }
-      }
-
-      // On phones, constructing the Three.js model while the visitor is still near
-      // the globe causes a noticeable scroll hitch. The observer already starts the
-      // download shortly before the scene, which is early enough without
-      // competing with the first scenes for memory and main-thread time.
-      if (!deferGlassesOnPhone || !("IntersectionObserver" in window)) {
-        if (document.readyState === "complete") queueGlassesModule();
-        else window.addEventListener("load", queueGlassesModule, { once: true });
-      }
+      // Never strand a visitor behind the cover if WebGL or a network request
+      // is unavailable. The code-native model remains as the visual fallback.
+      setTimeout(function () {
+        if (preloadRevealed) return;
+        pageLoadComplete = true;
+        glassesLoadComplete = true;
+        revealPreloadedSite();
+      }, 9000);
     </script>
   </body>
 </html>

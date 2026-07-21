@@ -23,7 +23,12 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
-html.instant-hangar { scroll-behavior: auto; }
+html.instant-hangar,
+html.instant-preload-anchor { scroll-behavior: auto; }
+html.site-preloading,
+html.site-preloading body {
+  overflow: hidden;
+}
 
 body {
   background: var(--bg);
@@ -32,6 +37,78 @@ body {
   overflow-x: hidden;
   overflow-x: clip;
   -webkit-font-smoothing: antialiased;
+}
+
+/* The optics model and its shaders are compiled behind this cover. Visitors
+   see one deliberate boot state instead of a usable page that later freezes
+   when the browser reaches the most expensive scene. */
+.site-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.78rem;
+  padding: 2rem;
+  color: #bfefff;
+  background:
+    radial-gradient(circle at 50% 46%, rgba(79, 216, 255, 0.1), transparent 24rem),
+    #030a12;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.32s ease, visibility 0s linear 0.32s;
+}
+
+html.site-preloading .site-loader {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: none;
+}
+
+.site-loader-core {
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 50%;
+  background: #9cecff;
+  box-shadow: 0 0 8px #4fd8ff, 0 0 28px rgba(79, 216, 255, 0.78);
+  animation: loader-pulse 1.1s ease-in-out infinite alternate;
+}
+
+.site-loader strong,
+.site-loader small {
+  font-family: var(--font-hud);
+  text-align: center;
+  letter-spacing: 0.36em;
+}
+
+.site-loader strong { font-size: clamp(0.78rem, 2vw, 1rem); }
+.site-loader small { color: rgba(111, 168, 196, 0.74); font-size: 0.58rem; }
+
+.site-loader-track {
+  width: min(17rem, 68vw);
+  height: 2px;
+  overflow: hidden;
+  background: rgba(79, 216, 255, 0.12);
+}
+
+.site-loader-track i {
+  display: block;
+  width: 42%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, #4fd8ff, #ff4fd8, transparent);
+  animation: loader-scan 0.9s ease-in-out infinite;
+}
+
+@keyframes loader-pulse {
+  to { opacity: 0.56; transform: scale(0.78); }
+}
+
+@keyframes loader-scan {
+  from { transform: translateX(-115%); }
+  to { transform: translateX(275%); }
 }
 
 /* Keep decorative CSS timelines dormant until their scene approaches the
@@ -2890,6 +2967,40 @@ main > .scene + .scene { margin-top: -1px; }
   .reel-meta strong { font-size: 0.62rem; letter-spacing: 0.12em; }
   .reel-meta span { font-size: 0.48rem; letter-spacing: 0.08em; }
   .feed-follow { margin: 0 0.55rem 0.55rem; padding: 0.45rem; }
+}
+
+/* Safari's Retina WebGL path uses the same compositor-safe lens transition as
+   phones. This avoids stacking a live backdrop blur, clip path, and WebGL
+   canvas during the camera dive while preserving the desktop layout. */
+#glasses .viewport[data-glasses-render-profile="lite"] .optics-entry,
+#glasses .viewport[data-glasses-render-profile="lite"]::after,
+#glasses .viewport[data-glasses-render-profile="lite"] .lens-project-link,
+#glasses .viewport[data-glasses-render-profile="lite"] .display-advice,
+#glasses .viewport[data-glasses-render-profile="lite"] .current-copilot-panel {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+#glasses .viewport[data-glasses-render-profile="lite"] .lens-view {
+  clip-path: none;
+  filter: none;
+  transform: translate3d(0, calc((1 - var(--feed)) * 3vh), 0)
+    scale(calc(0.9 + var(--feed) * 0.1));
+  will-change: opacity, transform;
+}
+
+#glasses .viewport[data-glasses-render-profile="lite"] .lens-glass-transition,
+#glasses .viewport[data-glasses-render-profile="lite"] .lens-view::before,
+#glasses .viewport[data-glasses-render-profile="lite"] .display-glass-sheen {
+  mix-blend-mode: normal;
+}
+
+#glasses .viewport[data-glasses-render-profile="lite"] .lens-glass-transition::after,
+#glasses .viewport[data-glasses-render-profile="lite"] .display-world::before,
+#glasses .viewport[data-glasses-render-profile="lite"] .felt-table,
+#glasses .viewport[data-glasses-render-profile="lite"] .world-cards,
+#glasses .viewport[data-glasses-render-profile="lite"] .chip-cluster {
+  filter: none;
 }
 
 /* Mobile Safari pays a large compositing cost for live backdrop blurs while
