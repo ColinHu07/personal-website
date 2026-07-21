@@ -542,7 +542,7 @@ main > .scene + .scene { margin-top: -1px; }
   position: absolute;
   top: 50%;
   left: 50%;
-  z-index: 7;
+  z-index: 5;
   width: min(62vw, 62vh);
   aspect-ratio: 1;
   overflow: hidden;
@@ -564,15 +564,32 @@ main > .scene + .scene { margin-top: -1px; }
   will-change: opacity, transform;
 }
 
+.globe-fallback > img {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: auto;
+  max-width: none;
+  height: 100%;
+  transform: translateX(-50%);
+}
+
+.globe-fallback::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: radial-gradient(circle at 34% 28%, transparent 0 30%, rgba(1, 9, 20, 0.08) 58%, rgba(1, 7, 16, 0.72) 100%);
+}
+
 .globe-fallback::after {
   content: "";
   position: absolute;
+  z-index: 2;
   inset: 0;
   background: repeating-linear-gradient(0deg, transparent 0 7px, rgba(160, 225, 255, 0.04) 7px 8px);
   mix-blend-mode: screen;
 }
-
-#city .viewport.globe-webgl-ready .globe-fallback { opacity: 0; }
 
 .globe-canvas {
   position: absolute;

@@ -221,20 +221,37 @@
   }
 
   var ticking = false;
+  var scrollFallbackTimer = 0;
+
+  function flushScrollUpdate() {
+    if (!ticking) return;
+    ticking = false;
+    if (scrollFallbackTimer) {
+      clearTimeout(scrollFallbackTimer);
+      scrollFallbackTimer = 0;
+    }
+    onScroll();
+  }
+
   window.addEventListener(
     "scroll",
     function () {
       if (!ticking) {
         ticking = true;
-        requestAnimationFrame(function () {
-          onScroll();
-          ticking = false;
-        });
+        // WKWebView can pause requestAnimationFrame while a page is opened
+        // inside Messages or while iOS Low Power Mode is active. Keep the
+        // smooth rAF path, but guarantee one update after scrolling settles.
+        scrollFallbackTimer = setTimeout(flushScrollUpdate, 90);
+        requestAnimationFrame(flushScrollUpdate);
       }
     },
     { passive: true }
   );
   window.addEventListener("resize", onScroll);
+  window.addEventListener("pageshow", onScroll);
+  document.addEventListener("visibilitychange", function () {
+    if (!document.hidden) onScroll();
+  });
 
   /* ---------- boot line typewriter ---------- */
 
@@ -395,6 +412,7 @@
     var gl = glCanvas.getContext("webgl", { alpha: true, antialias: !isPhonePerformance }) ||
              glCanvas.getContext("experimental-webgl", { alpha: true, antialias: !isPhonePerformance });
     var glReady = false;
+    var globeFrameConfirmed = false;
     var uRotLoc, uCenterLoc, uRadiusLoc, uResLoc;
 
     if (gl) {
@@ -472,7 +490,7 @@
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
             gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
             glReady = true;
-            if (cityViewport) cityViewport.classList.add("globe-webgl-ready");
+            globeFrameConfirmed = false;
           };
           texImg.onerror = function () {
             glReady = false;
@@ -487,6 +505,7 @@
       glCanvas.addEventListener("webglcontextlost", function (event) {
         event.preventDefault();
         glReady = false;
+        globeFrameConfirmed = false;
         if (cityViewport) {
           cityViewport.classList.remove("globe-webgl-ready");
           cityViewport.classList.add("globe-webgl-failed");
@@ -539,6 +558,11 @@
             gl.uniform2f(uCenterLoc, GCX, GH - GCY);
             gl.uniform1f(uRadiusLoc, GR);
             gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+            if (!globeFrameConfirmed && cityViewport && gl.getError() === gl.NO_ERROR) {
+              globeFrameConfirmed = true;
+              cityViewport.classList.remove("globe-webgl-failed");
+              cityViewport.classList.add("globe-webgl-ready");
+            }
           }
         }
 
