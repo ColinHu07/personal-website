@@ -10,7 +10,7 @@ if (canvas && viewport) {
   const leanPerformance = phonePerformance || safariPerformance || retinaPerformance;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0c0f12);
-  scene.fog = new THREE.FogExp2(0x0c0f12, 0.021);
+  scene.fog = leanPerformance ? null : new THREE.FogExp2(0x0c0f12, 0.021);
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -18,7 +18,7 @@ if (canvas && viewport) {
     alpha: false,
     powerPreference: "high-performance",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, phonePerformance ? 0.8 : leanPerformance ? 1 : 1.5));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, phonePerformance ? 0.75 : leanPerformance ? 0.7 : 1.5));
   renderer.shadowMap.enabled = !leanPerformance;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -755,7 +755,9 @@ if (canvas && viewport) {
   frontFill.position.set(0, 3.5, 9);
   scene.add(frontFill);
 
-  const key = new THREE.SpotLight(0xffe7d6, 190, 34, Math.PI / 4.6, 0.5, 1.35);
+  const key = leanPerformance
+    ? new THREE.DirectionalLight(0xffe7d6, 2.4)
+    : new THREE.SpotLight(0xffe7d6, 190, 34, Math.PI / 4.6, 0.5, 1.35);
   key.position.set(-7.5, 8.5, 10.5);
   key.target.position.set(-0.8, 0.4, 0);
   key.castShadow = !leanPerformance;
@@ -854,7 +856,7 @@ if (canvas && viewport) {
       fallbackTimer = 0;
     }
     if ((!isVisible && !force) || document.hidden) return;
-    if (phonePerformance && time - lastRenderTime < phoneFrameInterval) {
+    if (phonePerformance && !force && time - lastRenderTime < phoneFrameInterval) {
       fallbackTimer = window.setTimeout(scheduleRender, phoneFrameInterval - (time - lastRenderTime));
       return;
     }
@@ -964,9 +966,33 @@ if (canvas && viewport) {
 
   viewport.dataset.glassesRenderProfile = phonePerformance ? "mobile" : leanPerformance ? "lite" : "full";
   resize();
-  // Compile every shader and draw the first frame before the startup cover is
-  // released. Later scroll input only updates transforms and material values.
-  render(performance.now(), true);
+  // Warm every expensive geometry/material/camera combination—not just the
+  // assembled opening pose. Three.js does not upload hidden exploded parts or
+  // compile their draw state until they are rendered at least once, which was
+  // the source of the large first-scroll stalls seen in Safari recordings.
+  const prewarmProperties = ["--fold", "--explode", "--orbit", "--turn", "--dive"];
+  const restoredProperties = new Map(
+    prewarmProperties.map((property) => [property, viewport.style.getPropertyValue(property)])
+  );
+  const prewarmStates = [
+    [1, 0, 0, 0, 0],
+    [0, 0, 0.2, 0, 0],
+    [0, 1, 0.55, 0, 0],
+    [0, 0, 1, 1, 0.35],
+    [0, 0, 1, 1, 1],
+  ];
+  prewarmStates.forEach((state, stateIndex) => {
+    prewarmProperties.forEach((property, propertyIndex) => {
+      viewport.style.setProperty(property, String(state[propertyIndex]));
+    });
+    render(performance.now() + stateIndex * 20, true);
+  });
+  restoredProperties.forEach((value, property) => {
+    if (value) viewport.style.setProperty(property, value);
+    else viewport.style.removeProperty(property);
+  });
+  render(performance.now() + prewarmStates.length * 20, true);
+  viewport.dataset.glassesPrewarm = "complete";
   window.addEventListener("resize", resize, { passive: true });
   window.addEventListener("scroll", scheduleRender, { passive: true });
   window.addEventListener("scene:sync", scheduleRender);
