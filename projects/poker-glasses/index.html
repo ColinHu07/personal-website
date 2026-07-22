@@ -17,9 +17,10 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="poker-vision.css?v=20" />
+    <link rel="stylesheet" href="../../bay-motion.css?v=20260722-1" />
     <link rel="stylesheet" href="../../project-bottom.css?v=20260717" />
   </head>
-  <body>
+  <body data-bay-theme="poker">
     <a class="skip-link" href="#project-board">Skip to project board</a>
 
     <div class="grain" aria-hidden="true"></div>
@@ -107,7 +108,7 @@
         </div>
       </section>
 
-      <section class="scrub-scene board-scene" id="project-board" data-scene="board">
+      <section class="scrub-scene board-scene" id="project-board" data-scene="board" data-bay-scene="board" data-bay-effect="jump">
         <div class="viewport board-viewport">
           <div class="felt-table" aria-hidden="true">
             <div class="table-ring"></div>
@@ -133,7 +134,7 @@
             </div>
           </div>
 
-          <div class="board-heading">
+          <div class="board-heading" data-bay-layer>
             <p class="eyebrow">THE PROJECT // ON THE FELT</p>
             <h2>FROM VISION<br />TO DECISION.</h2>
             <p>
@@ -141,7 +142,7 @@
             </p>
           </div>
 
-          <div class="community-cards" aria-label="PokerVision system pipeline">
+          <div class="community-cards" aria-label="PokerVision system pipeline" data-bay-layer>
             <article class="pipeline-card card-one" tabindex="0" aria-label="Capture: glasses camera reads the table in view">
               <span class="card-index">A<span>♠</span></span>
               <p>01</p>
@@ -193,7 +194,7 @@
             </div>
           </div>
 
-          <aside class="source-pot">
+          <aside class="source-pot" data-bay-layer>
             <p class="pot-label">OPEN PROJECT FILE</p>
             <div class="pot-chips" aria-hidden="true">
               <span>GIT</span><span>HUB</span><span>OPEN</span>
@@ -207,15 +208,15 @@
         </div>
       </section>
 
-      <section class="story-section" id="story" data-scene="story">
-        <div class="story-card card-back" aria-hidden="true">
+      <section class="story-section" id="story" data-scene="story" data-bay-scene="story" data-bay-effect="iris">
+        <div class="story-card card-back" aria-hidden="true" data-bay-layer>
           <div class="back-pattern joker-seal">
             <span>♛</span>
             <strong>JOKER</strong>
             <small>THE WILD CARD</small>
           </div>
         </div>
-        <article class="story-copy">
+        <article class="story-copy" data-bay-layer>
           <p class="eyebrow">RIVER CARD // THE WHY</p>
           <h2>THE STORY<br />BEHIND THE BET.</h2>
           <p class="story-placeholder">
@@ -227,14 +228,14 @@
           </p>
           <p class="story-note">FOUR BUILDERS // ONE TABLE</p>
         </article>
-        <div class="safety-note">
+        <div class="safety-note" data-bay-layer>
           <span>TRAINING MODE</span>
           <p>Built for sandbox, replay, and explicitly consented demonstrations — not covert real-money play.</p>
         </div>
       </section>
 
-      <section class="process-section" id="process" data-scene="process">
-        <header class="process-heading">
+      <section class="process-section" id="process" data-scene="process" data-bay-scene="process" data-bay-effect="jump">
+        <header class="process-heading" data-bay-layer>
           <div class="process-title">
             <p class="eyebrow">UNDER THE FELT // SYSTEM PIPELINE</p>
             <h2>HOW THE TABLE<br />BECOMES A MOVE.</h2>
@@ -245,31 +246,31 @@
         </header>
 
         <div class="process-track">
-          <article class="process-step">
+          <article class="process-step" data-bay-layer>
             <span>01 // CAPTURE</span>
             <h3>STREAM THE TABLE.</h3>
             <p>Meta Wearables DAT streams frames from the glasses camera into the active Swift iOS app, with phone and captured-frame fallbacks for testing.</p>
             <small>MWDAT CAMERA · SWIFT</small>
           </article>
-          <article class="process-step">
+          <article class="process-step" data-bay-layer>
             <span>02 // DETECT</span>
             <h3>FIND EVERY CARD.</h3>
             <p>A YOLOv8 model runs through Apple Vision and Core ML, returning card labels, confidence scores, bounding boxes, and hero-versus-board zones.</p>
             <small>YOLOV8 · VISION · CORE ML</small>
           </article>
-          <article class="process-step">
+          <article class="process-step" data-bay-layer>
             <span>03 // STABILIZE</span>
             <h3>TRUST MORE THAN ONE FRAME.</h3>
             <p>Detections are fused across multiple observations. The hand only advances when two hero cards, a valid board, and every visible card are identified confidently.</p>
             <small>STATE FUSION · CONFIDENCE GATE</small>
           </article>
-          <article class="process-step">
+          <article class="process-step" data-bay-layer>
             <span>04 // SOLVE</span>
             <h3>CALL THE DECISION LAYER.</h3>
             <p>On the current GitHub main branch, the app sends structured card state to a FastAPI endpoint. Chen scoring handles preflop strength; Monte Carlo equity and pot odds guide postflop actions.</p>
             <small>CURRENT MAIN · FASTAPI · TREYS</small>
           </article>
-          <article class="process-step">
+          <article class="process-step" data-bay-layer>
             <span>05 // DISPLAY</span>
             <h3>SHOW ONLY THE NEXT MOVE.</h3>
             <p>The glasses receive a compact action such as CHECK, CALL, or RAISE, while the phone remains the debug mirror for detections, confidence warnings, and raw solver state.</p>
@@ -277,7 +278,7 @@
           </article>
         </div>
 
-        <aside class="confidence-rule">
+        <aside class="confidence-rule" data-bay-layer>
           <span>THE RULE</span>
           <strong>UNCLEAR TABLE? DON’T GUESS.</strong>
           <p>Low-confidence reads return “Look again” instead of manufacturing a recommendation.</p>
@@ -293,5 +294,6 @@
     </footer>
 
     <script src="poker-vision.js?v=17"></script>
+    <script src="../../bay-motion.js?v=20260722-1"></script>
   </body>
 </html>

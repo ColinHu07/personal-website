@@ -25,9 +25,10 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="floodstack.css?v=20260718-3" />
+    <link rel="stylesheet" href="../../bay-motion.css?v=20260722-1" />
     <link rel="stylesheet" href="../../project-bottom.css?v=20260717" />
   </head>
-  <body>
+  <body data-bay-theme="floodstack">
     <div class="page-progress" aria-hidden="true"><span data-progress></span></div>
 
     <header class="flood-nav">
@@ -114,26 +115,26 @@
       </section>
 
       <article class="story-content" id="story" aria-labelledby="story-title">
-        <section class="story-hero story-reveal">
-          <div class="story-rule" aria-hidden="true"><span></span></div>
-          <p class="story-kicker">Project file 005 // Richard Xu + Colin Hu</p>
-          <h2 id="story-title">Teaching radar to find floodwater.</h2>
-          <p class="story-lede">
+        <section class="story-hero story-reveal" data-bay-scene="story" data-bay-effect="ripple">
+          <div class="story-rule" aria-hidden="true" data-bay-layer><span></span></div>
+          <p class="story-kicker" data-bay-layer>Project file 005 // Richard Xu + Colin Hu</p>
+          <h2 id="story-title" data-bay-layer>Teaching radar to find floodwater.</h2>
+          <p class="story-lede" data-bay-layer>
             <a href="https://www.instagram.com/richard.xu1/?hl=en" target="_blank" rel="noopener" aria-label="Richard Xu on Instagram">Richard Xu</a> and I built FloodStack as an end-to-end research tool for rapidly mapping floods from Sentinel-1 radar imagery. Together, we trained the segmentation models, designed the threshold-correction algorithm, and brought preprocessing, inference, and before-and-after change detection into one interface.
           </p>
 
-          <div class="story-actions">
+          <div class="story-actions" data-bay-layer>
             <a href="https://github.com/Richard28277/FloodStack" target="_blank" rel="noopener">View source code <span aria-hidden="true">&nearr;</span></a>
             <a href="https://docs.google.com/presentation/d/1ghOQO8_JhgxjgS6qLRBup2_1XF_QopG5/edit?slide=id.p1#slide=id.p1" target="_blank" rel="noopener">Open research poster <span aria-hidden="true">&nearr;</span></a>
           </div>
 
-          <dl class="impact-grid" aria-label="Flood impact figures from the research poster">
+          <dl class="impact-grid" aria-label="Flood impact figures from the research poster" data-bay-layer>
             <div><dt>2.2B</dt><dd>people affected by flooding over the previous decade</dd></div>
             <div><dt>10M+</dt><dd>worldwide displacements recorded in 2019</dd></div>
             <div><dt>24/7</dt><dd>SAR observation through cloud cover and darkness</dd></div>
           </dl>
 
-          <nav class="chapter-index" aria-label="FloodStack story chapters">
+          <nav class="chapter-index" aria-label="FloodStack story chapters" data-bay-layer>
             <a href="#visibility"><span>01</span> Why SAR</a>
             <a href="#signal"><span>02</span> The signal</a>
             <a href="#model"><span>03</span> The model</a>
@@ -142,12 +143,12 @@
           </nav>
         </section>
 
-        <section class="story-chapter story-reveal" id="visibility" aria-labelledby="visibility-title">
-          <header class="chapter-heading">
+        <section class="story-chapter story-reveal" id="visibility" aria-labelledby="visibility-title" data-bay-scene="visibility" data-bay-effect="wash">
+          <header class="chapter-heading" data-bay-layer>
             <p class="chapter-number">01 // The visibility problem</p>
             <h3 id="visibility-title">The storm can hide the flood.</h3>
           </header>
-          <div class="chapter-grid two-column">
+          <div class="chapter-grid two-column" data-bay-layer>
             <div class="chapter-copy">
               <p>
                 Weather radar can track precipitation and rain gauges can measure rainfall accurately at one location. Neither one directly traces the full boundary of water spread across a large landscape.
@@ -167,12 +168,12 @@
           </div>
         </section>
 
-        <section class="story-chapter signal-chapter story-reveal" id="signal" aria-labelledby="signal-title">
-          <header class="chapter-heading">
+        <section class="story-chapter signal-chapter story-reveal" id="signal" aria-labelledby="signal-title" data-bay-scene="signal" data-bay-effect="scan">
+          <header class="chapter-heading" data-bay-layer>
             <p class="chapter-number">02 // Building the input</p>
             <h3 id="signal-title">Two radar views become one richer signal.</h3>
           </header>
-          <div class="chapter-grid two-column signal-grid">
+          <div class="chapter-grid two-column signal-grid" data-bay-layer>
             <figure class="evidence-figure dark-figure">
               <img src="../../assets/floodstack-polarizations.png" alt="VV and VH radar images combined to produce a flood mask" loading="lazy" decoding="async" />
               <figcaption>VV and VH polarization channels expose different surface properties before being stacked for inference.</figcaption>
@@ -193,7 +194,7 @@
             </div>
           </div>
 
-          <div class="dataset-strip">
+          <div class="dataset-strip" data-bay-layer>
             <div>
               <span>Training source</span>
               <strong>NASA ETCI Sentinel-1</strong>
@@ -202,12 +203,12 @@
           </div>
         </section>
 
-        <section class="story-chapter story-reveal" id="model" aria-labelledby="model-title">
-          <header class="chapter-heading">
+        <section class="story-chapter story-reveal" id="model" aria-labelledby="model-title" data-bay-scene="model" data-bay-effect="dissolve">
+          <header class="chapter-heading" data-bay-layer>
             <p class="chapter-number">03 // Deep learning</p>
             <h3 id="model-title">Train two architectures. Keep the sharper mask.</h3>
           </header>
-          <div class="model-intro">
+          <div class="model-intro" data-bay-layer>
             <p>
               We fine-tuned U-Net++ and a Feature Pyramid Network using ImageNet-pretrained EfficientNet-B4 encoders. Both learn to classify every pixel as water or non-water; U-Net++ uses nested skip connections to recover spatial detail, while FPN fuses features across resolutions.
             </p>
@@ -218,19 +219,19 @@
             </div>
           </div>
 
-          <ol class="build-pipeline" aria-label="FloodStack model pipeline">
+          <ol class="build-pipeline" aria-label="FloodStack model pipeline" data-bay-layer>
             <li><span>01</span><strong>Tile</strong><small>Prepare aligned 256 × 256 SAR composites</small></li>
             <li><span>02</span><strong>Encode</strong><small>EfficientNet-B4 extracts multiscale features</small></li>
             <li><span>03</span><strong>Decode</strong><small>U-Net++ reconstructs the flood boundary</small></li>
             <li><span>04</span><strong>Segment</strong><small>Output a pixel-wise probability mask</small></li>
           </ol>
 
-          <figure class="model-sample evidence-figure">
+          <figure class="model-sample evidence-figure" data-bay-layer>
             <img src="../../assets/floodstack-model-sample.png" alt="A composite SAR input beside expert-labeled truth and the model's binary flood mask" loading="lazy" decoding="async" />
             <figcaption>Composite SAR input, expert label, and binary model output.</figcaption>
           </figure>
 
-          <div class="results-table-wrap">
+          <div class="results-table-wrap" data-bay-layer>
             <table class="results-table">
               <caption>Model comparison on SAR-only flood detection</caption>
               <thead><tr><th scope="col">Architecture</th><th scope="col">Precision</th><th scope="col">Recall</th><th scope="col">F1</th><th scope="col">IoU</th></tr></thead>
@@ -245,12 +246,12 @@
           </div>
         </section>
 
-        <section class="story-chapter correction-chapter story-reveal" id="correction" aria-labelledby="correction-title">
-          <header class="chapter-heading">
+        <section class="story-chapter correction-chapter story-reveal" id="correction" aria-labelledby="correction-title" data-bay-scene="correction" data-bay-effect="ripple">
+          <header class="chapter-heading" data-bay-layer>
             <p class="chapter-number">04 // Novel error correction</p>
             <h3 id="correction-title">Let the model set the threshold.</h3>
           </header>
-          <div class="chapter-grid correction-intro">
+          <div class="chapter-grid correction-intro" data-bay-layer>
             <p>
               A fixed brightness threshold can work in one region and fail in another. FloodStack instead uses the first U-Net++ prediction to sample what water looks like in the current scene, derives a threshold from that evidence, removes noisy contours, and merges credible recovered pixels back into the mask.
             </p>
@@ -260,7 +261,7 @@
             </div>
           </div>
 
-          <ol class="correction-steps" aria-label="Threshold correction steps">
+          <ol class="correction-steps" aria-label="Threshold correction steps" data-bay-layer>
             <li><span>01</span><p>Run U-Net++ to create the initial water mask.</p></li>
             <li><span>02</span><p>Calculate the average SAR value inside predicted water.</p></li>
             <li><span>03</span><p>Threshold the scene using that learned water signature.</p></li>
@@ -268,12 +269,12 @@
             <li><span>05</span><p>Combine the filtered candidates with the model mask.</p></li>
           </ol>
 
-          <figure class="wide-process evidence-figure">
+          <figure class="wide-process evidence-figure" data-bay-layer>
             <img src="../../assets/floodstack-correction-stages.png" alt="FloodStack correction sequence from original image through truth, raw model mask, threshold filtering, thresholded image, combined mask, and post-processing" loading="lazy" decoding="async" />
             <figcaption>The correction sequence used to recover water that the first segmentation pass missed.</figcaption>
           </figure>
 
-          <div class="generalization-result">
+          <div class="generalization-result" data-bay-layer>
             <div class="generalization-copy">
               <p class="chapter-number">Case study // Region absent from training</p>
               <h4>Correction improved overlap and sensitivity.</h4>
@@ -288,20 +289,20 @@
           </div>
         </section>
 
-        <section class="story-chapter product-chapter story-reveal" id="product" aria-labelledby="product-title">
-          <header class="chapter-heading">
+        <section class="story-chapter product-chapter story-reveal" id="product" aria-labelledby="product-title" data-bay-scene="product" data-bay-effect="iris">
+          <header class="chapter-heading" data-bay-layer>
             <p class="chapter-number">05 // From research to tool</p>
             <h3 id="product-title">Put the entire workflow behind one interface.</h3>
           </header>
-          <p class="product-lede">
+          <p class="product-lede" data-bay-layer>
             FloodStack’s desktop interface brings preprocessing, model inference, error correction, overlays, and change detection into one place. A user can inspect the mask, tune sensitivity, select a region of interest, and compare two dates without stitching together separate research scripts.
           </p>
-          <figure class="interface-figure evidence-figure">
+          <figure class="interface-figure evidence-figure" data-bay-layer>
             <img src="../../assets/floodstack-interface.png" alt="FloodStack interface comparing pre-flood water in blue with post-flood water in red and reporting the change in flooded area" loading="lazy" decoding="async" />
             <figcaption>Pre-flood water is shown in blue, post-flood water in red; pixel-wise comparison produces the change in flooded area.</figcaption>
           </figure>
 
-          <div class="product-capabilities">
+          <div class="product-capabilities" data-bay-layer>
             <div><span>01</span><strong>Preprocess</strong><p>Build the VV/VH composite and prepare model-ready tiles.</p></div>
             <div><span>02</span><strong>Infer</strong><p>Run the trained U-Net++ segmentation model.</p></div>
             <div><span>03</span><strong>Correct</strong><p>Recover missed regions with threshold and contour filtering.</p></div>
@@ -309,12 +310,12 @@
           </div>
         </section>
 
-        <section class="story-chapter closing-chapter story-reveal" aria-labelledby="closing-title">
-          <header class="chapter-heading">
+        <section class="story-chapter closing-chapter story-reveal" aria-labelledby="closing-title" data-bay-scene="closing" data-bay-effect="wash">
+          <header class="chapter-heading" data-bay-layer>
             <p class="chapter-number">What we learned // What comes next</p>
             <h3 id="closing-title">A useful map is more than a model output.</h3>
           </header>
-          <div class="closing-grid">
+          <div class="closing-grid" data-bay-layer>
             <div class="closing-statement">
               <p>
                 The project’s strongest result was not simply choosing U-Net++ over FPN. It was combining learned segmentation with a conventional computer-vision step, then wrapping both in a tool that exposes change over time.
@@ -340,5 +341,6 @@
     </footer>
 
     <script src="floodstack.js"></script>
+    <script src="../../bay-motion.js?v=20260722-1"></script>
   </body>
 </html>
