@@ -160,6 +160,9 @@
     });
 
     body.dataset.activeChapter = activeChapter;
+    chapters.forEach(function (chapter) {
+      chapter.classList.toggle("is-active", chapter.dataset.chapter === activeChapter);
+    });
     chapterLinks.forEach(function (link) {
       link.classList.toggle("active", link.dataset.chapterLink === activeChapter);
     });
