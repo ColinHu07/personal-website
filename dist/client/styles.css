@@ -328,8 +328,8 @@ main { position: relative; z-index: 1; }
    transition in place instead of stacking separate viewport-length pages. */
 .front-journey {
   position: relative;
-  height: 360vh;
-  min-height: 360vh;
+  height: 500vh;
+  min-height: 500vh;
   isolation: isolate;
   background: #02070d;
 }
@@ -665,11 +665,11 @@ main > .scene + .scene { margin-top: -1px; }
 /* ============================================================
    SCENE 02 // GLOBE -> NEW YORK
    Phases (by the shared front journey):
-     0.00–0.18  luminous reactor core grows to planet diameter
-     0.14–0.22  the Earth resolves inside that same sphere
-     0.22–0.60  globe sweeps Asia -> Europe -> locks on NYC
-     0.60–0.68  globe blows past camera
-     0.63–1.00  city flight takes over (loops
+     0.00–0.12  luminous reactor core grows to planet diameter
+     0.09–0.14  the Earth resolves inside that same sphere
+     0.14–0.39  globe sweeps Asia -> Europe -> locks on NYC
+     0.39–0.44  globe blows past camera
+     0.50–0.74  city flight takes over (loops
                 forever — it keeps playing until you scroll on)
    ============================================================ */
 

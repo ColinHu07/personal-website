@@ -137,7 +137,7 @@
   var globeP = 0;
   var concertP = 0;
 
-  var FRONT_JOURNEY_STOPS = { hero: 0, city: 0.62, broadcast: 0.84 };
+  var FRONT_JOURNEY_STOPS = { hero: 0, city: 0.52, broadcast: 0.73 };
   if (frontJourney) {
     Array.prototype.slice.call(document.querySelectorAll('a[href="#hero"], a[href="#city"], a[href="#broadcast"]')).forEach(function (link) {
       link.addEventListener("click", function (event) {
@@ -225,14 +225,16 @@
       var frontRunway = Math.max(1, frontRect.height - vh);
       frontJourneyProgress = clamp01(-frontRect.top / frontRunway);
       frontJourney.classList.toggle("is-engaged", frontJourneyProgress > 0.006);
-      var globeMorphP = clamp01(frontJourneyProgress / 0.18);
-      var globeRevealP = smoother((frontJourneyProgress - 0.14) / 0.08);
-      globeP = smoother((frontJourneyProgress - 0.22) / 0.38);
-      var globeExitP = smoother((frontJourneyProgress - 0.6) / 0.08);
+      // The opening globe keeps its existing physical scroll duration even
+      // though the later city and Instagram phases receive a longer runway.
+      var globeMorphP = clamp01(frontJourneyProgress / 0.117);
+      var globeRevealP = smoother((frontJourneyProgress - 0.091) / 0.052);
+      globeP = smoother((frontJourneyProgress - 0.143) / 0.247);
+      var globeExitP = smoother((frontJourneyProgress - 0.39) / 0.052);
       if (cityViewport) {
         cityViewport.style.setProperty(
           "--front-scene-opacity",
-          smoother((frontJourneyProgress - 0.04) / 0.12).toFixed(4)
+          smoother((frontJourneyProgress - 0.026) / 0.078).toFixed(4)
         );
         cityViewport.style.setProperty("--globe-morph", globeMorphP.toFixed(4));
         cityViewport.style.setProperty("--globe-reveal", globeRevealP.toFixed(4));
@@ -242,7 +244,7 @@
       if (broadcastViewport) {
         broadcastViewport.style.setProperty(
           "--front-scene-opacity",
-          smoother((frontJourneyProgress - 0.72) / 0.1).toFixed(4)
+          smoother((frontJourneyProgress - 0.62) / 0.08).toFixed(4)
         );
       }
     }
@@ -260,9 +262,9 @@
       var total = rect.height - vh;
       var p = total > 0 ? clamp01(-rect.top / total) : 0;
       if (inFrontJourney) {
-        if (scene.id === "hero") p = clamp01(frontJourneyProgress / 0.18);
-        else if (scene.id === "city") p = clamp01((frontJourneyProgress - 0.5) / 0.32);
-        else if (scene.id === "broadcast") p = clamp01((frontJourneyProgress - 0.7) / 0.28);
+        if (scene.id === "hero") p = clamp01(frontJourneyProgress / 0.117);
+        else if (scene.id === "city") p = clamp01((frontJourneyProgress - 0.34) / 0.4);
+        else if (scene.id === "broadcast") p = clamp01((frontJourneyProgress - 0.62) / 0.38);
       }
       var viewport = scene.querySelector(".viewport");
       if (viewport) {
@@ -283,7 +285,7 @@
           if (inFrontJourney) {
             cityViewport.style.setProperty(
               "--scene-enter",
-              smoother((frontJourneyProgress - 0.04) / 0.12).toFixed(4)
+              smoother((frontJourneyProgress - 0.026) / 0.078).toFixed(4)
             );
           }
           cityViewport.style.setProperty("--city-in", cityFlightReveal.toFixed(4));
@@ -366,9 +368,9 @@
       if (r.top <= mid && r.bottom >= mid) active = scene.dataset.scene;
     });
     if (frontRect && frontRect.top <= mid && frontRect.bottom >= mid) {
-      active = frontJourneyProgress < 0.18
+      active = frontJourneyProgress < 0.117
         ? "hero"
-        : frontJourneyProgress < 0.78
+        : frontJourneyProgress < 0.68
           ? "city"
           : "broadcast";
     }
