@@ -133,6 +133,7 @@
   var concertViewport = document.querySelector("#concert .viewport");
   var glassesViewport = document.querySelector("#glasses .viewport");
   var broadcastViewport = document.querySelector("#broadcast .viewport");
+  var projectsScene = document.getElementById("projects");
   var cityP = 0;
   var globeP = 0;
   var concertP = 0;
@@ -351,10 +352,20 @@
       if (scene.id === "broadcast" && broadcastViewport) {
         broadcastViewport.style.setProperty("--scene-enter", smoother(p / 0.12).toFixed(4));
         broadcastViewport.style.setProperty("--scene-exit", smoother((p - 0.84) / 0.16).toFixed(4));
+        broadcastViewport.style.setProperty("--reels-swipe", smoother((p - 0.82) / 0.18).toFixed(4));
         if (p > 0.6) broadcastViewport.setAttribute("data-feed", "open");
         else broadcastViewport.removeAttribute("data-feed");
       }
     });
+
+    if (projectsScene && glassesViewport) {
+      var glassesScene = glassesViewport.closest(".scene");
+      var glassesRect = glassesScene ? glassesScene.getBoundingClientRect() : null;
+      if (glassesRect) {
+        var hangarExit = smoother((vh * 1.1 - glassesRect.top) / (vh * 0.75));
+        projectsScene.style.setProperty("--hangar-exit", hangarExit.toFixed(4));
+      }
+    }
 
     if (progressFill) {
       var max = doc.scrollHeight - vh;

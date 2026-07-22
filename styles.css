@@ -1326,6 +1326,7 @@ main > .scene + .scene { margin-top: -1px; }
 #broadcast .viewport {
   --scene-enter: 0;
   --scene-exit: 0;
+  --reels-swipe: 0;
   --fly: min(calc(var(--p, 0) / 0.3), 1);                        /* cursor approach */
   --clk: min(max(calc((var(--p, 0) - 0.3) / 0.1), 0), 1);        /* click moment */
   --opn: min(max(calc((var(--p, 0) - 0.4) / 0.45), 0), 1);       /* window open */
@@ -1359,7 +1360,7 @@ main > .scene + .scene { margin-top: -1px; }
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 30;
+  z-index: 4;
   pointer-events: none;
   opacity: var(--scene-exit, 0);
   background:
@@ -1456,9 +1457,12 @@ main > .scene + .scene { margin-top: -1px; }
   box-shadow:
     0 0 60px rgba(255, 79, 216, 0.2),
     0 30px 80px rgba(0, 0, 0, 0.6);
-  transform: scale(calc(0.12 + var(--opn) * 0.88));
+  transform:
+    translate3d(0, calc(var(--reels-swipe, 0) * -118vh), 0)
+    scale(calc(0.12 + var(--opn) * 0.88));
   opacity: calc(var(--opn) * 2.2 - 0.1);
   pointer-events: none;
+  will-change: transform;
 }
 #broadcast .viewport[data-feed="open"] .feed-window { pointer-events: auto; }
 
@@ -1618,9 +1622,36 @@ main > .scene + .scene { margin-top: -1px; }
    ============================================================ */
 
 #projects {
+  --hangar-exit: 0;
+  position: relative;
+  overflow: hidden;
   background:
     radial-gradient(ellipse 60% 40% at 50% 0%, rgba(23, 68, 105, 0.35), transparent 70%),
     linear-gradient(to bottom, #120838, var(--bg) 30%);
+}
+
+#projects::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  opacity: var(--hangar-exit, 0);
+  background:
+    radial-gradient(ellipse 64% 46% at 50% 42%, rgba(145, 158, 170, 0.12), transparent 72%),
+    linear-gradient(180deg, rgba(8, 12, 17, 0.18), rgba(8, 11, 15, 0.92) 70%, #090b0e 100%);
+  -webkit-backdrop-filter: blur(calc(var(--hangar-exit, 0) * 12px)) saturate(calc(1 - var(--hangar-exit, 0) * 0.42));
+  backdrop-filter: blur(calc(var(--hangar-exit, 0) * 12px)) saturate(calc(1 - var(--hangar-exit, 0) * 0.42));
+}
+
+#projects .section-head,
+#projects .hangar-grid {
+  opacity: calc(1 - var(--hangar-exit, 0));
+  transform:
+    translate3d(0, calc(var(--hangar-exit, 0) * -3vh), 0)
+    scale(calc(1 - var(--hangar-exit, 0) * 0.035));
+  filter: blur(calc(var(--hangar-exit, 0) * 7px));
+  will-change: opacity, transform, filter;
 }
 
 .section-head {
