@@ -87,6 +87,10 @@ html.bay-motion-ready [data-bay-scene].story-reveal.is-visible {
   transition: opacity 70ms linear;
 }
 
+body[data-bay-theme="cheatgpt"] .bay-transition-fx {
+  display: none;
+}
+
 .bay-palette-fx {
   position: fixed;
   inset: 0;
