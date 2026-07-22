@@ -603,6 +603,10 @@ body[data-active-chapter="beyond"] .film-veil {
   max-height: 64svh;
   background: #000;
   object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 .demo-stage figcaption {
   padding: 0.6rem 0.1rem 0.1rem;
