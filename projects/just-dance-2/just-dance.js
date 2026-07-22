@@ -77,6 +77,44 @@
     return 1 - smoothStep((relativePosition - 0.05 - exitDelay) / 0.38);
   }
 
+  function objectMotion(chapterName, object, relativePosition, visibility, objectIndex, objectCount) {
+    var travel = 1 - visibility;
+    var entering = relativePosition <= 0;
+    var lane = objectIndex % 2 === 0 ? -1 : 1;
+    var nestedStoryText = object.parentElement && object.parentElement.classList.contains("story-card");
+    var strength = nestedStoryText ? 0.35 : 1;
+    var x = 0;
+    var y = 0;
+    var scale = 0.982 + visibility * 0.018;
+
+    if (chapterName === "intro") {
+      y = (entering ? 12 : -10) * travel;
+      scale = 0.94 + visibility * 0.06;
+    } else if (chapterName === "origin") {
+      var originSide = object.closest(".concert-card") ? 1 : -1;
+      x = originSide * (entering ? 64 : -44) * travel * strength;
+      y = lane * 6 * travel;
+    } else if (chapterName === "gap") {
+      var gapDirection = object.closest(".upgrade-card") ? 1 : -1;
+      y = gapDirection * (entering ? 58 : -42) * travel * strength;
+      x = gapDirection * 10 * travel;
+    } else if (chapterName === "system") {
+      y = (entering ? 62 : -38) * travel;
+      x = lane * 5 * travel;
+    } else if (chapterName === "feedback") {
+      x = lane * 14 * travel;
+      scale = 0.9 + visibility * 0.1;
+    } else if (chapterName === "beyond") {
+      var beyondSide = object.classList.contains("source-cta") ? 1 : (object.classList.contains("closing-line") ? 0 : -1);
+      x = beyondSide * (entering ? 72 : -52) * travel;
+      y = object.classList.contains("closing-line") ? (entering ? 34 : -24) * travel : lane * 7 * travel;
+      scale = 0.96 + visibility * 0.04;
+    }
+
+    if (reducedMotion) return { x: 0, y: 0, scale: 1 };
+    return { x: x, y: y, scale: scale };
+  }
+
   chapterMotionObjects.forEach(function (objects) {
     objects.forEach(function (object) {
       object.classList.add("motion-object");
@@ -238,16 +276,12 @@
       var motionObjects = chapterMotionObjects[index] || [];
       motionObjects.forEach(function (object, objectIndex) {
         var visibility = objectVisibility(relativePosition, objectIndex, motionObjects.length);
-        var travel = 1 - visibility;
-        var lane = objectIndex % 2 === 0 ? -1 : 1;
+        var motion = objectMotion(chapter.dataset.chapter, object, relativePosition, visibility, objectIndex, motionObjects.length);
         var intrinsicOpacity = object.classList.contains("chapter-index") ? 0.48 : (object.classList.contains("hero-ghost") ? 0.42 : 1);
-        var motionY = reducedMotion ? 0 : (relativePosition <= 0 ? 46 * travel : -32 * travel);
-        var motionX = reducedMotion ? 0 : lane * (relativePosition <= 0 ? 10 : -7) * travel;
-        var motionScale = reducedMotion ? 1 : 0.982 + visibility * 0.018;
 
         object.style.opacity = (visibility * intrinsicOpacity).toFixed(5);
-        object.style.translate = motionX.toFixed(2) + "px " + motionY.toFixed(2) + "px";
-        object.style.scale = motionScale.toFixed(5);
+        object.style.translate = motion.x.toFixed(2) + "px " + motion.y.toFixed(2) + "px";
+        object.style.scale = motion.scale.toFixed(5);
       });
     });
 
@@ -339,6 +373,7 @@
   }
   updateFilmToggle();
   updateScrollScene();
+  body.classList.add("motion-ready");
 
   if (window.location.hash) {
     var initialId = window.location.hash.slice(1);
