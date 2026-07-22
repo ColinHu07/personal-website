@@ -38,7 +38,7 @@
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=jarvis-100" />
+    <link rel="stylesheet" href="styles.css?v=jarvis-101" />
   </head>
   <body>
     <div class="site-loader" role="status" aria-live="polite" aria-label="Preparing the interactive site">
@@ -192,6 +192,7 @@
       <!-- ============ SCENE 03 // BROADCAST (cursor -> instagram) ============ -->
       <section class="scene scrub" id="broadcast" data-scene="broadcast">
         <div class="viewport">
+          <div class="broadcast-backdrop" aria-hidden="true"></div>
           <div class="scene-tag" aria-hidden="true">
             <span class="tag-num">SCENE&nbsp;03</span>
             <span class="tag-name">BROADCAST DECK // OPENING FEED</span>
@@ -279,6 +280,7 @@
       </div>
 
       <!-- ============ SCENE 04 // PROJECT HANGAR ============ -->
+      <div class="projects-slot">
       <section class="scene flow" id="projects" data-scene="projects">
         <div class="section-head">
           <p class="eyebrow">SCENE 04 // HANGAR BAY</p>
@@ -334,6 +336,7 @@
           </article>
         </div>
       </section>
+      </div>
 
       <!-- ============ SCENE 05 // STARK OPTICS ============ -->
       <section class="scene scrub" id="glasses" data-scene="glasses">
@@ -704,7 +707,7 @@
         else window.addEventListener("load", finishHangarReturn, { once: true });
       }
     </script>
-    <script src="script.js?v=jarvis-96"></script>
+    <script src="script.js?v=jarvis-97"></script>
     <script type="module">
       var glassesScene = document.getElementById("glasses");
       var glassesViewport = glassesScene && glassesScene.querySelector(".viewport");

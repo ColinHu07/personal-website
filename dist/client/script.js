@@ -247,6 +247,15 @@
           "--front-scene-opacity",
           smoother((frontJourneyProgress - 0.62) / 0.08).toFixed(4)
         );
+        var hangarReveal = smoother((frontJourneyProgress - 0.92) / 0.065);
+        broadcastViewport.style.setProperty("--hangar-reveal", hangarReveal.toFixed(4));
+        if (projectsScene) {
+          projectsScene.style.setProperty("--hangar-reveal", hangarReveal.toFixed(4));
+          projectsScene.classList.toggle(
+            "is-front-pinned",
+            frontJourneyProgress >= 0.89 && frontJourneyProgress < 0.9995
+          );
+        }
       }
     }
 

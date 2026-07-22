@@ -328,10 +328,11 @@ main { position: relative; z-index: 1; }
    transition in place instead of stacking separate viewport-length pages. */
 .front-journey {
   position: relative;
+  z-index: 3;
   height: 500vh;
   min-height: 500vh;
   isolation: isolate;
-  background: #02070d;
+  background: transparent;
 }
 
 .front-journey > #hero.scene.scrub,
@@ -361,7 +362,11 @@ main { position: relative; z-index: 1; }
   display: none;
 }
 
-.front-journey + #projects { margin-top: -1px; }
+.projects-slot {
+  position: relative;
+  z-index: 2;
+  margin-top: -100vh;
+}
 
 /* Adjacent scene color fields overlap by a physical pixel so fractional
    mobile scroll positions and desktop zoom never expose the document
@@ -1332,11 +1337,21 @@ main > .scene + .scene { margin-top: -1px; }
   --fly: min(calc(var(--p, 0) / 0.3), 1);                        /* cursor approach */
   --clk: min(max(calc((var(--p, 0) - 0.3) / 0.1), 0), 1);        /* click moment */
   --opn: min(max(calc((var(--p, 0) - 0.4) / 0.45), 0), 1);       /* window open */
+  background: transparent;
+  display: grid;
+  place-items: center;
+}
+
+.broadcast-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: calc(1 - var(--hangar-reveal, 0));
   background:
     radial-gradient(ellipse 70% 50% at 50% 40%, rgba(60, 20, 70, 0.4), transparent 70%),
     linear-gradient(to bottom, #0a0522 0%, #120838 45%, #0a1226 100%);
-  display: grid;
-  place-items: center;
+  will-change: opacity;
 }
 
 /* Continue the same color field on the incoming side of the cut. Keeping a
@@ -1364,7 +1379,7 @@ main > .scene + .scene { margin-top: -1px; }
   inset: 0;
   z-index: 4;
   pointer-events: none;
-  opacity: var(--scene-exit, 0);
+  opacity: 0;
   background:
     radial-gradient(ellipse 70% 40% at 50% 100%, rgba(79, 216, 255, 0.1), transparent 72%),
     linear-gradient(to bottom, rgba(18, 8, 56, 0.28), rgba(18, 8, 56, 0.9) 70%, #120838 100%);
@@ -1382,7 +1397,10 @@ main > .scene + .scene { margin-top: -1px; }
   opacity: var(--scene-enter, 1);
 }
 
-#broadcast .scene-tag { opacity: var(--scene-enter, 1); }
+#broadcast .scene-tag,
+#broadcast .desk-grid {
+  opacity: clamp(0, calc(var(--scene-enter, 1) - var(--hangar-reveal, 0)), 1);
+}
 
 .ig-target {
   position: absolute;
@@ -1625,11 +1643,23 @@ main > .scene + .scene { margin-top: -1px; }
 
 #projects {
   --hangar-exit: 0;
+  --hangar-reveal: 1;
   position: relative;
   overflow: hidden;
   background:
     radial-gradient(ellipse 60% 40% at 50% 0%, rgba(23, 68, 105, 0.35), transparent 70%),
     linear-gradient(to bottom, #120838, var(--bg) 30%);
+}
+
+#projects.is-front-pinned {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  height: 100vh;
+  height: 100dvh;
+  opacity: var(--hangar-reveal, 0);
+  pointer-events: none;
+  will-change: opacity;
 }
 
 #projects::after {
