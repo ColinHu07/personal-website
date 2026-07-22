@@ -133,10 +133,12 @@
   var concertViewport = document.querySelector("#concert .viewport");
   var glassesViewport = document.querySelector("#glasses .viewport");
   var broadcastViewport = document.querySelector("#broadcast .viewport");
+  var globePixelAssembly = document.querySelector(".globe-pixel-assembly");
   var cityP = 0;
+  var globeP = 0;
   var concertP = 0;
 
-  var FRONT_JOURNEY_STOPS = { hero: 0, city: 0.27, broadcast: 0.72 };
+  var FRONT_JOURNEY_STOPS = { hero: 0, city: 0.62, broadcast: 0.84 };
   if (frontJourney) {
     Array.prototype.slice.call(document.querySelectorAll('a[href="#hero"], a[href="#city"], a[href="#broadcast"]')).forEach(function (link) {
       link.addEventListener("click", function (event) {
@@ -179,6 +181,31 @@
     "STREET-LEVEL ASCENT",
     "MIDTOWN TOWER PASS",
   ];
+
+  // The reactor resolves into the globe through a small deterministic field
+  // of pixels. Each block begins outside the sphere and converges onto a
+  // stable point, so the reveal feels assembled rather than crossfaded.
+  function pixelNoise(seed) {
+    var value = Math.sin(seed * 12.9898) * 43758.5453;
+    return value - Math.floor(value);
+  }
+
+  if (globePixelAssembly) {
+    for (var pixelIndex = 0; pixelIndex < 60; pixelIndex += 1) {
+      var pixel = document.createElement("i");
+      var pointAngle = pixelNoise(pixelIndex + 1) * Math.PI * 2;
+      var pointRadius = Math.sqrt(pixelNoise(pixelIndex + 17)) * 47;
+      var scatterAngle = pointAngle + (pixelNoise(pixelIndex + 41) - 0.5) * 1.25;
+      var scatterDistance = 100 + pixelNoise(pixelIndex + 73) * 230;
+      pixel.style.left = (50 + Math.cos(pointAngle) * pointRadius).toFixed(2) + "%";
+      pixel.style.top = (50 + Math.sin(pointAngle) * pointRadius).toFixed(2) + "%";
+      pixel.style.setProperty("--scatter-x", (Math.cos(scatterAngle) * scatterDistance).toFixed(1) + "px");
+      pixel.style.setProperty("--scatter-y", (Math.sin(scatterAngle) * scatterDistance).toFixed(1) + "px");
+      pixel.style.setProperty("--pixel-delay", Math.floor(pixelNoise(pixelIndex + 101) * 170) + "ms");
+      pixel.style.setProperty("--pixel-alpha", (0.48 + pixelNoise(pixelIndex + 137) * 0.42).toFixed(2));
+      globePixelAssembly.appendChild(pixel);
+    }
+  }
 
   function updateCityFlightLabel(progress) {
     if (!montageLabel) return;
@@ -223,17 +250,27 @@
     if (frontRect) {
       var frontRunway = Math.max(1, frontRect.height - vh);
       frontJourneyProgress = clamp01(-frontRect.top / frontRunway);
+      var globeAssemblyP = smoother((frontJourneyProgress - 0.08) / 0.13);
+      globeP = smoother((frontJourneyProgress - 0.2) / 0.38);
+      var globeExitP = smoother((frontJourneyProgress - 0.56) / 0.09);
       if (cityViewport) {
         cityViewport.style.setProperty(
           "--front-scene-opacity",
-          smoother((frontJourneyProgress - 0.12) / 0.14).toFixed(4)
+          smoother((frontJourneyProgress - 0.08) / 0.1).toFixed(4)
         );
+        cityViewport.style.setProperty("--globe-assemble", globeAssemblyP.toFixed(4));
+        cityViewport.style.setProperty("--globe-orbit", globeP.toFixed(4));
+        cityViewport.style.setProperty("--globe-exit", globeExitP.toFixed(4));
       }
       if (broadcastViewport) {
         broadcastViewport.style.setProperty(
           "--front-scene-opacity",
-          smoother((frontJourneyProgress - 0.52) / 0.14).toFixed(4)
+          smoother((frontJourneyProgress - 0.72) / 0.1).toFixed(4)
         );
+      }
+      if (globePixelAssembly) {
+        globePixelAssembly.classList.toggle("is-assembling", frontJourneyProgress >= 0.08);
+        globePixelAssembly.classList.toggle("is-resolved", frontJourneyProgress >= 0.21);
       }
     }
 
@@ -250,9 +287,9 @@
       var total = rect.height - vh;
       var p = total > 0 ? clamp01(-rect.top / total) : 0;
       if (inFrontJourney) {
-        if (scene.id === "hero") p = clamp01(frontJourneyProgress / 0.24);
-        else if (scene.id === "city") p = clamp01((frontJourneyProgress - 0.1) / 0.52);
-        else if (scene.id === "broadcast") p = clamp01((frontJourneyProgress - 0.5) / 0.42);
+        if (scene.id === "hero") p = clamp01(frontJourneyProgress / 0.18);
+        else if (scene.id === "city") p = clamp01((frontJourneyProgress - 0.48) / 0.32);
+        else if (scene.id === "broadcast") p = clamp01((frontJourneyProgress - 0.7) / 0.28);
       }
       var viewport = scene.querySelector(".viewport");
       if (viewport) {
@@ -270,6 +307,12 @@
         var cityFlightReveal = smoother((p - 0.405) / 0.16);
         var citySceneExit = smoother((p - 0.86) / 0.14);
         if (cityViewport) {
+          if (inFrontJourney) {
+            cityViewport.style.setProperty(
+              "--scene-enter",
+              smoother((frontJourneyProgress - 0.06) / 0.12).toFixed(4)
+            );
+          }
           cityViewport.style.setProperty("--city-in", cityFlightReveal.toFixed(4));
           cityViewport.style.setProperty("--scene-exit", citySceneExit.toFixed(4));
         }
@@ -350,9 +393,9 @@
       if (r.top <= mid && r.bottom >= mid) active = scene.dataset.scene;
     });
     if (frontRect && frontRect.top <= mid && frontRect.bottom >= mid) {
-      active = frontJourneyProgress < 0.2
+      active = frontJourneyProgress < 0.18
         ? "hero"
-        : frontJourneyProgress < 0.6
+        : frontJourneyProgress < 0.78
           ? "city"
           : "broadcast";
     }
@@ -671,11 +714,11 @@
     }
 
     function drawGlobe(time) {
-      if (cityP < 0.5 && isInView(cityViewport)) {
+      if (cityP < 0.56 && isInView(cityViewport)) {
         gtx.clearRect(0, 0, GW, GH);
 
         // Asia -> Europe -> Americas camera sweep, locking on NYC
-        var lock = smooth(clamp01(cityP / 0.3));
+        var lock = globeP;
         var sway = Math.sin(time * 0.0004) * 4 * (1 - lock);
         // Asia (118E) -> Europe (~12E) -> NYC (-74W)
         var rotLon, rotLat;
