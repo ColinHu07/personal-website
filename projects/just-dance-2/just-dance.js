@@ -149,8 +149,7 @@
 
     chapters.forEach(function (chapter) {
       var rect = chapter.getBoundingClientRect();
-      var total = Math.max(1, rect.height - viewportHeight);
-      var progress = clamp(-rect.top / total, 0, 1);
+      var progress = clamp((viewportHeight - rect.top) / (viewportHeight + rect.height), 0, 1);
       var midpointDistance = Math.abs((rect.top + rect.bottom) * 0.5 - viewportHeight * 0.5);
       chapter.style.setProperty("--chapter-p", progress.toFixed(5));
 
