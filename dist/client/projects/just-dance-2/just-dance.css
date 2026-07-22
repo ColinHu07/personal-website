@@ -257,7 +257,7 @@ body[data-active-chapter="beyond"] .film-veil {
 main { position: relative; z-index: 10; }
 .chapter { position: relative; min-height: 145vh; min-height: 145svh; }
 .hero-chapter { min-height: 175vh; min-height: 175svh; }
-.system-chapter { min-height: 155vh; min-height: 155svh; }
+.system-chapter { min-height: 175vh; min-height: 175svh; }
 .beyond-chapter { min-height: 155vh; min-height: 155svh; }
 .chapter-frame {
   position: sticky;
@@ -463,12 +463,13 @@ main { position: relative; z-index: 10; }
 }
 
 .system-frame {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: clamp(1.5rem, 4vh, 2.8rem);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.38fr);
+  grid-template-rows: auto 1fr;
+  align-items: center;
+  gap: 1.25rem clamp(2rem, 6vw, 6rem);
 }
-.system-head { max-width: 72rem; }
+.system-head { align-self: end; max-width: 72rem; }
 .system-head > p:last-child {
   max-width: 43rem;
   margin-top: 1.15rem;
@@ -476,9 +477,42 @@ main { position: relative; z-index: 10; }
   font-size: clamp(1rem, 1.35vw, 1.16rem);
   line-height: 1.7;
 }
+.demo-stage {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  justify-self: center;
+  width: min(100%, 320px);
+  padding: 0.6rem;
+  border: 1px solid rgba(var(--pink-rgb), 0.45);
+  background: rgba(7, 4, 5, 0.9);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.46), 0 0 44px rgba(var(--pink-rgb), 0.12);
+}
+.demo-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.25rem 0.1rem 0.6rem;
+  font: 700 0.58rem var(--hud);
+  letter-spacing: 0.14em;
+}
+.demo-label span { color: var(--pink); }
+.demo-label em { color: var(--muted); font-style: normal; }
+.demo-stage video {
+  display: block;
+  width: 100%;
+  max-height: 64svh;
+  background: #000;
+  object-fit: contain;
+}
+.demo-stage figcaption {
+  padding: 0.6rem 0.1rem 0.1rem;
+  color: var(--muted);
+  font: 700 0.56rem var(--hud);
+  letter-spacing: 0.12em;
+}
 .pipeline {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.7rem;
   align-self: start;
   width: 100%;
@@ -606,7 +640,7 @@ main { position: relative; z-index: 10; }
   .chapter-rail { display: none; }
   .chapter { min-height: 130svh; }
   .hero-chapter { min-height: 155svh; }
-  .system-chapter { min-height: 155svh; }
+  .system-chapter { min-height: 175svh; }
   .chapter-frame { padding-right: clamp(1.2rem, 5vw, 3rem); padding-left: clamp(1.2rem, 5vw, 3rem); }
   .split-frame,
   .gap-frame,
@@ -617,6 +651,7 @@ main { position: relative; z-index: 10; }
   .source-cta { justify-self: stretch; width: 100%; }
   .pull-quote { display: none; }
   .system-frame { gap: 1.2rem; }
+  .demo-stage { width: min(32vw, 250px); }
   .pipeline { grid-template-columns: 1fr 1fr; }
   .pipeline li { min-height: 8rem; }
   .beyond-frame { grid-template-rows: auto auto auto; }
@@ -629,7 +664,7 @@ main { position: relative; z-index: 10; }
   .nav-source { padding: 0.45rem 0.55rem; }
   .chapter { min-height: 140svh; }
   .hero-chapter { min-height: 155svh; }
-  .system-chapter { min-height: 170svh; }
+  .system-chapter { min-height: 210svh; }
   .feedback-chapter { min-height: 155svh; }
   .beyond-chapter { min-height: 165svh; }
   .chapter-frame { padding: 4.8rem 1rem 3rem; }
@@ -649,8 +684,13 @@ main { position: relative; z-index: 10; }
   .system-frame { display: flex; flex-direction: column; justify-content: center; gap: 1rem; }
   .system-head { align-self: stretch; }
   .system-head h2 { font-size: clamp(2rem, 10vw, 3.4rem); }
+  .system-head > p:last-child { margin-top: 0.7rem; font-size: 0.82rem; line-height: 1.5; }
+  .demo-stage { align-self: center; width: min(45vw, 180px); padding: 0.4rem; }
+  .demo-stage video { max-height: 24svh; }
+  .demo-label { font-size: 0.48rem; letter-spacing: 0.08em; }
+  .demo-stage figcaption { font-size: 0.47rem; letter-spacing: 0.08em; }
   .pipeline { width: 100%; gap: 0.45rem; }
-  .pipeline li { min-height: 7.5rem; padding: 0.7rem; }
+  .pipeline li { min-height: 6rem; padding: 0.7rem; }
   .pipeline strong { margin-top: 0.55rem; font-size: 0.68rem; }
   .pipeline p { margin-top: 0.4rem; font-size: 0.68rem; }
   .score-main { grid-template-columns: 1fr; padding: 1rem; }
@@ -675,6 +715,7 @@ main { position: relative; z-index: 10; }
   .concert-card ul { grid-template-columns: 1fr 1fr; }
   .pipeline li { min-height: 6.5rem; }
   .pipeline p { font-size: 0.65rem; }
+  .demo-stage video { max-height: 58vh; }
   .score-console { max-height: 76vh; overflow: hidden; }
   .score-main { padding: 0.8rem 1rem; }
   .score-ring { width: 86px; min-width: 86px; }

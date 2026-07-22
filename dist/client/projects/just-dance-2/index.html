@@ -25,7 +25,7 @@
       rel="stylesheet"
     />
     <link rel="preload" href="../../assets/just-dance-poster.jpg" as="image" fetchpriority="high" />
-    <link rel="stylesheet" href="just-dance.css?v=2" />
+    <link rel="stylesheet" href="just-dance.css?v=3" />
     <link rel="stylesheet" href="../../project-bottom.css?v=20260717" />
   </head>
   <body data-active-chapter="intro">
@@ -168,6 +168,26 @@
             <p>MediaPipe extracts body pose from the reference and performance. Dynamic Time Warping aligns the sequences, then geometry-based scoring compares angles, limb direction, distance, and posture.</p>
           </header>
 
+          <figure class="demo-stage parallax-layer" data-parallax="0.025" data-reveal>
+            <div class="demo-label"><span>REAL OUTPUT</span><em>BODY POSE EXTRACTION</em></div>
+            <video
+              id="pose-demo"
+              autoplay
+              muted
+              loop
+              playsinline
+              controls
+              preload="metadata"
+              poster="../../assets/just-dance-demo-poster.jpg"
+              controlslist="nodownload noremoteplayback"
+              disablepictureinpicture
+              aria-label="Just Dance 2.0 extracting body pose from a dance video"
+            >
+              <source src="../../assets/just-dance-demo.mp4" type="video/mp4" />
+            </video>
+            <figcaption>HAERIN — HOW SWEET // PROCESSED POSE OVERLAY</figcaption>
+          </figure>
+
           <ol class="pipeline" aria-label="How Just Dance 2.0 works">
             <li data-reveal><span>01</span><strong>INPUT</strong><p>Choose a reference video and your performance.</p></li>
             <li data-reveal><span>02</span><strong>EXTRACT</strong><p>MediaPipe extracts the centered dancer's body pose frame by frame.</p></li>
@@ -236,6 +256,6 @@
       <span class="project-bottom-bar__file">JUST DANCE 2.0 // FILE 002</span>
     </footer>
 
-    <script src="just-dance.js?v=2"></script>
+    <script src="just-dance.js?v=3"></script>
   </body>
 </html>

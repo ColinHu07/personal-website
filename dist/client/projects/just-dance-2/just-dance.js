@@ -8,6 +8,7 @@
     document.getElementById("dance-film-next")
   ].filter(Boolean);
   var filmToggle = document.getElementById("film-toggle");
+  var poseDemo = document.getElementById("pose-demo");
   var scrollFill = document.getElementById("scroll-fill");
   var chapters = Array.prototype.slice.call(document.querySelectorAll("[data-chapter]"));
   var chapterLinks = Array.prototype.slice.call(document.querySelectorAll("[data-chapter-link]"));
@@ -213,6 +214,7 @@
   if (reducedMotion) {
     manuallyPaused = true;
     pauseFilms();
+    if (poseDemo) poseDemo.pause();
   } else {
     playFilm();
   }
