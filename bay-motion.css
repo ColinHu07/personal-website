@@ -48,10 +48,20 @@ html.bay-motion-ready [data-bay-layer] {
     filter 100ms linear;
 }
 
-html.bay-motion-ready [data-bay-effect="jump"] [data-bay-layer],
 html.bay-motion-ready [data-bay-effect="glitch"] [data-bay-layer] {
   transition-duration: 45ms;
   transition-timing-function: steps(2, end);
+}
+
+html.bay-motion-ready [data-bay-effect="deal"] [data-bay-layer],
+html.bay-motion-ready [data-bay-effect="jump"] [data-bay-layer] {
+  clip-path: none;
+  filter: none;
+  backface-visibility: hidden;
+  transition:
+    translate 64ms linear,
+    scale 64ms linear,
+    rotate 64ms linear;
 }
 
 html.bay-motion-ready [data-bay-layer].bay-layer-active {
@@ -191,6 +201,22 @@ html.bay-motion-ready [data-bay-scene].story-reveal.is-visible {
   border-top: 2px solid rgba(var(--bay-accent-rgb), 0.48);
   border-bottom: 2px solid rgba(var(--bay-accent-rgb), 0.32);
   translate: var(--bay-jump-border-x, 0px) 0;
+}
+
+.bay-transition-fx[data-effect="deal"]::before {
+  inset: -18% -34%;
+  background:
+    linear-gradient(112deg, transparent 43%, rgba(var(--bay-accent-rgb), 0.22) 49%, rgba(255,255,255,0.13) 50%, transparent 57%),
+    repeating-linear-gradient(112deg, transparent 0 9%, rgba(var(--bay-accent-rgb), 0.08) 9.15% 9.35%, transparent 9.5% 18%);
+  translate: var(--bay-deal-sweep, 0%) 0;
+  opacity: 0.72;
+}
+
+.bay-transition-fx[data-effect="deal"]::after {
+  inset: var(--bay-deal-line, 50%) 6% auto;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--bay-accent) 22%, rgba(229, 189, 105, 0.72) 62%, transparent);
+  box-shadow: 0 0 18px rgba(var(--bay-accent-rgb), 0.32);
 }
 
 .bay-transition-fx[data-effect="split"]::before {

@@ -70,17 +70,22 @@
       clip = "inset(" + washTop.toFixed(2) + "% 0 " + washBottom.toFixed(2) + "% 0)";
       y += direction * travel * 16;
       filter = "saturate(" + (0.38 + visibility * 0.62).toFixed(3) + ") brightness(" + (1 + travel * 0.22).toFixed(3) + ")";
-    } else if (effect === "jump" || effect === "glitch") {
+    } else if (effect === "deal" || effect === "jump") {
+      var dealt = visibility * visibility * (3 - 2 * visibility);
+      var dealTravel = 1 - dealt;
+      x = direction * dealTravel * (26 + (index % 3) * 5);
+      y += (exiting ? -1 : 1) * dealTravel * (15 + (index % 2) * 7);
+      rotate = direction * dealTravel * 1.35;
+      scale = 0.985 + dealt * 0.015;
+    } else if (effect === "glitch") {
       var stepped = Math.round(visibility * 6) / 6;
       var jumpTravel = 1 - stepped;
-      x = direction * jumpTravel * (effect === "glitch" ? 48 : 72);
+      x = direction * jumpTravel * 48;
       y += (index % 3 - 1) * jumpTravel * 14;
-      rotate = direction * jumpTravel * (effect === "glitch" ? 0.8 : 2.4);
+      rotate = direction * jumpTravel * 0.8;
       if (direction > 0) clip = "inset(0 " + (jumpTravel * 76).toFixed(2) + "% 0 0)";
       else clip = "inset(0 0 0 " + (jumpTravel * 76).toFixed(2) + "%)";
-      filter = effect === "glitch"
-        ? "contrast(" + (1 + jumpTravel * 0.5).toFixed(3) + ") saturate(" + (1 + jumpTravel * 0.7).toFixed(3) + ")"
-        : "none";
+      filter = "contrast(" + (1 + jumpTravel * 0.5).toFixed(3) + ") saturate(" + (1 + jumpTravel * 0.7).toFixed(3) + ")";
     } else if (effect === "dissolve") {
       var edge = visibility * 112;
       if (direction > 0) {
@@ -135,8 +140,10 @@
     var strength = clamp(1 - boundaryDistance / (viewportHeight * 0.36), 0, 1);
     var phase = clamp((viewportHeight * 0.86 - rect.top) / (viewportHeight * 0.72), 0, 1);
     var stepped = Math.round(phase * 7) / 7;
+    var effect = scene.dataset.bayEffect || "wash";
+    var cutPhase = effect === "glitch" ? stepped : phase;
 
-    fx.dataset.effect = scene.dataset.bayEffect || "wash";
+    fx.dataset.effect = effect;
     fx.style.setProperty("--bay-strength", (strength * 0.86).toFixed(4));
     fx.style.setProperty("--bay-phase", phase.toFixed(4));
     fx.style.setProperty("--bay-step", stepped.toFixed(4));
@@ -156,8 +163,10 @@
     fx.style.setProperty("--bay-scan-line", (phase * 100).toFixed(2) + "%");
     fx.style.setProperty("--bay-dissolve-x", ((0.5 - phase) * 46).toFixed(2) + "px");
     fx.style.setProperty("--bay-dissolve-y", ((0.5 - phase) * 28).toFixed(2) + "px");
-    fx.style.setProperty("--bay-jump-x", ((stepped - 0.5) * 42).toFixed(2) + "px");
-    fx.style.setProperty("--bay-jump-border-x", ((0.5 - stepped) * 24).toFixed(2) + "px");
+    fx.style.setProperty("--bay-jump-x", ((cutPhase - 0.5) * 42).toFixed(2) + "px");
+    fx.style.setProperty("--bay-jump-border-x", ((0.5 - cutPhase) * 24).toFixed(2) + "px");
+    fx.style.setProperty("--bay-deal-sweep", ((phase - 0.5) * 132).toFixed(2) + "%");
+    fx.style.setProperty("--bay-deal-line", (phase * 112 - 6).toFixed(2) + "%");
     fx.style.setProperty("--bay-split-left", ((phase - 1) * 32).toFixed(2) + "%");
     fx.style.setProperty("--bay-split-right", ((1 - phase) * 32).toFixed(2) + "%");
     body.dataset.bayActiveScene = scene.dataset.bayScene || scene.id || "scene";
