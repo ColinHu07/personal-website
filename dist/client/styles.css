@@ -480,16 +480,14 @@ main > .scene + .scene { margin-top: -1px; }
   left: 50%;
   width: min(74vmin, 640px);
   height: min(74vmin, 640px);
-  transform:
-    translate(-50%, -50%)
-    scale(calc(1 + var(--p, 0) * 2.6));
-  opacity: calc(1 - max(var(--p, 0) - 0.42, 0) * 1.75);
+  transform: translate(-50%, -50%);
 }
 .reactor-ring {
   position: absolute;
   inset: 0;
   border-radius: 50%;
   border: 1px solid var(--cyan-dim);
+  opacity: clamp(0, calc(1 - var(--p, 0) * 1.5), 1);
 }
 .reactor-ring.r1 {
   border-width: 2px;
@@ -528,6 +526,7 @@ main > .scene + .scene { margin-top: -1px; }
   -webkit-mask: radial-gradient(circle, transparent 84%, #000 85%);
   mask: radial-gradient(circle, transparent 84%, #000 85%);
   animation: spin 60s linear infinite;
+  opacity: clamp(0, calc(1 - var(--p, 0) * 1.5), 1);
 }
 .reactor-core {
   position: absolute;
@@ -634,10 +633,11 @@ main > .scene + .scene { margin-top: -1px; }
 /* ============================================================
    SCENE 02 // GLOBE -> NEW YORK
    Phases (by the shared front journey):
-     0.08–0.21  reactor pixels assemble and resolve into Earth
-     0.20–0.58  globe sweeps Asia -> Europe -> locks on NYC
-     0.56–0.65  globe blows past camera
-     0.61–1.00  city flight takes over (loops
+     0.00–0.18  luminous reactor core grows to planet diameter
+     0.14–0.22  the Earth resolves inside that same sphere
+     0.22–0.60  globe sweeps Asia -> Europe -> locks on NYC
+     0.60–0.68  globe blows past camera
+     0.63–1.00  city flight takes over (loops
                 forever — it keeps playing until you scroll on)
    ============================================================ */
 
@@ -645,7 +645,8 @@ main > .scene + .scene { margin-top: -1px; }
   --scene-enter: 0;
   --city-in: 0;
   --scene-exit: 0;
-  --globe-assemble: 0;
+  --globe-morph: 0;
+  --globe-reveal: 0;
   --globe-orbit: 0;
   --globe-exit: 0;
   background: linear-gradient(to bottom, #01060c 0%, #04101d 55%, #051727 100%);
@@ -676,7 +677,7 @@ main > .scene + .scene { margin-top: -1px; }
   border: 1px solid rgba(150, 220, 255, 0.45);
   border-radius: 50%;
   pointer-events: none;
-  opacity: clamp(0, calc(var(--globe-assemble, 0) * 1.35 - var(--globe-exit, 0) * 1.35), 1);
+  opacity: clamp(0, calc(var(--globe-reveal, 0) * 1.35 - var(--globe-exit, 0) * 1.35), 1);
   transform: translate3d(-50%, -50%, 0) scale(calc(1 + var(--globe-exit, 0) * 4));
   background:
     radial-gradient(circle at 34% 28%, transparent 0 30%, rgba(1, 9, 20, 0.08) 58%, rgba(1, 7, 16, 0.72) 100%),
@@ -726,56 +727,34 @@ main > .scene + .scene { margin-top: -1px; }
   z-index: 7;
   /* The orbit has its own clock, separate from the later city reveal. */
   transform: scale(calc(1 + var(--globe-exit, 0) * 4));
-  opacity: clamp(0, calc(var(--globe-assemble, 0) * 1.35 - var(--globe-exit, 0) * 1.35), 1);
+  opacity: clamp(0, calc(var(--globe-reveal, 0) * 1.35 - var(--globe-exit, 0) * 1.35), 1);
   pointer-events: none;
   will-change: opacity, transform;
 }
 .globe-canvas.globe-gl { z-index: 6; }
 #city .viewport > .globe-canvas:not(.globe-gl) { z-index: 8; }
 
-.globe-pixel-assembly {
+.globe-morph-core {
   position: absolute;
   top: 50%;
   left: 50%;
   z-index: 10;
   width: min(62vw, 62vh);
   aspect-ratio: 1;
-  overflow: hidden;
   border-radius: 50%;
+  border: 1px solid rgba(150, 220, 255, 0.42);
   pointer-events: none;
-  transform: translate3d(-50%, -50%, 0);
-  contain: layout paint;
-  -webkit-mask-image: radial-gradient(circle, #000 0 72%, rgba(0, 0, 0, 0.86) 84%, transparent 100%);
-  mask-image: radial-gradient(circle, #000 0 72%, rgba(0, 0, 0, 0.86) 84%, transparent 100%);
-}
-
-.globe-pixel-assembly > i {
-  position: absolute;
-  display: block;
-  width: clamp(5px, 0.72vmin, 11px);
-  aspect-ratio: 1;
-  opacity: 0;
-  transform: translate3d(var(--scatter-x), var(--scatter-y), 0) scale(0.42);
-  background: rgba(113, 205, 255, var(--pixel-alpha));
-  box-shadow: 0 0 10px rgba(79, 216, 255, 0.52);
-  transition:
-    transform 820ms cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 260ms ease,
-    filter 280ms ease;
-  transition-delay: var(--pixel-delay);
+  opacity: clamp(0, calc(1 - var(--globe-reveal, 0) * 1.08), 1);
+  transform:
+    translate3d(-50%, -50%, 0)
+    scale(calc(0.14 + var(--globe-morph, 0) * 0.86));
+  background:
+    radial-gradient(circle at 41% 36%, #fff 0 2%, #ddfaff 5%, #72e3ff 13%, rgba(79, 216, 255, 0.92) 23%, rgba(79, 216, 255, 0.35) 54%, rgba(79, 216, 255, 0.12) 82%, rgba(79, 216, 255, 0.04) 96%, transparent 100%);
+  box-shadow:
+    0 0 38px rgba(79, 216, 255, 0.74),
+    0 0 120px rgba(79, 216, 255, 0.38),
+    inset 0 0 52px rgba(234, 252, 255, 0.28);
   will-change: transform, opacity;
-}
-
-.globe-pixel-assembly.is-assembling > i {
-  opacity: var(--pixel-alpha);
-  transform: translate3d(0, 0, 0) scale(1);
-}
-
-.globe-pixel-assembly.is-resolved > i {
-  opacity: 0;
-  transform: translate3d(0, 0, 0) scale(0.2);
-  filter: blur(2px);
-  transition-delay: 0ms;
 }
 
 .globe-hud {
@@ -792,7 +771,7 @@ main > .scene + .scene { margin-top: -1px; }
   letter-spacing: 0.28em;
   text-transform: uppercase;
   text-align: center;
-  opacity: clamp(0, calc(var(--globe-assemble, 0) - var(--globe-exit, 0) * 1.3), 1);
+  opacity: clamp(0, calc(var(--globe-reveal, 0) - var(--globe-exit, 0) * 1.3), 1);
 }
 .globe-hud-line { color: var(--cyan); font-size: 0.8rem; font-weight: 700; }
 .globe-hud-coords { color: var(--text-dim); font-size: 0.7rem; }
@@ -3149,7 +3128,6 @@ main > .scene + .scene { margin-top: -1px; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .globe-pixel-assembly { display: none; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

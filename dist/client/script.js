@@ -133,7 +133,6 @@
   var concertViewport = document.querySelector("#concert .viewport");
   var glassesViewport = document.querySelector("#glasses .viewport");
   var broadcastViewport = document.querySelector("#broadcast .viewport");
-  var globePixelAssembly = document.querySelector(".globe-pixel-assembly");
   var cityP = 0;
   var globeP = 0;
   var concertP = 0;
@@ -182,31 +181,6 @@
     "MIDTOWN TOWER PASS",
   ];
 
-  // The reactor resolves into the globe through a small deterministic field
-  // of pixels. Each block begins outside the sphere and converges onto a
-  // stable point, so the reveal feels assembled rather than crossfaded.
-  function pixelNoise(seed) {
-    var value = Math.sin(seed * 12.9898) * 43758.5453;
-    return value - Math.floor(value);
-  }
-
-  if (globePixelAssembly) {
-    for (var pixelIndex = 0; pixelIndex < 60; pixelIndex += 1) {
-      var pixel = document.createElement("i");
-      var pointAngle = pixelNoise(pixelIndex + 1) * Math.PI * 2;
-      var pointRadius = Math.sqrt(pixelNoise(pixelIndex + 17)) * 47;
-      var scatterAngle = pointAngle + (pixelNoise(pixelIndex + 41) - 0.5) * 1.25;
-      var scatterDistance = 100 + pixelNoise(pixelIndex + 73) * 230;
-      pixel.style.left = (50 + Math.cos(pointAngle) * pointRadius).toFixed(2) + "%";
-      pixel.style.top = (50 + Math.sin(pointAngle) * pointRadius).toFixed(2) + "%";
-      pixel.style.setProperty("--scatter-x", (Math.cos(scatterAngle) * scatterDistance).toFixed(1) + "px");
-      pixel.style.setProperty("--scatter-y", (Math.sin(scatterAngle) * scatterDistance).toFixed(1) + "px");
-      pixel.style.setProperty("--pixel-delay", Math.floor(pixelNoise(pixelIndex + 101) * 170) + "ms");
-      pixel.style.setProperty("--pixel-alpha", (0.48 + pixelNoise(pixelIndex + 137) * 0.42).toFixed(2));
-      globePixelAssembly.appendChild(pixel);
-    }
-  }
-
   function updateCityFlightLabel(progress) {
     if (!montageLabel) return;
     var stopIndex = Math.min(CITY_FLIGHT_STOPS.length - 1, Math.floor(clamp01(progress) * CITY_FLIGHT_STOPS.length));
@@ -250,15 +224,17 @@
     if (frontRect) {
       var frontRunway = Math.max(1, frontRect.height - vh);
       frontJourneyProgress = clamp01(-frontRect.top / frontRunway);
-      var globeAssemblyP = smoother((frontJourneyProgress - 0.08) / 0.13);
-      globeP = smoother((frontJourneyProgress - 0.2) / 0.38);
-      var globeExitP = smoother((frontJourneyProgress - 0.56) / 0.09);
+      var globeMorphP = smoother(frontJourneyProgress / 0.18);
+      var globeRevealP = smoother((frontJourneyProgress - 0.14) / 0.08);
+      globeP = smoother((frontJourneyProgress - 0.22) / 0.38);
+      var globeExitP = smoother((frontJourneyProgress - 0.6) / 0.08);
       if (cityViewport) {
         cityViewport.style.setProperty(
           "--front-scene-opacity",
-          smoother((frontJourneyProgress - 0.08) / 0.1).toFixed(4)
+          smoother((frontJourneyProgress - 0.04) / 0.12).toFixed(4)
         );
-        cityViewport.style.setProperty("--globe-assemble", globeAssemblyP.toFixed(4));
+        cityViewport.style.setProperty("--globe-morph", globeMorphP.toFixed(4));
+        cityViewport.style.setProperty("--globe-reveal", globeRevealP.toFixed(4));
         cityViewport.style.setProperty("--globe-orbit", globeP.toFixed(4));
         cityViewport.style.setProperty("--globe-exit", globeExitP.toFixed(4));
       }
@@ -267,10 +243,6 @@
           "--front-scene-opacity",
           smoother((frontJourneyProgress - 0.72) / 0.1).toFixed(4)
         );
-      }
-      if (globePixelAssembly) {
-        globePixelAssembly.classList.toggle("is-assembling", frontJourneyProgress >= 0.08);
-        globePixelAssembly.classList.toggle("is-resolved", frontJourneyProgress >= 0.21);
       }
     }
 
@@ -288,7 +260,7 @@
       var p = total > 0 ? clamp01(-rect.top / total) : 0;
       if (inFrontJourney) {
         if (scene.id === "hero") p = clamp01(frontJourneyProgress / 0.18);
-        else if (scene.id === "city") p = clamp01((frontJourneyProgress - 0.48) / 0.32);
+        else if (scene.id === "city") p = clamp01((frontJourneyProgress - 0.5) / 0.32);
         else if (scene.id === "broadcast") p = clamp01((frontJourneyProgress - 0.7) / 0.28);
       }
       var viewport = scene.querySelector(".viewport");
@@ -310,7 +282,7 @@
           if (inFrontJourney) {
             cityViewport.style.setProperty(
               "--scene-enter",
-              smoother((frontJourneyProgress - 0.06) / 0.12).toFixed(4)
+              smoother((frontJourneyProgress - 0.04) / 0.12).toFixed(4)
             );
           }
           cityViewport.style.setProperty("--city-in", cityFlightReveal.toFixed(4));
