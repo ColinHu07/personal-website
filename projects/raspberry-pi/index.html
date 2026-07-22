@@ -24,8 +24,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Orbitron:wght@600;700;900&amp;family=Rajdhani:wght@500;600;700&amp;display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="hydroheight.css?v=20260718-9" />
-    <link rel="stylesheet" href="../../bay-motion.css?v=20260722-1" />
+    <link rel="stylesheet" href="hydroheight.css?v=20260722-10" />
+    <link rel="stylesheet" href="../../bay-motion.css?v=20260722-2" />
     <link rel="stylesheet" href="../../project-bottom.css?v=20260717" />
   </head>
   <body data-bay-theme="hydroheight">
@@ -109,13 +109,15 @@
         </div>
       </section>
 
-      <section class="origin-section" id="background" aria-labelledby="origin-title" data-bay-scene="background" data-bay-effect="ripple">
-        <div class="origin-heading" data-bay-layer>
+      <div class="hydro-story" data-hydro-story>
+        <div class="hydro-story-stage">
+      <section class="origin-section" id="background" aria-labelledby="origin-title" data-hydro-panel="origin">
+        <div class="origin-heading">
           <p class="eyebrow"><span>Background</span> From an Iowa research lab to the field</p>
           <h2 id="origin-title">It all started<br />at the river.</h2>
         </div>
 
-        <div class="origin-story" data-bay-layer>
+        <div class="origin-story">
           <p class="story-lead">
             HydroHeight is a low-cost way to measure water level with a camera.
             I began building it during the University of Iowa&rsquo;s Secondary Student
@@ -140,7 +142,7 @@
           </p>
         </div>
 
-        <ol class="origin-timeline" aria-label="HydroHeight project history" data-bay-layer>
+        <ol class="origin-timeline" aria-label="HydroHeight project history">
           <li>
             <span>01 // SSTP</span>
             <h3>Research begins</h3>
@@ -163,7 +165,7 @@
           </li>
         </ol>
 
-        <div class="research-stack" aria-label="Original research system components" data-bay-layer>
+        <div class="research-stack" aria-label="Original research system components">
           <p>Original research stack</p>
           <ul>
             <li><span>Capture</span> Raspberry Pi 4 + camera</li>
@@ -175,8 +177,8 @@
         </div>
       </section>
 
-      <section class="method-section" id="method" aria-labelledby="method-title" data-bay-scene="method" data-bay-effect="beam">
-        <div class="method-transition" data-method-transition aria-hidden="true" data-bay-layer>
+      <section class="method-section" id="method" aria-labelledby="method-title" data-hydro-panel="method">
+        <div class="method-transition" data-method-transition aria-hidden="true">
           <span class="transition-grid"></span>
           <span class="transition-orbit"></span>
           <span class="transition-rail"></span>
@@ -185,7 +187,7 @@
           <small>Resolve the viewing ray</small>
         </div>
 
-        <div class="section-intro" data-bay-layer>
+        <div class="section-intro">
           <p class="eyebrow"><span>Method</span> From pixels to a physical reading</p>
           <h2 id="method-title">One fixed view.<br />Three knowns.</h2>
           <p>
@@ -195,7 +197,7 @@
           </p>
         </div>
 
-        <ol class="method-steps" data-bay-layer>
+        <ol class="method-steps">
           <li>
             <span class="step-number">01</span>
             <div class="step-icon camera-icon" aria-hidden="true"><i></i></div>
@@ -219,6 +221,8 @@
           </li>
         </ol>
       </section>
+        </div>
+      </div>
 
       <section class="geometry-section" id="geometry" aria-labelledby="geometry-title" data-bay-scene="geometry" data-bay-effect="split">
         <div class="geometry-visual" aria-hidden="true" data-bay-layer>
@@ -362,7 +366,7 @@
       <span class="project-bottom-bar__file">HYDROHEIGHT // FILE 004</span>
     </footer>
 
-    <script src="hydroheight.js?v=20260717-6"></script>
-    <script src="../../bay-motion.js?v=20260722-1"></script>
+    <script src="hydroheight.js?v=20260722-7"></script>
+    <script src="../../bay-motion.js?v=20260722-2"></script>
   </body>
 </html>
