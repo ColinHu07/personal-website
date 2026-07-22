@@ -7,7 +7,6 @@
     document.getElementById("dance-film"),
     document.getElementById("dance-film-next")
   ].filter(Boolean);
-  var filmToggle = document.getElementById("film-toggle");
   var poseDemo = document.getElementById("pose-demo");
   var scrollFill = document.getElementById("scroll-fill");
   var storyTrack = document.querySelector(".story-track");
@@ -39,7 +38,8 @@
     ".score-console",
     ".beyond-copy > *",
     ".source-cta",
-    ".closing-line"
+    ".closing-line",
+    ".scene-ledger"
   ].join(",");
   var chapterMotionObjects = chapters.map(function (chapter) {
     return Array.prototype.slice.call(chapter.querySelectorAll(motionSelector));
@@ -52,7 +52,6 @@
   var activeSlot = 0;
   var switchingFilm = false;
   var frameRequested = false;
-  var manuallyPaused = false;
   var activeChapterName = "";
 
   function clamp(value, min, max) {
@@ -143,21 +142,12 @@
     configureFilm(standbyFilm(), (currentSegment + 1) % segmentPaths.length);
   }
 
-  function updateFilmToggle() {
-    if (!filmToggle) return;
-    var film = activeFilm();
-    var paused = !film || film.paused;
-    filmToggle.textContent = paused ? "PLAY FILM" : "PAUSE FILM";
-    filmToggle.setAttribute("aria-pressed", paused ? "true" : "false");
-    body.classList.toggle("film-paused", paused);
-  }
-
   function playFilm() {
     var film = activeFilm();
-    if (!film || reducedMotion || manuallyPaused || document.hidden) return;
+    if (!film || reducedMotion || document.hidden) return;
     var playAttempt = film.play();
     if (playAttempt && typeof playAttempt.catch === "function") {
-      playAttempt.catch(updateFilmToggle);
+      playAttempt.catch(function () {});
     }
   }
 
@@ -195,7 +185,6 @@
       outgoing.classList.remove("is-active");
       outgoing.pause();
       switchingFilm = false;
-      updateFilmToggle();
       window.setTimeout(cueNextSegment, 180);
     }
 
@@ -203,7 +192,6 @@
     if (playAttempt && typeof playAttempt.then === "function") {
       playAttempt.then(finishSwitch).catch(function () {
         switchingFilm = false;
-        updateFilmToggle();
       });
     } else {
       finishSwitch();
@@ -222,26 +210,9 @@
       film.addEventListener("ended", function () {
         switchSegment(film);
       });
-      film.addEventListener("play", updateFilmToggle);
-      film.addEventListener("pause", updateFilmToggle);
     });
     if (films[0].readyState >= 2) body.classList.add("film-ready");
     cueNextSegment();
-  }
-
-  if (films.length && filmToggle) {
-    filmToggle.addEventListener("click", function () {
-      var film = activeFilm();
-      if (!film) return;
-      if (film.paused) {
-        manuallyPaused = false;
-        playFilm();
-      } else {
-        manuallyPaused = true;
-        pauseFilms();
-      }
-      updateFilmToggle();
-    });
   }
 
   function updateScrollScene() {
@@ -365,13 +336,11 @@
   });
 
   if (reducedMotion) {
-    manuallyPaused = true;
     pauseFilms();
     if (poseDemo) poseDemo.pause();
   } else {
     playFilm();
   }
-  updateFilmToggle();
   updateScrollScene();
   body.classList.add("motion-ready");
 
