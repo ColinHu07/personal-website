@@ -212,26 +212,6 @@ body[data-bay-theme="cheatgpt"] .bay-transition-fx {
   mix-blend-mode: screen;
 }
 
-.bay-transition-fx[data-effect="jump"]::before,
-.bay-transition-fx[data-effect="glitch"]::before {
-  background: repeating-linear-gradient(
-    180deg,
-    transparent 0 5.5vh,
-    rgba(var(--bay-accent-rgb), 0.24) 5.5vh 6vh,
-    transparent 6vh 11vh
-  );
-  translate: var(--bay-jump-x, 0px) 0;
-  mix-blend-mode: screen;
-}
-
-.bay-transition-fx[data-effect="jump"]::after,
-.bay-transition-fx[data-effect="glitch"]::after {
-  inset: 0;
-  border-top: 2px solid rgba(var(--bay-accent-rgb), 0.48);
-  border-bottom: 2px solid rgba(var(--bay-accent-rgb), 0.32);
-  translate: var(--bay-jump-border-x, 0px) 0;
-}
-
 .bay-transition-fx[data-effect="deal"]::before {
   inset: -18% -34%;
   background:
