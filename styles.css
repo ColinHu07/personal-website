@@ -542,18 +542,31 @@ main > .scene + .scene { margin-top: -1px; }
   transform:
     translate3d(-50%, -50%, 0)
     scale(calc(0.14 + var(--p, 0) * 0.86));
+  will-change: transform, opacity;
+}
+.reactor-core::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
   background:
     radial-gradient(circle at 43% 38%, #fff 0 2%, #eafcff 6%, var(--cyan) 18%, rgba(79, 216, 255, 0.48) 52%, rgba(79, 216, 255, 0.12) 82%, transparent 100%);
   border: 1px solid rgba(150, 220, 255, 0.36);
   box-shadow: 0 0 60px var(--cyan), 0 0 140px var(--cyan-dim), inset 0 0 50px rgba(234, 252, 255, 0.25);
-  animation: focusCorePulse 3.2s ease-in-out infinite;
-  will-change: transform, opacity;
+  animation: idleCoreBob 3.2s ease-in-out infinite;
+  transition: transform 180ms ease-out, filter 180ms ease-out;
+  will-change: transform, filter;
+}
+.front-journey.is-engaged .reactor-core::before {
+  animation: none;
+  transform: scale(1);
+  filter: brightness(1);
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes spinRev { to { transform: rotate(-360deg); } }
-@keyframes focusCorePulse {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(0.82); }
+@keyframes idleCoreBob {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(0.8); filter: brightness(0.84); }
 }
 
 .hero-copy {

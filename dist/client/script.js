@@ -224,6 +224,7 @@
     if (frontRect) {
       var frontRunway = Math.max(1, frontRect.height - vh);
       frontJourneyProgress = clamp01(-frontRect.top / frontRunway);
+      frontJourney.classList.toggle("is-engaged", frontJourneyProgress > 0.006);
       var globeMorphP = clamp01(frontJourneyProgress / 0.18);
       var globeRevealP = smoother((frontJourneyProgress - 0.14) / 0.08);
       globeP = smoother((frontJourneyProgress - 0.22) / 0.38);
