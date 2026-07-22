@@ -25,7 +25,7 @@
       rel="stylesheet"
     />
     <link rel="preload" href="../../assets/just-dance-poster.jpg" as="image" fetchpriority="high" />
-    <link rel="stylesheet" href="just-dance.css?v=5" />
+    <link rel="stylesheet" href="just-dance.css?v=6" />
     <link rel="stylesheet" href="../../project-bottom.css?v=20260717" />
   </head>
   <body data-active-chapter="intro">
@@ -82,7 +82,8 @@
       <a href="#beyond" data-chapter-link="beyond"><i></i><span>BEYOND K-POP</span></a>
     </nav>
 
-    <main>
+    <main class="story-track">
+      <div class="story-stage">
       <section class="chapter hero-chapter" id="intro" data-chapter="intro">
         <div class="chapter-frame hero-frame">
           <div class="hero-ghost parallax-layer" data-parallax="-0.035" aria-hidden="true">MOVE</div>
@@ -188,7 +189,6 @@
             <div class="demo-label"><span>REAL OUTPUT</span><em>BODY POSE EXTRACTION</em></div>
             <video
               id="pose-demo"
-              autoplay
               muted
               loop
               playsinline
@@ -264,6 +264,7 @@
           <p class="closing-line" data-reveal>PRACTICE. COMPARE. ADJUST.</p>
         </div>
       </section>
+      </div>
     </main>
 
     <footer class="project-bottom-bar" aria-label="Project navigation">
@@ -272,6 +273,6 @@
       <span class="project-bottom-bar__file">JUST DANCE 2.0 // FILE 002</span>
     </footer>
 
-    <script src="just-dance.js?v=5"></script>
+    <script src="just-dance.js?v=6"></script>
   </body>
 </html>

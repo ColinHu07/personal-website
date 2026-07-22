@@ -22,8 +22,6 @@ html {
   overflow-x: hidden;
   overflow-x: clip;
   scroll-behavior: smooth;
-  scroll-snap-type: y mandatory;
-  scroll-padding-top: 0;
   background: var(--black);
 }
 body {
@@ -257,15 +255,32 @@ body[data-active-chapter="beyond"] .film-veil {
 .chapter-rail a.active { color: var(--lime); }
 .chapter-rail a.active i { background: var(--lime); border-color: var(--lime); box-shadow: 0 0 13px var(--lime); }
 
-main { position: relative; z-index: 10; }
-.chapter {
+.story-track {
   position: relative;
+  z-index: 10;
+  height: 600vh;
+  height: 600svh;
+}
+.story-stage {
+  position: sticky;
+  top: 0;
   height: 100vh;
   height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+}
+.chapter {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  height: 100%;
   min-height: 0;
-  scroll-margin-top: 0;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
+  opacity: 1;
+  pointer-events: none;
+}
+.chapter.is-active {
+  z-index: 2;
+  pointer-events: auto;
 }
 .chapter-frame {
   position: relative;
@@ -274,11 +289,11 @@ main { position: relative; z-index: 10; }
   overflow: hidden;
   isolation: isolate;
   padding: clamp(4.7rem, 8vh, 6rem) clamp(1.25rem, 6vw, 5.5rem) clamp(3rem, 6vh, 4.5rem);
-  opacity: 0.2;
-  transform: translate3d(0, 2.5vh, 0) scale(0.985);
-  transition: opacity 500ms ease, transform 720ms cubic-bezier(0.2, 0.75, 0.2, 1);
+  opacity: var(--scene-opacity, 0);
+  transform: translate3d(0, var(--scene-y, 7vh), 0) scale(var(--scene-scale, 0.965));
+  transition: opacity 90ms linear, transform 90ms linear;
+  will-change: opacity, transform;
 }
-.chapter.is-active .chapter-frame { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
 .chapter-frame::before {
   content: "";
   position: absolute;
@@ -716,7 +731,7 @@ body[data-active-chapter="beyond"] .project-bottom-bar {
   .project-nav { grid-template-columns: 1fr auto; }
   .nav-file { display: none; }
   .chapter-rail { display: none; }
-  .chapter { height: 100svh; min-height: 0; }
+  .chapter { height: 100%; min-height: 0; }
   .chapter-frame { padding-right: clamp(1.2rem, 5vw, 3rem); padding-left: clamp(1.2rem, 5vw, 3rem); }
   .split-frame,
   .gap-frame,
@@ -739,7 +754,7 @@ body[data-active-chapter="beyond"] .project-bottom-bar {
   .nav-actions { gap: 0.3rem; }
   .film-toggle { display: none; }
   .nav-source { padding: 0.45rem 0.55rem; }
-  .chapter { height: 100svh; min-height: 0; }
+  .chapter { height: 100%; min-height: 0; }
   .chapter-frame { height: 100%; min-height: 100%; padding: 4.3rem 1rem 3.25rem; }
   .hero-frame { min-height: 100%; padding-top: 4.8rem; padding-bottom: 3rem; }
   .hero-copy h1 { font-size: clamp(3rem, 18vw, 5.5rem); }
@@ -784,7 +799,7 @@ body[data-active-chapter="beyond"] .project-bottom-bar {
 }
 
 @media (orientation: landscape) and (max-height: 560px) {
-  .chapter { height: 100svh; min-height: 0; }
+  .chapter { height: 100%; min-height: 0; }
   .chapter-frame { height: 100%; min-height: 100%; padding-top: 3.7rem; padding-bottom: 1.5rem; }
   .hero-frame { min-height: 100%; padding-top: 3.7rem; padding-bottom: 1.5rem; }
   .split-frame,
@@ -814,11 +829,12 @@ body[data-active-chapter="beyond"] .project-bottom-bar {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; scroll-snap-type: y proximity; }
+  html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
   .parallax-layer,
   [data-reveal].parallax-layer { transform: none !important; }
   [data-reveal] { opacity: 1; transform: none; transition: none; }
-  .chapter-frame { opacity: 1; transform: none; transition: none; }
+  .chapter-frame { opacity: 0; transform: none; transition: none; }
+  .chapter.is-active .chapter-frame { opacity: 1; }
   .film-grid { transform: perspective(720px) rotateX(68deg) scale(1.9); }
 }

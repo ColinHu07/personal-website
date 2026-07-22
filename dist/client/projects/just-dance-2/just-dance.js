@@ -10,6 +10,8 @@
   var filmToggle = document.getElementById("film-toggle");
   var poseDemo = document.getElementById("pose-demo");
   var scrollFill = document.getElementById("scroll-fill");
+  var storyTrack = document.querySelector(".story-track");
+  var skipLink = document.querySelector(".skip-link");
   var chapters = Array.prototype.slice.call(document.querySelectorAll("[data-chapter]"));
   var chapterLinks = Array.prototype.slice.call(document.querySelectorAll("[data-chapter-link]"));
   var parallaxLayers = Array.prototype.slice.call(document.querySelectorAll("[data-parallax]"));
@@ -23,6 +25,7 @@
   var switchingFilm = false;
   var frameRequested = false;
   var manuallyPaused = false;
+  var activeChapterName = "";
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
@@ -69,6 +72,19 @@
     films.forEach(function (film) {
       film.pause();
     });
+  }
+
+  function syncPoseDemo(chapterName) {
+    if (!poseDemo) return;
+    if (reducedMotion || chapterName !== "system") {
+      poseDemo.pause();
+      return;
+    }
+
+    var playAttempt = poseDemo.play();
+    if (playAttempt && typeof playAttempt.catch === "function") {
+      playAttempt.catch(function () {});
+    }
   }
 
   function switchSegment(outgoing) {
@@ -138,34 +154,55 @@
   function updateScrollScene() {
     frameRequested = false;
     var viewportHeight = Math.max(1, window.innerHeight);
-    var pageHeight = Math.max(1, root.scrollHeight - viewportHeight);
-    var documentProgress = clamp(window.scrollY / pageHeight, 0, 1);
-    var activeChapter = chapters.length ? chapters[0].dataset.chapter : "intro";
-    var activeDistance = Infinity;
+    var trackRect = storyTrack ? storyTrack.getBoundingClientRect() : null;
+    var trackTravel = storyTrack ? Math.max(1, storyTrack.offsetHeight - viewportHeight) : Math.max(1, root.scrollHeight - viewportHeight);
+    var trackProgress = trackRect ? clamp(-trackRect.top / trackTravel, 0, 1) : clamp(window.scrollY / trackTravel, 0, 1);
+    var lastChapterIndex = Math.max(0, chapters.length - 1);
+    var scenePosition = trackProgress * lastChapterIndex;
+    var activeIndex = clamp(Math.round(scenePosition), 0, lastChapterIndex);
+    var activeChapter = chapters.length ? chapters[activeIndex].dataset.chapter : "intro";
 
-    if (scrollFill) scrollFill.style.transform = "scaleX(" + documentProgress.toFixed(5) + ")";
-    root.style.setProperty("--grid-shift", (documentProgress * 74).toFixed(2) + "px");
-    root.style.setProperty("--orb-x", (Math.sin(documentProgress * Math.PI * 2) * 42).toFixed(2) + "px");
+    if (scrollFill) scrollFill.style.transform = "scaleX(" + trackProgress.toFixed(5) + ")";
+    root.style.setProperty("--grid-shift", (trackProgress * 74).toFixed(2) + "px");
+    root.style.setProperty("--orb-x", (Math.sin(trackProgress * Math.PI * 2) * 42).toFixed(2) + "px");
 
-    chapters.forEach(function (chapter) {
-      var rect = chapter.getBoundingClientRect();
-      var progress = clamp((viewportHeight - rect.top) / (viewportHeight + rect.height), 0, 1);
-      var midpointDistance = Math.abs((rect.top + rect.bottom) * 0.5 - viewportHeight * 0.5);
-      chapter.style.setProperty("--chapter-p", progress.toFixed(5));
+    chapters.forEach(function (chapter, index) {
+      var distance = Math.abs(scenePosition - index);
+      var rawOpacity = clamp(1 - distance, 0, 1);
+      var opacity = rawOpacity * rawOpacity * (3 - 2 * rawOpacity);
+      var direction = index - scenePosition;
+      var sceneY = clamp(direction * 7, -7, 7);
+      var sceneScale = 0.965 + opacity * 0.035;
+      var chapterProgress = clamp(0.5 + (scenePosition - index) * 0.5, 0, 1);
+      var isActive = index === activeIndex;
 
-      if (rect.bottom > 0 && rect.top < viewportHeight && midpointDistance < activeDistance) {
-        activeDistance = midpointDistance;
-        activeChapter = chapter.dataset.chapter;
+      chapter.style.setProperty("--scene-opacity", (reducedMotion ? (isActive ? 1 : 0) : opacity).toFixed(5));
+      chapter.style.setProperty("--scene-y", (reducedMotion ? 0 : sceneY).toFixed(2) + "vh");
+      chapter.style.setProperty("--scene-scale", (reducedMotion ? 1 : sceneScale).toFixed(5));
+      chapter.style.setProperty("--chapter-p", chapterProgress.toFixed(5));
+      chapter.classList.toggle("is-active", isActive);
+      chapter.setAttribute("aria-hidden", isActive ? "false" : "true");
+      chapter.inert = !isActive;
+
+      if (opacity > 0.12 || isActive) {
+        Array.prototype.forEach.call(chapter.querySelectorAll("[data-reveal]:not(.revealed)"), function (target) {
+          target.classList.add("revealed");
+        });
       }
     });
 
     body.dataset.activeChapter = activeChapter;
-    chapters.forEach(function (chapter) {
-      chapter.classList.toggle("is-active", chapter.dataset.chapter === activeChapter);
-    });
     chapterLinks.forEach(function (link) {
-      link.classList.toggle("active", link.dataset.chapterLink === activeChapter);
+      var isCurrent = link.dataset.chapterLink === activeChapter;
+      link.classList.toggle("active", isCurrent);
+      if (isCurrent) link.setAttribute("aria-current", "step");
+      else link.removeAttribute("aria-current");
     });
+
+    if (activeChapterName !== activeChapter) {
+      activeChapterName = activeChapter;
+      syncPoseDemo(activeChapter);
+    }
 
     if (!reducedMotion) {
       parallaxLayers.forEach(function (layer) {
@@ -185,20 +222,46 @@
     requestAnimationFrame(updateScrollScene);
   }
 
-  if ("IntersectionObserver" in window && !reducedMotion) {
-    var revealObserver = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        entry.target.classList.add("revealed");
-        revealObserver.unobserve(entry.target);
-      });
-    }, { rootMargin: "0px 0px -10%", threshold: 0.15 });
-    revealTargets.forEach(function (target) {
-      revealObserver.observe(target);
-    });
-  } else {
+  if (reducedMotion) {
     revealTargets.forEach(function (target) {
       target.classList.add("revealed");
+    });
+  }
+
+  function scrollToChapter(index, behavior) {
+    if (!storyTrack || !chapters.length) return;
+    var boundedIndex = clamp(index, 0, chapters.length - 1);
+    var trackTop = window.scrollY + storyTrack.getBoundingClientRect().top;
+    var travel = Math.max(0, storyTrack.offsetHeight - window.innerHeight);
+    var targetTop = trackTop + travel * (boundedIndex / Math.max(1, chapters.length - 1));
+    window.scrollTo({
+      top: targetTop,
+      behavior: reducedMotion ? "auto" : (behavior || "smooth")
+    });
+  }
+
+  chapterLinks.forEach(function (link) {
+    link.addEventListener("click", function (event) {
+      var targetIndex = chapters.findIndex(function (chapter) {
+        return chapter.dataset.chapter === link.dataset.chapterLink;
+      });
+      if (targetIndex < 0) return;
+      event.preventDefault();
+      history.replaceState(null, "", "#" + chapters[targetIndex].id);
+      scrollToChapter(targetIndex);
+    });
+  });
+
+  if (skipLink) {
+    skipLink.addEventListener("click", function (event) {
+      var targetId = skipLink.getAttribute("href").replace(/^#/, "");
+      var targetIndex = chapters.findIndex(function (chapter) {
+        return chapter.id === targetId;
+      });
+      if (targetIndex < 0) return;
+      event.preventDefault();
+      history.replaceState(null, "", "#" + targetId);
+      scrollToChapter(targetIndex);
     });
   }
 
@@ -222,4 +285,16 @@
   }
   updateFilmToggle();
   updateScrollScene();
+
+  if (window.location.hash) {
+    var initialId = window.location.hash.slice(1);
+    var initialIndex = chapters.findIndex(function (chapter) {
+      return chapter.id === initialId;
+    });
+    if (initialIndex >= 0) {
+      requestAnimationFrame(function () {
+        scrollToChapter(initialIndex, "auto");
+      });
+    }
+  }
 })();
