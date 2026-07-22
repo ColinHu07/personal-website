@@ -3,31 +3,251 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content="Just Dance 2.0 — Colin Hu's offline pose-tracking dance coach." />
+    <meta
+      name="description"
+      content="Just Dance 2.0 — Colin Hu's offline AI dance coach for pose tracking, movement scoring, and real-time feedback."
+    />
+    <meta name="theme-color" content="#05030a" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Just Dance 2.0 // Colin Hu" />
+    <meta property="og:description" content="I loved learning K-pop choreography. I built the coach I wished I had." />
+    <meta property="og:image" content="../../assets/just-dance-poster.jpg" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Just Dance 2.0 // Colin Hu" />
+    <meta name="twitter:description" content="An AI movement coach that watches, scores, and teaches back." />
+    <meta name="twitter:image" content="../../assets/just-dance-poster.jpg" />
     <title>Just Dance 2.0 // Colin Hu</title>
     <link rel="icon" type="image/png" href="../../assets/favicon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="../../project-page.css?v=20260717" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="preload" href="../../assets/just-dance-poster.jpg" as="image" fetchpriority="high" />
+    <link rel="stylesheet" href="just-dance.css?v=1" />
     <link rel="stylesheet" href="../../project-bottom.css?v=20260717" />
   </head>
-  <body>
-    <div class="project-grid" aria-hidden="true"></div><div class="scanlines" aria-hidden="true"></div>
-    <nav class="project-nav"><a href="../../index.html?return=hangar#projects">&lt;&nbsp; PROJECT HANGAR</a><span>FILE // 002</span></nav>
-    <main class="project-shell">
-      <article class="project-panel">
-        <p class="project-status"><i></i><span data-project-boot>PROJECT FILE ONLINE</span></p>
-        <h1>Just Dance 2.0</h1>
-        <p class="project-deck">An offline desktop dance coach that draws MediaPipe pose skeletons, compares a performance with reference choreography, and scores timing, arms, legs, and posture.</p>
-        <div class="project-actions"><span class="standby">FULL EXPERIENCE // NEXT PASS</span><a href="https://github.com/ColinHu07/Just-Dance-2.0" target="_blank" rel="noopener">SOURCE CODE&nbsp;&nbsp;&gt;</a></div>
-      </article>
+  <body data-active-chapter="intro">
+    <a class="skip-link" href="#origin">Skip to the story</a>
+
+    <div class="film-stage" aria-hidden="true">
+      <video
+        id="dance-film"
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="auto"
+        poster="../../assets/just-dance-poster.jpg"
+        disablepictureinpicture
+      >
+        <source src="../../assets/just-dance-background.mp4" type="video/mp4" />
+      </video>
+      <div class="film-veil"></div>
+      <div class="film-grid"></div>
+      <div class="film-light light-a"></div>
+      <div class="film-light light-b"></div>
+    </div>
+
+    <div class="scroll-meter" aria-hidden="true"><span id="scroll-fill"></span></div>
+
+    <header class="project-nav">
+      <a class="hangar-link" href="../../index.html?return=hangar#projects">
+        <span aria-hidden="true">&larr;</span>
+        <span>PROJECT HANGAR</span>
+      </a>
+      <div class="nav-file"><i aria-hidden="true"></i> FILE 002 // JUST DANCE</div>
+      <div class="nav-actions">
+        <button class="film-toggle" id="film-toggle" type="button" aria-pressed="false">PAUSE FILM</button>
+        <a class="nav-source" href="https://github.com/ColinHu07/Just-Dance-2.0" target="_blank" rel="noopener">
+          SOURCE <span aria-hidden="true">↗</span>
+        </a>
+      </div>
+    </header>
+
+    <nav class="chapter-rail" aria-label="Project chapters">
+      <a href="#intro" data-chapter-link="intro"><i></i><span>INTRO</span></a>
+      <a href="#origin" data-chapter-link="origin"><i></i><span>WHY DANCE</span></a>
+      <a href="#gap" data-chapter-link="gap"><i></i><span>THE GAP</span></a>
+      <a href="#system" data-chapter-link="system"><i></i><span>THE SYSTEM</span></a>
+      <a href="#feedback" data-chapter-link="feedback"><i></i><span>THE COACH</span></a>
+      <a href="#beyond" data-chapter-link="beyond"><i></i><span>BEYOND K-POP</span></a>
+    </nav>
+
+    <main>
+      <section class="chapter hero-chapter" id="intro" data-chapter="intro">
+        <div class="chapter-frame hero-frame">
+          <div class="hero-ghost parallax-layer" data-parallax="-0.035" aria-hidden="true">MOVE</div>
+          <div class="hero-copy parallax-layer" data-parallax="0.025">
+            <p class="eyebrow">AI MOVEMENT COACH // FILE 002</p>
+            <h1>JUST DANCE <span>2.0</span></h1>
+            <p class="hero-lead">I loved learning choreography. I built the coach I wished I had.</p>
+          </div>
+
+          <div class="hero-readout parallax-layer" data-parallax="0.055" aria-label="Project capabilities">
+            <span><strong>01</strong> TRACK</span>
+            <span><strong>02</strong> COMPARE</span>
+            <span><strong>03</strong> SCORE</span>
+            <span><strong>04</strong> COACH</span>
+          </div>
+
+          <div class="hero-caption">
+            <span>CAMERA → POSE → FEEDBACK</span>
+            <span>OFFLINE // REAL TIME</span>
+          </div>
+
+          <div class="scroll-cue" aria-hidden="true"><span>SCROLL INTO THE STORY</span><i></i></div>
+        </div>
+      </section>
+
+      <section class="chapter story-chapter" id="origin" data-chapter="origin">
+        <div class="chapter-frame split-frame">
+          <div class="chapter-index parallax-layer" data-parallax="-0.045" aria-hidden="true">01</div>
+          <article class="story-card card-left" data-reveal>
+            <p class="eyebrow">THE ORIGIN // LOVE THE MUSIC</p>
+            <h2>K-POP MADE ME<br /><em>WANT TO MOVE.</em></h2>
+            <p class="story-lead">
+              I really love K-pop. I have seen BLACKPINK, ITZY, Stray Kids, aespa, BIBI, and more live—and every show made the choreography feel as essential as the music.
+            </p>
+            <p>
+              I wanted to learn those dances for myself: not just copy the outline of a move, but understand the timing, shape, and energy that made it land.
+            </p>
+          </article>
+
+          <aside class="concert-card parallax-layer" data-parallax="0.04" data-reveal>
+            <span>LIVE MEMORY // CONCERT LOG</span>
+            <ul>
+              <li><i></i> BLACKPINK</li>
+              <li><i></i> ITZY</li>
+              <li><i></i> STRAY KIDS</li>
+              <li><i></i> AESPA</li>
+              <li><i></i> BIBI</li>
+            </ul>
+            <small>AND THE PLAYLIST KEEPS GROWING.</small>
+          </aside>
+        </div>
+      </section>
+
+      <section class="chapter story-chapter" id="gap" data-chapter="gap">
+        <div class="chapter-frame gap-frame">
+          <div class="chapter-index index-right parallax-layer" data-parallax="-0.04" aria-hidden="true">02</div>
+          <blockquote class="pull-quote parallax-layer" data-parallax="0.025" data-reveal>
+            “A replay could show me the move.<br /><em>It could not tell me what I was doing wrong.</em>”
+          </blockquote>
+
+          <article class="story-card card-right" data-reveal>
+            <p class="eyebrow">THE GAP // FEEDBACK IS THE HARD PART</p>
+            <h2>I NEEDED A TEACHER<br /><em>IN THE ROOM.</em></h2>
+            <p class="story-lead">
+              Learning alone always hit the same wall. I could slow a video down and repeat a sequence, but I still needed someone in person to spot the details I could not see.
+            </p>
+            <div class="blind-spots" aria-label="The feedback missing from a normal replay">
+              <span>Was I early?</span>
+              <span>Were my arms too low?</span>
+              <span>Did my posture collapse?</span>
+              <span>Which move should I repeat?</span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="chapter system-chapter" id="system" data-chapter="system">
+        <div class="chapter-frame system-frame">
+          <div class="chapter-index parallax-layer" data-parallax="-0.04" aria-hidden="true">03</div>
+          <header class="system-head" data-reveal>
+            <p class="eyebrow">THE BUILD // TURN MOTION INTO SIGNAL</p>
+            <h2>SO I BUILT A COACH<br /><em>THAT WATCHES BACK.</em></h2>
+            <p>Just Dance 2.0 follows the performance through a camera, aligns it with reference choreography, and turns movement into feedback you can act on.</p>
+          </header>
+
+          <div class="pose-stage parallax-layer" data-parallax="0.025" aria-hidden="true">
+            <div class="pose-aura"></div>
+            <span class="pose-line torso"></span>
+            <span class="pose-line arm-left"></span>
+            <span class="pose-line arm-right"></span>
+            <span class="pose-line forearm-left"></span>
+            <span class="pose-line forearm-right"></span>
+            <span class="pose-line leg-left"></span>
+            <span class="pose-line leg-right"></span>
+            <span class="pose-line shin-left"></span>
+            <span class="pose-line shin-right"></span>
+            <i class="pose-node head"></i><i class="pose-node neck"></i><i class="pose-node shoulder-left"></i>
+            <i class="pose-node shoulder-right"></i><i class="pose-node elbow-left"></i><i class="pose-node elbow-right"></i>
+            <i class="pose-node hand-left"></i><i class="pose-node hand-right"></i><i class="pose-node hip"></i>
+            <i class="pose-node knee-left"></i><i class="pose-node knee-right"></i><i class="pose-node foot-left"></i>
+            <i class="pose-node foot-right"></i>
+            <span class="tracking-label">POSE LOCK // 33 KEYPOINTS</span>
+          </div>
+
+          <ol class="pipeline" aria-label="How Just Dance 2.0 works">
+            <li data-reveal><span>01</span><strong>REFERENCE</strong><p>Load the choreography or movement you want to learn.</p></li>
+            <li data-reveal><span>02</span><strong>TRACK</strong><p>Map the dancer into a live pose skeleton on device.</p></li>
+            <li data-reveal><span>03</span><strong>ALIGN</strong><p>Compare corresponding movement across time, not just one frozen frame.</p></li>
+            <li data-reveal><span>04</span><strong>COACH</strong><p>Return a score and identify the next correction to practice.</p></li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="chapter feedback-chapter" id="feedback" data-chapter="feedback">
+        <div class="chapter-frame feedback-frame">
+          <div class="chapter-index index-right parallax-layer" data-parallax="-0.035" aria-hidden="true">04</div>
+          <article class="feedback-copy" data-reveal>
+            <p class="eyebrow">THE COACH // NOT JUST A NUMBER</p>
+            <h2>GRADE THE MOVE.<br /><em>TEACH THE NEXT ONE.</em></h2>
+            <p>
+              A useful score has to explain itself. The assistant separates timing, arms, legs, and posture so the next practice run has a clear target.
+            </p>
+            <p class="privacy-note"><i></i><span><strong>LOCAL BY DESIGN</strong> — the desktop workflow can run offline, keeping the camera loop immediate and private.</span></p>
+          </article>
+
+          <section class="score-console parallax-layer" data-parallax="0.035" data-reveal aria-label="Illustrative Just Dance 2.0 feedback screen">
+            <header><span><i></i> PERFORMANCE ANALYSIS</span><em>DEMO SESSION</em></header>
+            <div class="score-main">
+              <div class="score-ring"><strong>91</strong><span>OVERALL</span></div>
+              <div class="metric-list">
+                <div><span>TIMING <em>94</em></span><i style="--score: 94%"></i></div>
+                <div><span>ARMS <em>88</em></span><i style="--score: 88%"></i></div>
+                <div><span>LEGS <em>92</em></span><i style="--score: 92%"></i></div>
+                <div><span>POSTURE <em>89</em></span><i style="--score: 89%"></i></div>
+              </div>
+            </div>
+            <div class="coach-note"><span>NEXT CORRECTION</span><p>Lift the left elbow through the transition and land the final count half a beat later.</p></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="chapter beyond-chapter" id="beyond" data-chapter="beyond">
+        <div class="chapter-frame beyond-frame">
+          <div class="chapter-index parallax-layer" data-parallax="-0.045" aria-hidden="true">05</div>
+          <article class="beyond-copy" data-reveal>
+            <p class="eyebrow">BEYOND K-POP // ANY MOVEMENT CAN TEACH BACK</p>
+            <h2>THE DANCE WAS<br /><em>JUST THE BEGINNING.</em></h2>
+            <p class="story-lead">
+              The same idea works for any workout you are trying to learn. If a movement has form, timing, and a repeatable reference, the assistant can watch the attempt and give feedback.
+            </p>
+            <div class="use-tags" aria-label="Other uses for the movement coach">
+              <span>HOME WORKOUTS</span><span>MOBILITY</span><span>SPORTS DRILLS</span><span>REHAB FORM</span><span>STRENGTH</span>
+            </div>
+          </article>
+
+          <a class="source-cta parallax-layer" data-parallax="0.035" href="https://github.com/ColinHu07/Just-Dance-2.0" target="_blank" rel="noopener" data-reveal>
+            <span>OPEN SOURCE // JUST DANCE 2.0</span>
+            <strong>See how the coach was built.</strong>
+            <em>Explore the pose pipeline, scoring logic, and desktop application&nbsp;&nbsp;↗</em>
+          </a>
+
+          <p class="closing-line" data-reveal>KEEP THE MUSIC. ADD THE FEEDBACK.</p>
+        </div>
+      </section>
     </main>
+
     <footer class="project-bottom-bar" aria-label="Project navigation">
       <a class="project-bottom-bar__return" href="../../index.html?return=hangar#projects"><span aria-hidden="true">&larr;</span> RETURN TO PROJECT HANGAR</a>
       <a class="project-bottom-bar__source" href="https://github.com/ColinHu07/Just-Dance-2.0" target="_blank" rel="noopener">VIEW SOURCE ON GITHUB <span aria-hidden="true">&nearr;</span></a>
       <span class="project-bottom-bar__file">JUST DANCE 2.0 // FILE 002</span>
     </footer>
-    <script src="../../project-page.js"></script>
+
+    <script src="just-dance.js?v=1"></script>
   </body>
 </html>
