@@ -324,12 +324,12 @@ main { position: relative; z-index: 1; }
 }
 
 /* The opening is one continuous pinned composition. Its three scenes share a
-   two-screen scroll runway and crossfade in place instead of stacking eight
-   separate viewport-length pages. */
+   longer hidden runway for precise trackpad control while continuing to
+   transition in place instead of stacking separate viewport-length pages. */
 .front-journey {
   position: relative;
-  height: 200vh;
-  min-height: 200vh;
+  height: 360vh;
+  min-height: 360vh;
   isolation: isolate;
   background: #02070d;
 }
