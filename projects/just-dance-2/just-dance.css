@@ -289,10 +289,8 @@ body[data-active-chapter="beyond"] .film-veil {
   overflow: hidden;
   isolation: isolate;
   padding: clamp(4.7rem, 8vh, 6rem) clamp(1.25rem, 6vw, 5.5rem) clamp(3rem, 6vh, 4.5rem);
-  opacity: var(--scene-opacity, 0);
-  transform: translate3d(0, var(--scene-y, 7vh), 0) scale(var(--scene-scale, 0.965));
-  transition: opacity 90ms linear, transform 90ms linear;
-  will-change: opacity, transform;
+  opacity: 1;
+  transform: none;
 }
 .chapter-frame::before {
   content: "";
@@ -300,7 +298,13 @@ body[data-active-chapter="beyond"] .film-veil {
   inset: 0;
   z-index: -1;
   pointer-events: none;
+  opacity: var(--atmosphere-opacity, 0);
   background: linear-gradient(180deg, rgba(5, 3, 10, 0.08), rgba(5, 3, 10, 0.42) 50%, rgba(5, 3, 10, 0.08));
+  transition: opacity 90ms linear;
+}
+.motion-object {
+  will-change: opacity, translate, scale;
+  transition: opacity 90ms linear, translate 90ms linear, scale 90ms linear;
 }
 .parallax-layer {
   transform: translate3d(0, var(--parallax-y, 0px), 0);
@@ -342,6 +346,9 @@ body[data-active-chapter="beyond"] .film-veil {
   padding-top: clamp(5.4rem, 10vh, 7.5rem);
   padding-bottom: clamp(3.5rem, 8vh, 5.5rem);
   text-align: center;
+  background: none;
+}
+.hero-frame::before {
   background:
     radial-gradient(circle at center, rgba(var(--pink-rgb), 0.1), transparent 45%),
     linear-gradient(180deg, rgba(5, 3, 10, 0.15), rgba(5, 3, 10, 0.2) 60%, rgba(5, 3, 10, 0.08));
@@ -834,7 +841,7 @@ body[data-active-chapter="beyond"] .project-bottom-bar {
   .parallax-layer,
   [data-reveal].parallax-layer { transform: none !important; }
   [data-reveal] { opacity: 1; transform: none; transition: none; }
-  .chapter-frame { opacity: 0; transform: none; transition: none; }
-  .chapter.is-active .chapter-frame { opacity: 1; }
+  .chapter-frame { opacity: 1; transform: none; transition: none; }
+  .motion-object { translate: none !important; scale: 1 !important; transition: none !important; }
   .film-grid { transform: perspective(720px) rotateX(68deg) scale(1.9); }
 }

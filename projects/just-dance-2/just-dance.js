@@ -16,6 +16,34 @@
   var chapterLinks = Array.prototype.slice.call(document.querySelectorAll("[data-chapter-link]"));
   var parallaxLayers = Array.prototype.slice.call(document.querySelectorAll("[data-parallax]"));
   var revealTargets = Array.prototype.slice.call(document.querySelectorAll("[data-reveal]"));
+  var motionSelector = [
+    ".hero-ghost",
+    ".hero-copy > .eyebrow",
+    ".hero-copy > h1",
+    ".hero-copy > .hero-lead",
+    ".hero-readout",
+    ".hero-caption",
+    ".scroll-cue",
+    ".chapter-index",
+    ".story-card",
+    ".story-card > .eyebrow",
+    ".story-card > h2",
+    ".story-card > p",
+    ".concert-card",
+    ".pull-quote",
+    ".upgrade-card",
+    ".system-head > *",
+    ".demo-stage",
+    ".pipeline > li",
+    ".feedback-copy > *",
+    ".score-console",
+    ".beyond-copy > *",
+    ".source-cta",
+    ".closing-line"
+  ].join(",");
+  var chapterMotionObjects = chapters.map(function (chapter) {
+    return Array.prototype.slice.call(chapter.querySelectorAll(motionSelector));
+  });
   var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var segmentPaths = Array.from({ length: 13 }, function (_, index) {
     return "../../assets/just-dance-film/just-dance-background-" + String(index).padStart(2, "0") + ".mp4";
@@ -30,6 +58,33 @@
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
   }
+
+  function smoothStep(value) {
+    var bounded = clamp(value, 0, 1);
+    return bounded * bounded * (3 - 2 * bounded);
+  }
+
+  function objectVisibility(relativePosition, objectIndex, objectCount) {
+    if (reducedMotion) return Math.abs(relativePosition) < 0.5 ? 1 : 0;
+
+    var order = objectCount > 1 ? objectIndex / (objectCount - 1) : 0;
+    if (relativePosition <= 0) {
+      var entrance = relativePosition + 1;
+      return smoothStep((entrance - 0.42 - order * 0.07) / 0.38);
+    }
+
+    var exitDelay = order * 0.07;
+    return 1 - smoothStep((relativePosition - 0.05 - exitDelay) / 0.38);
+  }
+
+  chapterMotionObjects.forEach(function (objects) {
+    objects.forEach(function (object) {
+      object.classList.add("motion-object");
+    });
+  });
+  revealTargets.forEach(function (target) {
+    target.classList.add("revealed");
+  });
 
   function activeFilm() {
     return films[activeSlot] || null;
@@ -169,26 +224,31 @@
     chapters.forEach(function (chapter, index) {
       var distance = Math.abs(scenePosition - index);
       var rawOpacity = clamp(1 - distance, 0, 1);
-      var opacity = rawOpacity * rawOpacity * (3 - 2 * rawOpacity);
-      var direction = index - scenePosition;
-      var sceneY = clamp(direction * 7, -7, 7);
-      var sceneScale = 0.965 + opacity * 0.035;
+      var atmosphereOpacity = smoothStep(rawOpacity);
+      var relativePosition = scenePosition - index;
       var chapterProgress = clamp(0.5 + (scenePosition - index) * 0.5, 0, 1);
       var isActive = index === activeIndex;
 
-      chapter.style.setProperty("--scene-opacity", (reducedMotion ? (isActive ? 1 : 0) : opacity).toFixed(5));
-      chapter.style.setProperty("--scene-y", (reducedMotion ? 0 : sceneY).toFixed(2) + "vh");
-      chapter.style.setProperty("--scene-scale", (reducedMotion ? 1 : sceneScale).toFixed(5));
+      chapter.style.setProperty("--atmosphere-opacity", (reducedMotion ? (isActive ? 1 : 0) : atmosphereOpacity).toFixed(5));
       chapter.style.setProperty("--chapter-p", chapterProgress.toFixed(5));
       chapter.classList.toggle("is-active", isActive);
       chapter.setAttribute("aria-hidden", isActive ? "false" : "true");
       chapter.inert = !isActive;
 
-      if (opacity > 0.12 || isActive) {
-        Array.prototype.forEach.call(chapter.querySelectorAll("[data-reveal]:not(.revealed)"), function (target) {
-          target.classList.add("revealed");
-        });
-      }
+      var motionObjects = chapterMotionObjects[index] || [];
+      motionObjects.forEach(function (object, objectIndex) {
+        var visibility = objectVisibility(relativePosition, objectIndex, motionObjects.length);
+        var travel = 1 - visibility;
+        var lane = objectIndex % 2 === 0 ? -1 : 1;
+        var intrinsicOpacity = object.classList.contains("chapter-index") ? 0.48 : (object.classList.contains("hero-ghost") ? 0.42 : 1);
+        var motionY = reducedMotion ? 0 : (relativePosition <= 0 ? 46 * travel : -32 * travel);
+        var motionX = reducedMotion ? 0 : lane * (relativePosition <= 0 ? 10 : -7) * travel;
+        var motionScale = reducedMotion ? 1 : 0.982 + visibility * 0.018;
+
+        object.style.opacity = (visibility * intrinsicOpacity).toFixed(5);
+        object.style.translate = motionX.toFixed(2) + "px " + motionY.toFixed(2) + "px";
+        object.style.scale = motionScale.toFixed(5);
+      });
     });
 
     body.dataset.activeChapter = activeChapter;
@@ -220,12 +280,6 @@
     if (frameRequested) return;
     frameRequested = true;
     requestAnimationFrame(updateScrollScene);
-  }
-
-  if (reducedMotion) {
-    revealTargets.forEach(function (target) {
-      target.classList.add("revealed");
-    });
   }
 
   function scrollToChapter(index, behavior) {
