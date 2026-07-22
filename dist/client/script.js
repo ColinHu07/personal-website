@@ -122,6 +122,8 @@
   var progressFill = document.getElementById("progress-fill");
   var dots = Array.prototype.slice.call(document.querySelectorAll(".scene-dots a"));
   var allScenes = Array.prototype.slice.call(document.querySelectorAll(".scene"));
+  var frontJourney = document.querySelector("[data-front-journey]");
+  var frontJourneyProgress = 0;
   var phoneTimeline = window.matchMedia("(max-width: 760px), (orientation: landscape) and (max-height: 500px)");
 
   var cityViewport = document.querySelector("#city .viewport");
@@ -133,6 +135,26 @@
   var broadcastViewport = document.querySelector("#broadcast .viewport");
   var cityP = 0;
   var concertP = 0;
+
+  var FRONT_JOURNEY_STOPS = { hero: 0, city: 0.27, broadcast: 0.72 };
+  if (frontJourney) {
+    Array.prototype.slice.call(document.querySelectorAll('a[href="#hero"], a[href="#city"], a[href="#broadcast"]')).forEach(function (link) {
+      link.addEventListener("click", function (event) {
+        var sceneName = link.getAttribute("href").slice(1);
+        var stop = FRONT_JOURNEY_STOPS[sceneName];
+        if (typeof stop !== "number") return;
+        event.preventDefault();
+        var runway = Math.max(0, frontJourney.offsetHeight - window.innerHeight);
+        window.scrollTo({
+          top: frontJourney.offsetTop + runway * stop,
+          behavior: prefersReduced ? "auto" : "smooth",
+        });
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState(null, "", "#" + sceneName);
+        }
+      });
+    });
+  }
 
   // CSS animations are also paused outside the current/adjacent scene. The
   // generous margin lets the next transition warm up before it becomes visible.
@@ -197,9 +219,27 @@
   function onScroll() {
     var vh = window.innerHeight;
     var doc = document.documentElement;
+    var frontRect = frontJourney ? frontJourney.getBoundingClientRect() : null;
+    if (frontRect) {
+      var frontRunway = Math.max(1, frontRect.height - vh);
+      frontJourneyProgress = clamp01(-frontRect.top / frontRunway);
+      if (cityViewport) {
+        cityViewport.style.setProperty(
+          "--front-scene-opacity",
+          smoother((frontJourneyProgress - 0.12) / 0.14).toFixed(4)
+        );
+      }
+      if (broadcastViewport) {
+        broadcastViewport.style.setProperty(
+          "--front-scene-opacity",
+          smoother((frontJourneyProgress - 0.52) / 0.14).toFixed(4)
+        );
+      }
+    }
 
     scrubScenes.forEach(function (scene) {
-      var rect = scene.getBoundingClientRect();
+      var inFrontJourney = frontJourney && scene.parentElement === frontJourney;
+      var rect = inFrontJourney && frontRect ? frontRect : scene.getBoundingClientRect();
       var nearScene = rect.bottom > -vh * 0.5 && rect.top < vh * 1.5;
       if (!nearScene) {
         if (scene.id === "city" && cityFlightVideo && !cityFlightVideo.paused) {
@@ -209,6 +249,11 @@
       }
       var total = rect.height - vh;
       var p = total > 0 ? clamp01(-rect.top / total) : 0;
+      if (inFrontJourney) {
+        if (scene.id === "hero") p = clamp01(frontJourneyProgress / 0.24);
+        else if (scene.id === "city") p = clamp01((frontJourneyProgress - 0.1) / 0.52);
+        else if (scene.id === "broadcast") p = clamp01((frontJourneyProgress - 0.5) / 0.42);
+      }
       var viewport = scene.querySelector(".viewport");
       if (viewport) {
         viewport.style.setProperty("--p", p.toFixed(4));
@@ -304,6 +349,13 @@
       var r = scene.getBoundingClientRect();
       if (r.top <= mid && r.bottom >= mid) active = scene.dataset.scene;
     });
+    if (frontRect && frontRect.top <= mid && frontRect.bottom >= mid) {
+      active = frontJourneyProgress < 0.2
+        ? "hero"
+        : frontJourneyProgress < 0.6
+          ? "city"
+          : "broadcast";
+    }
     dots.forEach(function (dot) {
       dot.classList.toggle("active", dot.dataset.dot === active);
     });

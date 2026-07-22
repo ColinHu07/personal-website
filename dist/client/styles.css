@@ -323,6 +323,46 @@ main { position: relative; z-index: 1; }
   overflow: hidden;
 }
 
+/* The opening is one continuous pinned composition. Its three scenes share a
+   two-screen scroll runway and crossfade in place instead of stacking eight
+   separate viewport-length pages. */
+.front-journey {
+  position: relative;
+  height: 200vh;
+  min-height: 200vh;
+  isolation: isolate;
+  background: #02070d;
+}
+
+.front-journey > #hero.scene.scrub,
+.front-journey > #city.scene.scrub,
+.front-journey > #broadcast.scene.scrub {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  margin: 0;
+}
+
+.front-journey > #hero { z-index: 1; }
+.front-journey > #city { z-index: 2; }
+.front-journey > #broadcast { z-index: 3; }
+
+.front-journey #city .viewport,
+.front-journey #broadcast .viewport {
+  opacity: var(--front-scene-opacity, 0);
+  will-change: opacity;
+}
+
+.front-journey .city-handoff::before,
+.front-journey .city-handoff::after,
+.front-journey .city-handoff-beam,
+.front-journey .city-handoff-copy,
+.front-journey #broadcast::before {
+  display: none;
+}
+
+.front-journey + #projects { margin-top: -1px; }
+
 /* Adjacent scene color fields overlap by a physical pixel so fractional
    mobile scroll positions and desktop zoom never expose the document
    background as a horizontal divider. */

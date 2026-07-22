@@ -38,7 +38,7 @@
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=jarvis-91" />
+    <link rel="stylesheet" href="styles.css?v=jarvis-92" />
   </head>
   <body>
     <div class="site-loader" role="status" aria-live="polite" aria-label="Preparing the interactive site">
@@ -77,6 +77,7 @@
     </nav>
 
     <main>
+      <div class="front-journey" data-front-journey>
       <!-- ============ SCENE 01 // JARVIS BOOT ============ -->
       <section class="scene scrub" id="hero" data-scene="hero">
         <div class="viewport">
@@ -273,6 +274,8 @@
           </div>
         </div>
       </section>
+
+      </div>
 
       <!-- ============ SCENE 04 // PROJECT HANGAR ============ -->
       <section class="scene flow" id="projects" data-scene="projects">
@@ -700,7 +703,7 @@
         else window.addEventListener("load", finishHangarReturn, { once: true });
       }
     </script>
-    <script src="script.js?v=jarvis-89"></script>
+    <script src="script.js?v=jarvis-90"></script>
     <script type="module">
       var glassesScene = document.getElementById("glasses");
       var glassesViewport = glassesScene && glassesScene.querySelector(".viewport");
