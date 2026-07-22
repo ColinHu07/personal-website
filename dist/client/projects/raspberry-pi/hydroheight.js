@@ -11,6 +11,7 @@
   var hydroStory = document.querySelector("[data-hydro-story]");
   var originSection = document.querySelector(".origin-section");
   var methodSection = document.querySelector(".method-section");
+  var geometryPanel = document.querySelector('[data-hydro-panel="geometry"]');
   var methodTransition = document.querySelector("[data-method-transition]");
   var geometryVisual = document.querySelector(".geometry-visual");
   var geometryField = document.querySelector("[data-geometry-field]");
@@ -203,13 +204,20 @@
     drawWaterline(reduceMotion.matches ? 1 : clamp((sceneProgress - 0.5) / 0.34, 0, 1));
 
     var storyHandoff = null;
-    if (hydroStory && methodSection && window.innerWidth > 900 && !reduceMotion.matches) {
+    if (hydroStory && methodSection && geometryPanel && window.innerWidth > 900 && !reduceMotion.matches) {
       var storyRect = hydroStory.getBoundingClientRect();
       var storyDistance = Math.max(1, storyRect.height - window.innerHeight);
       var storyProgress = clamp(-storyRect.top / storyDistance, 0, 1);
-      storyHandoff = smoothstep((storyProgress - 0.16) / 0.68);
+      storyHandoff = smoothstep((storyProgress - 0.06) / 0.36);
+      var geometryHandoff = smoothstep((storyProgress - 0.54) / 0.36);
       var clipLeft = (1 - storyHandoff) * 100;
       var clipRight = clamp(clipLeft - Math.sin(storyHandoff * Math.PI) * 7, 0, 100);
+      var geometryClipLeft = (1 - geometryHandoff) * 100;
+      var geometryClipRight = clamp(
+        geometryClipLeft - Math.sin(geometryHandoff * Math.PI) * 6,
+        0,
+        100
+      );
 
       hydroStory.style.setProperty("--origin-panel-y", (-30 * storyHandoff).toFixed(2) + "px");
       hydroStory.style.setProperty("--origin-panel-scale", (1 - storyHandoff * 0.018).toFixed(4));
@@ -218,10 +226,17 @@
       hydroStory.style.setProperty("--origin-timeline-y", (12 * storyHandoff).toFixed(2) + "px");
       hydroStory.style.setProperty("--method-clip-left", clipLeft.toFixed(2) + "%");
       hydroStory.style.setProperty("--method-clip-right", clipRight.toFixed(2) + "%");
-      hydroStory.style.setProperty("--method-panel-y", ((1 - storyHandoff) * 26).toFixed(2) + "px");
-      hydroStory.style.setProperty("--method-panel-scale", (0.985 + storyHandoff * 0.015).toFixed(4));
-      hydroStory.style.setProperty("--method-copy-y", ((1 - storyHandoff) * 20).toFixed(2) + "px");
-      hydroStory.style.setProperty("--method-steps-y", ((1 - storyHandoff) * 34).toFixed(2) + "px");
+      hydroStory.style.setProperty("--method-panel-y", ((1 - storyHandoff) * 26 - geometryHandoff * 24).toFixed(2) + "px");
+      hydroStory.style.setProperty("--method-panel-scale", (0.985 + storyHandoff * 0.015 - geometryHandoff * 0.012).toFixed(4));
+      hydroStory.style.setProperty("--method-copy-y", ((1 - storyHandoff) * 20 - geometryHandoff * 14).toFixed(2) + "px");
+      hydroStory.style.setProperty("--method-steps-y", ((1 - storyHandoff) * 34 - geometryHandoff * 8).toFixed(2) + "px");
+      hydroStory.style.setProperty("--geometry-clip-left", geometryClipLeft.toFixed(2) + "%");
+      hydroStory.style.setProperty("--geometry-clip-right", geometryClipRight.toFixed(2) + "%");
+      hydroStory.style.setProperty("--geometry-panel-y", ((1 - geometryHandoff) * 24).toFixed(2) + "px");
+      hydroStory.style.setProperty("--geometry-panel-scale", (0.99 + geometryHandoff * 0.01).toFixed(4));
+      hydroStory.style.setProperty("--geometry-copy-y", ((1 - geometryHandoff) * 28).toFixed(2) + "px");
+      hydroStory.style.setProperty("--palette-line", ((1 - geometryHandoff) * 100).toFixed(2) + "%");
+      hydroStory.style.setProperty("--palette-strength", Math.sin(geometryHandoff * Math.PI).toFixed(4));
     }
 
     if (methodTransition) {

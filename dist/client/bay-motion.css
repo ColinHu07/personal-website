@@ -87,6 +87,31 @@ html.bay-motion-ready [data-bay-scene].story-reveal.is-visible {
   transition: opacity 70ms linear;
 }
 
+.bay-palette-fx {
+  position: fixed;
+  inset: 0;
+  z-index: 17;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 70ms linear;
+}
+
+.bay-palette-fx::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 0 calc(var(--bay-palette-y, 50vh) - 24vh),
+    rgba(var(--bay-palette-from, 0, 0, 0), 0.76) calc(var(--bay-palette-y, 50vh) - 14vh),
+    rgb(var(--bay-palette-from, 0, 0, 0)) calc(var(--bay-palette-y, 50vh) - 3vh),
+    rgb(var(--bay-palette-to, 0, 0, 0)) calc(var(--bay-palette-y, 50vh) + 3vh),
+    rgba(var(--bay-palette-to, 0, 0, 0), 0.76) calc(var(--bay-palette-y, 50vh) + 14vh),
+    transparent calc(var(--bay-palette-y, 50vh) + 24vh) 100%
+  );
+}
+
 .bay-transition-fx::before,
 .bay-transition-fx::after {
   content: "";
@@ -236,7 +261,8 @@ html.bay-motion-ready [data-bay-scene].story-reveal.is-visible {
     transition-duration: 70ms;
   }
 
-  .bay-transition-fx {
+  .bay-transition-fx,
+  .bay-palette-fx {
     z-index: 8;
   }
 }
@@ -251,7 +277,8 @@ html.bay-motion-ready [data-bay-scene].story-reveal.is-visible {
     transition: none !important;
   }
 
-  .bay-transition-fx {
+  .bay-transition-fx,
+  .bay-palette-fx {
     display: none !important;
   }
 }

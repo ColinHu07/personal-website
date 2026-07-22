@@ -906,11 +906,12 @@ h1, h2, h3, p { text-wrap: pretty; }
   overflow: hidden;
   padding: clamp(6rem, 10vw, 10rem) clamp(1.3rem, 7vw, 7rem);
   background:
+    linear-gradient(180deg, #dce7e3 0, #91a6a4 5rem, #29494c 12rem, transparent 22rem),
     linear-gradient(rgba(183, 255, 239, 0.045) 1px, transparent 1px),
     linear-gradient(90deg, rgba(183, 255, 239, 0.045) 1px, transparent 1px),
     radial-gradient(circle at 82% 30%, rgba(103, 242, 210, 0.09), transparent 27rem),
     #06151b;
-  background-size: 64px 64px, 64px 64px, auto, auto;
+  background-size: auto, 64px 64px, 64px 64px, auto, auto;
 }
 .threshold-section::before {
   content: "THRESHOLD ENGINE // 02 SCALES";
@@ -1049,7 +1050,7 @@ h1, h2, h3, p { text-wrap: pretty; }
 
 @media (min-width: 901px) {
   .hydro-story {
-    height: 235vh;
+    height: 335vh;
     background: #041116;
   }
 
@@ -1149,6 +1150,58 @@ h1, h2, h3, p { text-wrap: pretty; }
     );
     transform: translate3d(0, var(--method-panel-y, 0px), 0) scale(var(--method-panel-scale, 1));
     transform-origin: 50% 56%;
+  }
+
+  .hydro-story .geometry-section {
+    z-index: 3;
+    grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr);
+    clip-path: polygon(
+      0 var(--geometry-clip-left, 100%),
+      100% var(--geometry-clip-right, 100%),
+      100% 100%,
+      0 100%
+    );
+    transform: translate3d(0, var(--geometry-panel-y, 0px), 0) scale(var(--geometry-panel-scale, 1));
+    transform-origin: 50% 56%;
+  }
+
+  .hydro-story .geometry-visual,
+  .hydro-story .geometry-copy {
+    height: 100%;
+    min-height: 100%;
+  }
+
+  .hydro-story .geometry-copy > * {
+    translate: 0 var(--geometry-copy-y, 0px);
+  }
+
+  .hydro-story .geometry-section::after {
+    content: "";
+    position: absolute;
+    z-index: 8;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 16vh;
+    background: linear-gradient(180deg, transparent, rgba(220, 231, 227, 0.86) 72%, #dce7e3);
+    pointer-events: none;
+  }
+
+  .hydro-palette-wash {
+    position: absolute;
+    z-index: 4;
+    inset: 0;
+    opacity: var(--palette-strength, 0);
+    background: linear-gradient(
+      180deg,
+      transparent 0 calc(var(--palette-line, 100%) - 22%),
+      rgba(8, 27, 33, 0.78) calc(var(--palette-line, 100%) - 13%),
+      rgb(8, 27, 33) calc(var(--palette-line, 100%) - 3%),
+      rgb(220, 231, 227) calc(var(--palette-line, 100%) + 3%),
+      rgba(220, 231, 227, 0.82) calc(var(--palette-line, 100%) + 13%),
+      transparent calc(var(--palette-line, 100%) + 22%) 100%
+    );
+    pointer-events: none;
   }
 
   .hydro-story .method-transition {
@@ -1357,6 +1410,7 @@ h1, h2, h3, p { text-wrap: pretty; }
   .hydro-story .origin-timeline,
   .hydro-story .section-intro,
   .hydro-story .method-steps { translate: none; }
+  .hydro-palette-wash { display: none; }
   .research-stack { opacity: 1; transform: none; }
   .method-transition {
     --grid-opacity: 0.36;

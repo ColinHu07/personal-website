@@ -5,11 +5,13 @@
   var body = document.body;
   var scenes = Array.prototype.slice.call(document.querySelectorAll("[data-bay-scene]"));
   var layers = Array.prototype.slice.call(document.querySelectorAll("[data-bay-layer]"));
+  var paletteScenes = Array.prototype.slice.call(document.querySelectorAll("[data-bay-from][data-bay-to]"));
   var reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   var framePending = false;
   var fx = null;
+  var paletteFx = null;
 
-  if (!scenes.length || !layers.length) return;
+  if ((!scenes.length || !layers.length) && !paletteScenes.length) return;
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
@@ -132,7 +134,7 @@
   }
 
   function renderFx(viewportHeight) {
-    if (!fx) return;
+    if (!fx || !scenes.length) return;
     var scene = activeScene(viewportHeight);
     var rect = scene.getBoundingClientRect();
     var midpoint = viewportHeight * 0.5;
@@ -172,12 +174,45 @@
     body.dataset.bayActiveScene = scene.dataset.bayScene || scene.id || "scene";
   }
 
+  function renderPalette(viewportHeight) {
+    if (!paletteFx || !paletteScenes.length) return;
+
+    var guide = viewportHeight * 0.5;
+    var chosen = null;
+    var bestDistance = Infinity;
+
+    paletteScenes.forEach(function (scene) {
+      var rect = scene.getBoundingClientRect();
+      var distance = Math.abs(rect.top - guide);
+      if (distance < bestDistance) {
+        chosen = scene;
+        bestDistance = distance;
+      }
+    });
+
+    if (!chosen) return;
+
+    var rect = chosen.getBoundingClientRect();
+    var visible = clamp(1 - Math.abs(rect.top - guide) / (viewportHeight * 0.78), 0, 1);
+    var strength = smoothPalette(visible);
+    paletteFx.style.opacity = strength.toFixed(4);
+    paletteFx.style.setProperty("--bay-palette-y", rect.top.toFixed(2) + "px");
+    paletteFx.style.setProperty("--bay-palette-from", chosen.dataset.bayFrom);
+    paletteFx.style.setProperty("--bay-palette-to", chosen.dataset.bayTo);
+  }
+
+  function smoothPalette(value) {
+    value = clamp(value, 0, 1);
+    return value * value * (3 - 2 * value);
+  }
+
   function render() {
     framePending = false;
 
     if (reducedMotion.matches) {
       layers.forEach(clearLayerStyle);
       if (fx) fx.style.setProperty("--bay-strength", "0");
+      if (paletteFx) paletteFx.style.opacity = "0";
       return;
     }
 
@@ -186,6 +221,7 @@
       renderLayer(layer, index, viewportHeight);
     });
     renderFx(viewportHeight);
+    renderPalette(viewportHeight);
   }
 
   function requestRender() {
@@ -194,10 +230,19 @@
     window.requestAnimationFrame(render);
   }
 
-  fx = document.createElement("div");
-  fx.className = "bay-transition-fx";
-  fx.setAttribute("aria-hidden", "true");
-  body.appendChild(fx);
+  if (scenes.length) {
+    fx = document.createElement("div");
+    fx.className = "bay-transition-fx";
+    fx.setAttribute("aria-hidden", "true");
+    body.appendChild(fx);
+  }
+
+  if (paletteScenes.length) {
+    paletteFx = document.createElement("div");
+    paletteFx.className = "bay-palette-fx";
+    paletteFx.setAttribute("aria-hidden", "true");
+    body.appendChild(paletteFx);
+  }
 
   render();
   root.classList.add("bay-motion-ready");
