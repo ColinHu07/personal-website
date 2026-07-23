@@ -1663,6 +1663,7 @@ main > .scene + .scene { margin-top: -1px; }
 
 #projects {
   --hangar-exit: 0;
+  --hangar-dismiss: 0;
   --hangar-page-offset: 100dvh;
   position: relative;
   overflow: hidden;
@@ -1677,7 +1678,7 @@ main > .scene + .scene { margin-top: -1px; }
   z-index: 7;
   height: 100vh;
   height: 100dvh;
-  opacity: 1;
+  opacity: calc(1 - var(--hangar-dismiss, 0));
   transform: none;
   will-change: opacity;
 }
@@ -1697,18 +1698,6 @@ main > .scene + .scene { margin-top: -1px; }
   transform: translate3d(0, calc(var(--hangar-page-offset, 100dvh) - 1px), 0);
   pointer-events: none;
   will-change: transform;
-}
-
-#projects::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 20;
-  pointer-events: none;
-  opacity: var(--hangar-exit, 0);
-  background: #030507;
-  -webkit-backdrop-filter: blur(calc(var(--hangar-exit, 0) * 10px));
-  backdrop-filter: blur(calc(var(--hangar-exit, 0) * 10px));
 }
 
 #projects .section-head,
@@ -1883,11 +1872,12 @@ main > .scene + .scene { margin-top: -1px; }
    ============================================================ */
 
 #glasses {
-  /* Optics stays behind the opaque Hangar and reaches sticky exactly when the
-     project runway ends. It cannot rise over the bay during its reading hold. */
+  /* Optics reaches sticky behind the still-opaque Hangar before either fade
+     begins. The outgoing section is already invisible when its sticky frame
+     releases, eliminating the horizontal black band. */
   z-index: 1;
-  margin-top: -100vh;
-  margin-top: -100dvh;
+  margin-top: -160vh;
+  margin-top: -160dvh;
 }
 
 /* A full-frame entry veil carries the Hangar palette into the studio. Unlike

@@ -56,9 +56,10 @@
   // model can sample the current scroll position every animation frame instead
   // of waiting for a throttled style update from the page-wide scroll handler.
   function glassesTimelineAt(progress) {
-    // Reserve the opening of the scene for the fully rendered product to fade
-    // in and hold. No assembly motion begins until that entrance is complete.
-    var p = clamp01((clamp01(progress) - 0.12) / 0.88);
+    // Keep the assembled product still through the fade-in. With the Hangar
+    // handoff geometry below, the first visible rotation begins at roughly
+    // 80% scene opacity.
+    var p = clamp01((clamp01(progress) - 0.095) / 0.905);
     var templeFold = 1 - smooth(clamp01((p - 0.03) / 0.18));
     var explode = 0;
     if (p >= 0.2 && p < 0.31) {
@@ -311,12 +312,32 @@
             "--hangar-page-offset",
             (vh * (1 - reelsPageSwipe)).toFixed(2) + "px"
           );
+          if (frontJourneyProgress < 1) {
+            projectsScene.style.setProperty("--hangar-dismiss", "0");
+          }
           projectsScene.classList.toggle(
             "is-front-pinned",
             frontJourneyProgress >= 0.92 && frontJourneyProgress < 1
           );
         }
       }
+    }
+
+    var projectsProgress = -1;
+    var projectHandoffActive = false;
+    var hangarOpticsReveal = 0;
+    if (projectsScene && projectsSlot && !projectsScene.classList.contains("is-front-pinned")) {
+      var projectsRect = projectsSlot.getBoundingClientRect();
+      var projectsRunway = Math.max(1, projectsRect.height - vh);
+      projectsProgress = clamp01(-projectsRect.top / projectsRunway);
+      projectHandoffActive = projectsRect.top <= 0 && projectsProgress < 1;
+
+      // Fade the complete Hangar away in place, pause on the shared dark field,
+      // then fade the already-pinned studio in. The physical sticky release is
+      // invisible, so no horizontal band can cross the viewport.
+      var hangarDismiss = smoother((projectsProgress - 0.64) / 0.14);
+      hangarOpticsReveal = smoother((projectsProgress - 0.79) / 0.15);
+      projectsScene.style.setProperty("--hangar-dismiss", hangarDismiss.toFixed(4));
     }
 
     scrubScenes.forEach(function (scene) {
@@ -366,7 +387,12 @@
       if (scene.id === "concert") concertP = p;
       if (scene.id === "glasses" && glassesViewport) {
         var opticsReady = doc.classList.contains("optics-initialized");
-        var opticsReveal = opticsReady ? smoother(p / 0.1) : 0;
+        var normalOpticsReveal = smoother(p / 0.1);
+        var opticsReveal = opticsReady
+          ? projectHandoffActive
+            ? hangarOpticsReveal
+            : normalOpticsReveal
+          : 0;
         var opticsProgress = opticsReady ? p : 0;
         glassesViewport.style.setProperty("--optics-reveal", opticsReveal.toFixed(4));
         glassesViewport.style.setProperty("--scene-enter", opticsReveal.toFixed(4));
@@ -405,17 +431,6 @@
         scene.classList.toggle("is-contact-active", rect.top <= 1 && rect.bottom > 1);
       }
     });
-
-    if (projectsScene && projectsSlot && !projectsScene.classList.contains("is-front-pinned")) {
-      var projectsRect = projectsSlot.getBoundingClientRect();
-      var projectsRunway = Math.max(1, projectsRect.height - vh);
-      var projectsProgress = clamp01(-projectsRect.top / projectsRunway);
-      // Give the complete bay its own long read before fading to black. Optics
-      // starts only after this sticky runway ends, so it can never cover the
-      // project cards or title early.
-      var hangarExit = smoother((projectsProgress - 0.55) / 0.33);
-      projectsScene.style.setProperty("--hangar-exit", hangarExit.toFixed(4));
-    }
 
     if (progressFill) {
       var max = doc.scrollHeight - vh;
