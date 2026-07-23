@@ -176,6 +176,8 @@
   var glassesViewport = document.querySelector("#glasses .viewport");
   var broadcastViewport = document.querySelector("#broadcast .viewport");
   var projectsScene = document.getElementById("projects");
+  var projectsSlot = document.querySelector(".projects-slot");
+  var contactViewport = document.querySelector("#contact .contact-viewport");
   var cityP = 0;
   var globeP = 0;
   var concertP = 0;
@@ -367,7 +369,7 @@
         glassesViewport.style.setProperty("--status-product", glassesState.statusProduct.toFixed(4));
         glassesViewport.style.setProperty("--status-exploded", glassesState.statusExploded.toFixed(4));
         glassesViewport.style.setProperty("--status-complete", glassesState.statusComplete.toFixed(4));
-        var glassesExitStart = phoneTimeline.matches ? 0.9 : 0.96;
+        var glassesExitStart = phoneTimeline.matches ? 0.86 : 0.92;
         glassesViewport.style.setProperty("--scene-exit", smoother((p - glassesExitStart) / (1 - glassesExitStart)).toFixed(4));
 
         if (p > 0.91) glassesViewport.setAttribute("data-lens", "open");
@@ -380,15 +382,19 @@
         if (p > 0.6) broadcastViewport.setAttribute("data-feed", "open");
         else broadcastViewport.removeAttribute("data-feed");
       }
+      if (scene.id === "contact" && contactViewport) {
+        contactViewport.style.setProperty("--stars-in", smoother(p / 0.28).toFixed(4));
+        contactViewport.style.setProperty("--socials-in", smoother((p - 0.36) / 0.34).toFixed(4));
+        scene.classList.toggle("is-contact-active", rect.top <= 1 && rect.bottom > 1);
+      }
     });
 
-    if (projectsScene && glassesViewport && !projectsScene.classList.contains("is-front-pinned")) {
-      var glassesScene = glassesViewport.closest(".scene");
-      var glassesRect = glassesScene ? glassesScene.getBoundingClientRect() : null;
-      if (glassesRect) {
-        var hangarExit = smoother((vh * 1.1 - glassesRect.top) / (vh * 0.75));
-        projectsScene.style.setProperty("--hangar-exit", hangarExit.toFixed(4));
-      }
+    if (projectsScene && projectsSlot && !projectsScene.classList.contains("is-front-pinned")) {
+      var projectsRect = projectsSlot.getBoundingClientRect();
+      var projectsRunway = Math.max(1, projectsRect.height - vh);
+      var projectsProgress = clamp01(-projectsRect.top / projectsRunway);
+      var hangarExit = smoother((projectsProgress - 0.35) / 0.28);
+      projectsScene.style.setProperty("--hangar-exit", hangarExit.toFixed(4));
     }
 
     if (progressFill) {
