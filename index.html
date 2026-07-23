@@ -31,14 +31,14 @@
       media="(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)"
       fetchpriority="high"
     />
-    <link rel="modulepreload" href="glasses-product.js?v=jarvis-90" />
+    <link rel="modulepreload" href="glasses-product.js?v=jarvis-91" />
     <link rel="modulepreload" href="assets/vendor/three.module.min.js" />
     <link rel="modulepreload" href="assets/vendor/three.core.min.js" />
     <link
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=jarvis-112" />
+    <link rel="stylesheet" href="styles.css?v=jarvis-113" />
   </head>
   <body>
     <div class="site-loader" role="status" aria-live="polite" aria-label="Preparing the interactive site">
@@ -709,7 +709,7 @@
         else window.addEventListener("load", finishHangarReturn, { once: true });
       }
     </script>
-    <script src="script.js?v=jarvis-109"></script>
+    <script src="script.js?v=jarvis-110"></script>
     <script type="module">
       var glassesScene = document.getElementById("glasses");
       var glassesViewport = glassesScene && glassesScene.querySelector(".viewport");
@@ -756,7 +756,7 @@
         if (glassesModuleRequested) return Promise.resolve();
         glassesModuleRequested = true;
         if (glassesViewport) glassesViewport.classList.add("glasses-webgl-loading");
-        return import("./glasses-product.js?v=jarvis-90").then(function () {
+        return import("./glasses-product.js?v=jarvis-91").then(function () {
           preloadRoot.classList.add("optics-initialized");
           window.dispatchEvent(new CustomEvent("optics:ready"));
           glassesLoadComplete = true;

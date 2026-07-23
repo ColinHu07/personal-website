@@ -2029,10 +2029,27 @@ main > .scene + .scene { margin-top: -1px; }
 }
 
 #glasses .viewport.glasses-webgl-ready .product-model-camera {
-  opacity: 0;
+  display: none;
 }
 
 #glasses .viewport.glasses-webgl-failed .glasses-product-canvas { display: none; }
+
+/* Keep the full-screen wearer-view DOM out of Safari's paint tree until its
+   reveal begins. The final feed completely covers the canvas, so suspend that
+   canvas as soon as the handoff is complete; reverse scrolling restores it. */
+#glasses .viewport:not([data-feed-active]) .lens-view,
+#glasses .viewport:not([data-feed-active]) .lens-glass-transition {
+  visibility: hidden;
+}
+
+#glasses .viewport[data-feed-active] .lens-view,
+#glasses .viewport[data-feed-active] .lens-glass-transition {
+  visibility: visible;
+}
+
+#glasses .viewport[data-feed-complete] .glasses-product-canvas {
+  visibility: hidden;
+}
 
 .product-keylight {
   position: absolute;
