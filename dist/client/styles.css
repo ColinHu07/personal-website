@@ -335,6 +335,11 @@ main { position: relative; z-index: 1; }
   background: transparent;
 }
 
+/* Once the hangar handoff starts, retire the complete Hero/City/Reels stack
+   beneath the project slot. The Reel has already performed its swipe and the
+   project layer now owns the viewport. */
+.front-journey.is-hangar-active { z-index: 1; }
+
 .front-journey > #hero.scene.scrub,
 .front-journey > #city.scene.scrub,
 .front-journey > #broadcast.scene.scrub {
@@ -1659,7 +1664,10 @@ main > .scene + .scene { margin-top: -1px; }
 #projects.is-front-pinned {
   position: fixed;
   inset: 0;
-  z-index: 2;
+  /* This temporary presentation layer must sit above every earlier pinned
+     opening scene; otherwise a transparent Reels backdrop exposes Hero/City
+     instead of the hangar. */
+  z-index: 4;
   height: 100vh;
   height: 100dvh;
   opacity: var(--hangar-reveal, 0);
