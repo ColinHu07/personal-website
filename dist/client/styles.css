@@ -1867,9 +1867,8 @@ main > .scene + .scene { margin-top: -1px; }
      0.20–0.53  side-profile separation and exploded orbit
      0.53–0.70  precision reassembly as the orbit completes
      0.56–0.87  wearer-side rotation and right-lens camera glide
-     0.72–0.91  glass transition into the code-native HUD
-     0.91–0.98  fully focused HUD reading hold
-     0.98–1.00  dissolve into Socials
+     0.72–0.91  lens portal opens directly into Socials
+     0.91–1.00  Socials takes over the complete viewport
    ============================================================ */
 
 #glasses {
@@ -2866,8 +2865,10 @@ main > .scene + .scene { margin-top: -1px; }
   --socials-in: 0;
   z-index: 7;
   position: relative;
-  margin-top: -100vh;
-  margin-top: -100dvh;
+  /* Socials reaches the viewport while the camera is filling the right lens,
+     so the lens itself becomes the portal instead of opening a poker HUD. */
+  margin-top: -188vh;
+  margin-top: -188dvh;
   overflow: visible;
   background: transparent;
   text-align: center;
@@ -2886,6 +2887,14 @@ main > .scene + .scene { margin-top: -1px; }
   background:
     radial-gradient(ellipse 55% 45% at 50% 100%, rgba(23, 68, 105, 0.45), transparent 70%),
     #030507;
+  clip-path: ellipse(
+    calc(4% + var(--stars-in, 0) * 77%)
+    calc(5% + var(--stars-in, 0) * 77%)
+    at 50% 50%
+  );
+  transform: translate3d(0, 0, 0) scale(calc(0.94 + var(--stars-in, 0) * 0.06));
+  transform-origin: 50% 50%;
+  will-change: opacity, clip-path, transform;
   transition: none;
 }
 
@@ -3067,6 +3076,33 @@ main > .scene + .scene { margin-top: -1px; }
   #city.scene.scrub { height: 340vh; }
   #broadcast.scene.scrub { height: 240vh; }
   #glasses.scene.scrub { height: 390vh; }
+  /* The Hangar must be genuine scrollable content on a phone. Its temporary
+     fixed state is used only for the Reels handoff; after that, all six bays
+     flow normally before Optics begins. */
+  .projects-slot {
+    height: auto;
+    min-height: 0;
+  }
+  #projects:not(.is-front-pinned) {
+    position: relative;
+    top: auto;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: visible;
+    opacity: 1;
+    will-change: auto;
+  }
+  #projects.scene.flow {
+    padding-bottom: clamp(3rem, 8vh, 5rem);
+  }
+  #glasses {
+    margin-top: 0;
+  }
+  #contact {
+    margin-top: -173vh;
+    margin-top: -173dvh;
+  }
   @supports (height: 100dvh) {
     .scene.scrub .viewport { height: 100dvh; }
   }
@@ -3140,6 +3176,59 @@ main > .scene + .scene { margin-top: -1px; }
     width: 88vw;
     white-space: normal;
     line-height: 1.55;
+  }
+
+  /* Six compact channels fit inside the expanded lens destination without
+     turning the final scene into another nested scrolling surface. */
+  #contact .contact-viewport {
+    padding: clamp(4.1rem, 7vh, 5rem) 0.8rem 0.8rem;
+  }
+  #contact .section-head {
+    margin-bottom: 0.85rem;
+  }
+  #contact .section-head .eyebrow {
+    margin-bottom: 0.35rem;
+    font-size: 0.58rem;
+  }
+  #contact .section-head h2 {
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
+  }
+  #contact .section-sub {
+    margin-top: 0.35rem;
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+  #contact .socials-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+  }
+  #contact .social-tile {
+    gap: 0.55rem;
+    min-width: 0;
+    padding: 0.72rem 0.68rem;
+  }
+  #contact .social-tile .social-icon {
+    width: 30px;
+  }
+  #contact .social-meta strong {
+    font-size: 0.61rem;
+    letter-spacing: 0.11em;
+  }
+  #contact .social-meta span {
+    font-size: 0.54rem;
+    letter-spacing: 0.05em;
+  }
+  #contact .social-arrow {
+    display: none;
+  }
+  #contact .footer {
+    gap: 0.45rem 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 1.1rem;
+    padding-top: 0.8rem;
+    font-size: 0.48rem;
+    letter-spacing: 0.12em;
   }
 
   /* Phone handoffs move through the frame as they fade, so section changes
@@ -3314,6 +3403,31 @@ main > .scene + .scene { margin-top: -1px; }
    same scene depth on a phone, so keep the handoffs but remove that extra
    GPU pass. Static glass panels use a slightly more opaque fallback. */
 @media (max-width: 760px), (orientation: landscape) and (max-height: 500px) {
+  .projects-slot {
+    height: auto;
+    min-height: 0;
+  }
+  #projects:not(.is-front-pinned) {
+    position: relative;
+    top: auto;
+    height: auto;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overflow: visible;
+    opacity: 1;
+    will-change: auto;
+  }
+  #projects.scene.flow {
+    padding-bottom: clamp(3rem, 8vh, 5rem);
+  }
+  #glasses {
+    margin-top: 0;
+  }
+  #contact {
+    margin-top: -173vh;
+    margin-top: -173dvh;
+  }
+
   .optics-entry,
   #hero .viewport::after,
   #city .viewport::before,

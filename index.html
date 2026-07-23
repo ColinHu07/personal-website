@@ -31,14 +31,14 @@
       media="(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)"
       fetchpriority="high"
     />
-    <link rel="modulepreload" href="glasses-product.js?v=jarvis-91" />
+    <link rel="modulepreload" href="glasses-product.js?v=jarvis-92" />
     <link rel="modulepreload" href="assets/vendor/three.module.min.js" />
     <link rel="modulepreload" href="assets/vendor/three.core.min.js" />
     <link
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=jarvis-113" />
+    <link rel="stylesheet" href="styles.css?v=jarvis-114" />
   </head>
   <body>
     <div class="site-loader" role="status" aria-live="polite" aria-label="Preparing the interactive site">
@@ -356,7 +356,7 @@
           <div class="glasses-stage">
             <div class="product-keylight" aria-hidden="true"></div>
             <div class="product-floor" aria-hidden="true"></div>
-            <canvas class="glasses-product-canvas" aria-label="A studio-lit 3D model of Meta display glasses disassembling, rotating, and reassembling"></canvas>
+            <canvas class="glasses-product-canvas" aria-label="A studio-lit 3D model of Meta display glasses disassembling, rotating, reassembling, and opening into the socials page"></canvas>
 
             <div class="product-model-camera" aria-hidden="true">
               <div class="product-model-rig">
@@ -528,56 +528,10 @@
 
             <div class="lens-glass-transition" aria-hidden="true"></div>
           </div>
-          <!-- lens view: poker copilot -->
-          <div class="lens-view">
-            <div class="lens-frame" aria-label="Poker Copilot recommendation over a live poker table">
-              <div class="poker-table current-poker-layout">
-                <div class="table-felt">
-                  <div class="board-label">COMMUNITY // RIVER</div>
-                  <div class="board-cards" aria-label="Board: three of spades, four of diamonds, five of spades, ten of spades, five of clubs">
-                    <span class="pcard black">3<em>♠</em></span>
-                    <span class="pcard red">4<em>♦</em></span>
-                    <span class="pcard black">5<em>♠</em></span>
-                    <span class="pcard black">T<em>♠</em></span>
-                    <span class="pcard black">5<em>♣</em></span>
-                  </div>
-                  <div class="hole-block">
-                    <div class="board-label">YOUR HAND</div>
-                    <div class="hole-cards" aria-label="Your hand: ace of spades, queen of spades">
-                      <span class="pcard black">A<em>♠</em></span>
-                      <span class="pcard black">Q<em>♠</em></span>
-                    </div>
-                  </div>
-                  <div class="pot-chip">RIVER // BOARD LOCKED</div>
-                </div>
-
-                <aside class="copilot-panel current-copilot-panel">
-                  <span class="display-eyebrow">POKER COPILOT // RIVER</span>
-                  <h3>Best: Check</h3>
-                  <p>Check is best: the board pairs on the river, so we let the lower flush decide whether to put more chips in.</p>
-                  <div class="copilot-hand">
-                    <strong>Hero A♠ Q♠</strong>
-                    <strong>Board 3♠ 4♦ 5♠ T♠ 5♣</strong>
-                  </div>
-                  <div class="copilot-actions" aria-hidden="true">
-                    <span>Analyze next</span>
-                    <span>Rescan table</span>
-                  </div>
-                </aside>
-              </div>
-              <div class="display-glass-sheen" aria-hidden="true"></div>
-              <div class="display-livebar">
-                <span><i></i> META DISPLAY // LIVE</span>
-                <a class="lens-project-link" href="projects/poker-glasses/">
-                  VIEW BUILD &nbsp;&gt;
-                </a>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
-      <!-- ============ SCENE 06 // SOCIALS ============ -->
+      <!-- ============ SCENE 06 // SOCIALS LENS DESTINATION ============ -->
       <section class="scene scrub contact" id="contact" data-scene="contact">
         <div class="viewport contact-viewport">
           <canvas class="socials-canvas" aria-hidden="true"></canvas>
@@ -709,7 +663,7 @@
         else window.addEventListener("load", finishHangarReturn, { once: true });
       }
     </script>
-    <script src="script.js?v=jarvis-111"></script>
+    <script src="script.js?v=jarvis-112"></script>
     <script type="module">
       var glassesScene = document.getElementById("glasses");
       var glassesViewport = glassesScene && glassesScene.querySelector(".viewport");
@@ -756,7 +710,7 @@
         if (glassesModuleRequested) return Promise.resolve();
         glassesModuleRequested = true;
         if (glassesViewport) glassesViewport.classList.add("glasses-webgl-loading");
-        return import("./glasses-product.js?v=jarvis-91").then(function () {
+        return import("./glasses-product.js?v=jarvis-92").then(function () {
           preloadRoot.classList.add("optics-initialized");
           window.dispatchEvent(new CustomEvent("optics:ready"));
           glassesLoadComplete = true;

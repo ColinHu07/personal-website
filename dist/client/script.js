@@ -5,7 +5,7 @@
      rings, Asia -> Europe -> NYC camera path)
    - Full-resolution NYC drone footage in a slow cinematic pass
    - Code-native Meta glasses disassembly, full 360-degree orbit,
-     reassembly, and wearer-side display dive scrubbed from --p
+     reassembly, and wearer-side lens dive into Socials scrubbed from --p
    ============================================================ */
 
 (function () {
@@ -82,8 +82,8 @@
       turn: smoother((p - 0.56) / 0.24),
       dive: smoother((p - 0.6) / 0.27),
       feed: smoother((p - 0.72) / 0.15),
-      portal: smoother((p - 0.75) / 0.14),
-      hud: smoother((p - 0.79) / 0.12),
+      portal: smoother((p - 0.74) / 0.15),
+      hud: smoother((p - 0.78) / 0.13),
       statusProduct: 1 - smooth(clamp01(p / 0.08)),
       statusExploded:
         smooth(clamp01((p - 0.17) / 0.08)) *
@@ -465,17 +465,23 @@
     var projectHandoffActive = false;
     var hangarOpticsReveal = 0;
     if (projectsScene && projectsSlot && !projectsScene.classList.contains("is-front-pinned")) {
-      var projectsRect = scrollRect(projectsSlot);
-      var projectsRunway = Math.max(1, projectsRect.height - vh);
-      projectsProgress = clamp01(-projectsRect.top / projectsRunway);
-      projectHandoffActive = projectsRect.top <= 0 && projectsProgress < 1;
+      if (phoneTimeline.matches) {
+        // The phone layout is a true document flow: keep every bay visible
+        // until the user reaches the end of the Hangar.
+        projectsScene.style.setProperty("--hangar-dismiss", "0");
+      } else {
+        var projectsRect = scrollRect(projectsSlot);
+        var projectsRunway = Math.max(1, projectsRect.height - vh);
+        projectsProgress = clamp01(-projectsRect.top / projectsRunway);
+        projectHandoffActive = projectsRect.top <= 0 && projectsProgress < 1;
 
-      // Fade the complete Hangar away in place, pause on the shared dark field,
-      // then fade the already-pinned studio in. The physical sticky release is
-      // invisible, so no horizontal band can cross the viewport.
-      var hangarDismiss = smoother((projectsProgress - 0.64) / 0.14);
-      hangarOpticsReveal = smoother((projectsProgress - 0.79) / 0.15);
-      projectsScene.style.setProperty("--hangar-dismiss", hangarDismiss.toFixed(4));
+        // Fade the complete Hangar away in place, pause on the shared dark field,
+        // then fade the already-pinned studio in. The physical sticky release is
+        // invisible, so no horizontal band can cross the viewport.
+        var hangarDismiss = smoother((projectsProgress - 0.64) / 0.14);
+        hangarOpticsReveal = smoother((projectsProgress - 0.79) / 0.15);
+        projectsScene.style.setProperty("--hangar-dismiss", hangarDismiss.toFixed(4));
+      }
     }
 
     scrubScenes.forEach(function (scene) {
@@ -535,7 +541,7 @@
         glassesViewport.style.setProperty("--optics-reveal", opticsReveal.toFixed(4));
         glassesViewport.style.setProperty("--scene-enter", opticsReveal.toFixed(4));
         // Folded hero, quarter-turn to the left profile, exploded orbit,
-        // precision reassembly, then one wearer-side right-lens camera glide.
+        // precision reassembly, then a right-lens glide into Socials.
         var glassesState = glassesTimelineAt(opticsProgress);
         // Once Three.js owns the product, these five CSS variables only drive
         // the hidden SVG fallback. Stop invalidating that large filtered tree
@@ -565,14 +571,11 @@
         } else {
           glassesViewport.removeAttribute("data-feed-complete");
         }
-        var glassesExitStart = phoneTimeline.matches ? 0.86 : 0.92;
+        var glassesExitStart = phoneTimeline.matches ? 0.94 : 0.96;
         glassesViewport.style.setProperty(
           "--scene-exit",
           (opticsReady ? smoother((p - glassesExitStart) / (1 - glassesExitStart)) : 0).toFixed(4)
         );
-
-        if (opticsReady && p > 0.91) glassesViewport.setAttribute("data-lens", "open");
-        else glassesViewport.removeAttribute("data-lens");
       }
       if (scene.id === "broadcast" && broadcastViewport) {
         broadcastViewport.style.setProperty("--scene-enter", smoother(p / 0.12).toFixed(4));
@@ -581,8 +584,8 @@
         else broadcastViewport.removeAttribute("data-feed");
       }
       if (scene.id === "contact" && contactViewport) {
-        contactViewport.style.setProperty("--stars-in", smoother(p / 0.28).toFixed(4));
-        contactViewport.style.setProperty("--socials-in", smoother((p - 0.36) / 0.34).toFixed(4));
+        contactViewport.style.setProperty("--stars-in", smoother(p / 0.24).toFixed(4));
+        contactViewport.style.setProperty("--socials-in", smoother((p - 0.05) / 0.28).toFixed(4));
         scene.classList.toggle("is-contact-active", rect.top <= 1 && rect.bottom > 1);
       }
     });

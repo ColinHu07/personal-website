@@ -1015,7 +1015,9 @@ if (canvas && viewport) {
     tmpTarget.copy(rightLensCenter);
     tmpTarget.applyMatrix4(product.matrix);
     baseCamera.set(0, 0.2, baseCameraDistance + wearerTurn * (1 - diveAmount) * 3.2);
-    targetCamera.set(tmpTarget.x, tmpTarget.y, tmpTarget.z + 0.38);
+    // Finish much closer to the waveguide so the right lens fills the frame
+    // before the Socials page expands through it.
+    targetCamera.set(tmpTarget.x, tmpTarget.y, tmpTarget.z + 0.18);
     camera.position.lerpVectors(baseCamera, targetCamera, diveAmount);
     const glideArc = Math.sin(diveAmount * Math.PI);
     camera.position.x += glideArc * 0.5;
