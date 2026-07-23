@@ -585,7 +585,9 @@
       }
       if (scene.id === "contact" && contactViewport) {
         contactViewport.style.setProperty("--stars-in", smoother(p / 0.24).toFixed(4));
-        contactViewport.style.setProperty("--socials-in", smoother((p - 0.05) / 0.28).toFixed(4));
+        // Bring the interface up with the full-frame blend so the transition
+        // never pauses on an empty dark destination.
+        contactViewport.style.setProperty("--socials-in", smoother(p / 0.16).toFixed(4));
         scene.classList.toggle("is-contact-active", rect.top <= 1 && rect.bottom > 1);
       }
     });

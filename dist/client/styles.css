@@ -2887,20 +2887,19 @@ main > .scene + .scene { margin-top: -1px; }
   background:
     radial-gradient(ellipse 55% 45% at 50% 100%, rgba(23, 68, 105, 0.45), transparent 70%),
     #030507;
-  clip-path: ellipse(
-    calc(4% + var(--stars-in, 0) * 77%)
-    calc(5% + var(--stars-in, 0) * 77%)
-    at 50% 50%
-  );
-  transform: translate3d(0, 0, 0) scale(calc(0.94 + var(--stars-in, 0) * 0.06));
+  /* The lens already fills the frame in WebGL. Fade the complete destination
+     over it instead of revealing a separately clipped dark ellipse. */
+  clip-path: none;
+  transform: translate3d(0, calc((1 - var(--stars-in, 0)) * 1.5vh), 0)
+    scale(calc(0.985 + var(--stars-in, 0) * 0.015));
   transform-origin: 50% 50%;
-  will-change: opacity, clip-path, transform;
+  will-change: opacity, transform;
   transition: none;
 }
 
 #contact.is-contact-active .contact-viewport {
   visibility: visible;
-  opacity: 1;
+  opacity: var(--stars-in, 0);
 }
 
 /* transmission-grid background: radar sweep + signal constellation */
