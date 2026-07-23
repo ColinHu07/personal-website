@@ -25,7 +25,7 @@
       rel="stylesheet"
     />
     <link rel="preload" href="../../assets/just-dance-poster.jpg" as="image" fetchpriority="high" />
-    <link rel="stylesheet" href="just-dance.css?v=11" />
+    <link rel="stylesheet" href="just-dance.css?v=12" />
     <link rel="stylesheet" href="../../project-bottom.css?v=20260717" />
   </head>
   <body data-active-chapter="intro">
@@ -35,8 +35,10 @@
       <video
         id="dance-film"
         class="dance-film is-active"
+        autoplay
         muted
         playsinline
+        webkit-playsinline
         preload="auto"
         poster="../../assets/just-dance-poster.jpg"
         disablepictureinpicture
@@ -47,6 +49,7 @@
         class="dance-film"
         muted
         playsinline
+        webkit-playsinline
         preload="auto"
         disablepictureinpicture
       ></video>
@@ -55,6 +58,10 @@
       <div class="film-light light-a"></div>
       <div class="film-light light-b"></div>
     </div>
+    <button class="media-start" id="media-start" type="button">
+      <span aria-hidden="true">▶</span>
+      TAP TO START VIDEO
+    </button>
 
     <div class="scroll-meter" aria-hidden="true"><span id="scroll-fill"></span></div>
 
@@ -192,7 +199,8 @@
               muted
               loop
               playsinline
-              preload="metadata"
+              webkit-playsinline
+              preload="auto"
               poster="../../assets/just-dance-demo-poster.jpg"
               disablepictureinpicture
               disableremoteplayback
@@ -276,6 +284,6 @@
       <span class="project-bottom-bar__file">JUST DANCE 2.0 // FILE 002</span>
     </footer>
 
-    <script src="just-dance.js?v=10"></script>
+    <script src="just-dance.js?v=11"></script>
   </body>
 </html>
