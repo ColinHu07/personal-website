@@ -714,6 +714,9 @@
       var glassesModuleRequested = false;
       var preloadRoot = document.documentElement;
       var preloadStartedAt = performance.now();
+      // Keep the calibration cover visible long enough for the prewarmed
+      // WebGL frames to reach the compositor, including on a warm cache.
+      var minimumOpticsCalibration = 1200;
       var pageLoadComplete = document.readyState === "complete";
       var glassesLoadComplete = false;
       var preloadRevealed = !preloadRoot.classList.contains("site-preloading");
@@ -721,7 +724,7 @@
       function revealPreloadedSite() {
         if (preloadRevealed || !pageLoadComplete || !glassesLoadComplete) return;
         preloadRevealed = true;
-        var remaining = Math.max(0, 420 - (performance.now() - preloadStartedAt));
+        var remaining = Math.max(0, minimumOpticsCalibration - (performance.now() - preloadStartedAt));
         setTimeout(function () {
           requestAnimationFrame(function () {
             var deepLinkTarget = window.location.hash
