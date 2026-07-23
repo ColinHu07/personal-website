@@ -31,7 +31,7 @@
       media="(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)"
       fetchpriority="high"
     />
-    <link rel="modulepreload" href="glasses-product.js?v=jarvis-89" />
+    <link rel="modulepreload" href="glasses-product.js?v=jarvis-90" />
     <link rel="modulepreload" href="assets/vendor/three.module.min.js" />
     <link rel="modulepreload" href="assets/vendor/three.core.min.js" />
     <link
@@ -709,7 +709,7 @@
         else window.addEventListener("load", finishHangarReturn, { once: true });
       }
     </script>
-    <script src="script.js?v=jarvis-108"></script>
+    <script src="script.js?v=jarvis-109"></script>
     <script type="module">
       var glassesScene = document.getElementById("glasses");
       var glassesViewport = glassesScene && glassesScene.querySelector(".viewport");
@@ -756,7 +756,7 @@
         if (glassesModuleRequested) return Promise.resolve();
         glassesModuleRequested = true;
         if (glassesViewport) glassesViewport.classList.add("glasses-webgl-loading");
-        return import("./glasses-product.js?v=jarvis-89").then(function () {
+        return import("./glasses-product.js?v=jarvis-90").then(function () {
           preloadRoot.classList.add("optics-initialized");
           window.dispatchEvent(new CustomEvent("optics:ready"));
           glassesLoadComplete = true;

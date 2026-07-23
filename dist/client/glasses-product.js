@@ -12,7 +12,10 @@ if (canvas && viewport) {
   // blocky. Phones render at one CSS pixel; desktops keep a crisp 1.5x cap.
   const leanPerformance = phonePerformance || safariPerformance;
   const renderPixelRatio = phonePerformance ? 1 : 1.5;
-  const renderPixelBudget = phonePerformance ? 1600000 : safariPerformance ? 1900000 : 3200000;
+  // Safari 26.2 composites WebGL on the main thread while a sticky ancestor is
+  // scrolling. Keeping that path near one physical megapixel costs half the
+  // fill-rate of the old 1.9 MP buffer while remaining CSS-pixel sharp.
+  const renderPixelBudget = phonePerformance ? 1250000 : safariPerformance ? 1150000 : 3200000;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0c0f12);
   scene.fog = leanPerformance ? null : new THREE.FogExp2(0x0c0f12, 0.021);
@@ -800,7 +803,7 @@ if (canvas && viewport) {
   let sceneStart = 0;
   let sceneRunway = 1;
   const needsFrameFallback = phonePerformance || safariPerformance;
-  const frameFallbackDelay = safariPerformance ? 42 : 52;
+  const frameFallbackDelay = safariPerformance ? 24 : 42;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const motionKeys = ["explode", "fold", "orbit", "turn", "dive"];
   const motionState = {
@@ -835,17 +838,10 @@ if (canvas && viewport) {
     sceneRunway = Math.max(1, rect.height - window.innerHeight);
   };
 
-  const readLiveTargetState = () => {
+  const readLiveTimeline = () => {
     if (typeof window.glassesTimelineAt !== "function") return null;
     const progress = clamp01((window.scrollY - sceneStart) / sceneRunway);
-    const state = window.glassesTimelineAt(progress);
-    return {
-      explode: state.explode,
-      fold: state.fold,
-      orbit: state.orbit,
-      turn: state.turn,
-      dive: state.dive,
-    };
+    return window.glassesTimelineAt(progress);
   };
 
   const resize = () => {
@@ -871,16 +867,12 @@ if (canvas && viewport) {
   };
 
   const scheduleRender = () => {
-    // Sticky elements are reported inconsistently by IntersectionObserver in
-    // some iOS/WebKit builds. The scrub engine's active-scene marker is the
-    // reliable source while scrolling, with geometry as an initial fallback.
-    const activeScene = document.body.dataset.activeScene;
-    if (activeScene) {
-      isVisible = activeScene === "glasses";
-    } else {
-      const viewportRect = viewport.getBoundingClientRect();
-      isVisible = viewportRect.bottom > 0 && viewportRect.top < window.innerHeight;
-    }
+    // Use the cached scene runway instead of the page-wide active-scene marker.
+    // Optics is already visible during its Hangar crossfade, before the
+    // midpoint marker switches, and should be rendering throughout that handoff.
+    isVisible =
+      window.scrollY > sceneStart - window.innerHeight * 1.1 &&
+      window.scrollY < sceneStart + sceneRunway + window.innerHeight * 1.1;
     if (!frameHandle && isVisible && !document.hidden) {
       frameHandle = requestAnimationFrame(render);
       // Safari can defer animation callbacks during momentum scrolling or
@@ -909,15 +901,21 @@ if (canvas && viewport) {
     // back to one computed-style read only for the model's initial frame.
     const inlineStyles = viewport.style;
     const styles = inlineStyles.getPropertyValue("--orbit") ? inlineStyles : getComputedStyle(viewport);
-    const liveTargetState = force ? null : readLiveTargetState();
-    const targetState = liveTargetState || {
+    const liveTimeline = force ? null : readLiveTimeline();
+    const targetState = liveTimeline ? {
+      explode: liveTimeline.explode,
+      fold: liveTimeline.fold,
+      orbit: liveTimeline.orbit,
+      turn: liveTimeline.turn,
+      dive: liveTimeline.dive,
+    } : {
       explode: reducedMotion ? 0 : readVar(styles, "--explode"),
       fold: reducedMotion ? 0 : readVar(styles, "--fold"),
       orbit: reducedMotion ? 1 : readVar(styles, "--orbit"),
       turn: reducedMotion ? 1 : readVar(styles, "--turn"),
       dive: reducedMotion ? 0 : readVar(styles, "--dive"),
     };
-    if (reducedMotion && liveTargetState) {
+    if (reducedMotion && liveTimeline) {
       targetState.explode = 0;
       targetState.fold = 0;
       targetState.orbit = 1;
@@ -944,6 +942,18 @@ if (canvas && viewport) {
     const motionSettled = motionKeys.every(
       (keyName) => Math.abs(targetState[keyName] - motionState[keyName]) < motionEpsilon
     );
+
+    // Keep the DOM transition and the 3D pose on the same live scroll sample.
+    // The page-wide scrubber remains as a fallback, but these compositor-safe
+    // values no longer wait for a separately throttled Safari scroll callback.
+    if (liveTimeline) {
+      viewport.style.setProperty("--feed", liveTimeline.feed.toFixed(4));
+      viewport.style.setProperty("--portal", liveTimeline.portal.toFixed(4));
+      viewport.style.setProperty("--hud", liveTimeline.hud.toFixed(4));
+      viewport.style.setProperty("--status-product", liveTimeline.statusProduct.toFixed(4));
+      viewport.style.setProperty("--status-exploded", liveTimeline.statusExploded.toFixed(4));
+      viewport.style.setProperty("--status-complete", liveTimeline.statusComplete.toFixed(4));
+    }
 
     // The folded temples remain legible through the tinted prescription glass
     // in the opening product shot, then the lenses settle to their deeper
@@ -1073,13 +1083,16 @@ if (canvas && viewport) {
   render(performance.now(), true);
   viewport.dataset.glassesPrewarm = "complete";
   window.addEventListener("resize", resize, { passive: true });
-  window.addEventListener("scroll", () => {
+  const wakeScrollRenderer = () => {
     // Continue sampling compositor-owned scroll position between coalesced
     // Safari events. This prevents a single delayed event from becoming a
     // visible jump even during momentum scrolling or screen recording.
-    scrollWakeUntil = performance.now() + 500;
+    scrollWakeUntil = performance.now() + 800;
     scheduleRender();
-  }, { passive: true });
+  };
+  window.addEventListener("scroll", wakeScrollRenderer, { passive: true });
+  window.addEventListener("wheel", wakeScrollRenderer, { passive: true });
+  window.addEventListener("touchmove", wakeScrollRenderer, { passive: true });
   window.addEventListener("scene:sync", scheduleRender);
   window.addEventListener("site:ready", () => {
     measureScene();

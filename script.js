@@ -15,7 +15,7 @@
   var phonePerformance = window.matchMedia("(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)");
   var isPhonePerformance = phonePerformance.matches;
   var isSafariPerformance = /^((?!chrome|chromium|android).)*safari/i.test(navigator.userAgent);
-  var SCROLL_FALLBACK_DELAY = isSafariPerformance ? 32 : isPhonePerformance ? 42 : 90;
+  var SCROLL_FALLBACK_DELAY = isSafariPerformance ? 18 : isPhonePerformance ? 32 : 90;
   var MOBILE_FRAME_INTERVAL = 1000 / 30;
   var DPR = Math.min(window.devicePixelRatio || 1, isPhonePerformance ? 1 : 2);
   var pageVisible = !document.hidden;
@@ -170,6 +170,44 @@
   var frontJourney = document.querySelector("[data-front-journey]");
   var frontJourneyProgress = 0;
   var phoneTimeline = window.matchMedia("(max-width: 760px), (orientation: landscape) and (max-height: 500px)");
+  var scrollGeometry = new WeakMap();
+
+  // Every scroll-scrub scene has a fixed document position and height. Cache
+  // those values outside the hot path so each Safari wheel frame does not
+  // alternate CSS writes with page-wide getBoundingClientRect() reads. That
+  // forced-layout pattern was the main source of 100–280 ms gaps in Optics.
+  function measureScrollGeometry() {
+    var scrollTop = window.scrollY;
+    var measured = allScenes.slice();
+    if (frontJourney) measured.push(frontJourney);
+    if (projectsSlot) measured.push(projectsSlot);
+    measured.forEach(function (element) {
+      if (!element) return;
+      var rect = element.getBoundingClientRect();
+      scrollGeometry.set(element, {
+        top: scrollTop + rect.top,
+        height: rect.height,
+      });
+    });
+  }
+
+  function scrollRect(element) {
+    var geometry = scrollGeometry.get(element);
+    if (!geometry) {
+      var liveRect = element.getBoundingClientRect();
+      geometry = {
+        top: window.scrollY + liveRect.top,
+        height: liveRect.height,
+      };
+      scrollGeometry.set(element, geometry);
+    }
+    var top = geometry.top - window.scrollY;
+    return {
+      top: top,
+      bottom: top + geometry.height,
+      height: geometry.height,
+    };
+  }
 
   var cityViewport = document.querySelector("#city .viewport");
   var cityFlightVideo = document.querySelector(".city-flight-video");
@@ -268,57 +306,60 @@
   function onScroll() {
     var vh = window.innerHeight;
     var doc = document.documentElement;
-    var frontRect = frontJourney ? frontJourney.getBoundingClientRect() : null;
+    var frontRect = frontJourney ? scrollRect(frontJourney) : null;
     if (frontRect) {
       var frontRunway = Math.max(1, frontRect.height - vh);
       frontJourneyProgress = clamp01(-frontRect.top / frontRunway);
-      frontJourney.classList.toggle("is-engaged", frontJourneyProgress > 0.006);
-      // Lower the retired opening stack as soon as the Reel gesture begins.
-      // The incoming Hangar can then cover the exact area Reels vacates.
-      frontJourney.classList.toggle("is-hangar-active", frontJourneyProgress >= 0.924);
-      // The opening globe keeps its existing physical scroll duration even
-      // though the later city and Instagram phases receive a longer runway.
-      var globeMorphP = clamp01(frontJourneyProgress / 0.117);
-      var globeRevealP = smoother((frontJourneyProgress - 0.091) / 0.052);
-      globeP = smoother((frontJourneyProgress - 0.143) / 0.247);
-      var globeExitP = smoother((frontJourneyProgress - 0.39) / 0.052);
-      if (cityViewport) {
-        var cityLayerEnter = smoother((frontJourneyProgress - 0.026) / 0.078);
-        var cityLayerExit = smoother((frontJourneyProgress - 0.62) / 0.08);
-        cityViewport.style.setProperty(
-          "--front-scene-opacity",
-          (cityLayerEnter * (1 - cityLayerExit)).toFixed(4)
-        );
-        cityViewport.style.setProperty("--globe-morph", globeMorphP.toFixed(4));
-        cityViewport.style.setProperty("--globe-reveal", globeRevealP.toFixed(4));
-        cityViewport.style.setProperty("--globe-orbit", globeP.toFixed(4));
-        cityViewport.style.setProperty("--globe-exit", globeExitP.toFixed(4));
-      }
-      if (broadcastViewport) {
-        broadcastViewport.style.setProperty(
-          "--front-scene-opacity",
-          smoother((frontJourneyProgress - 0.62) / 0.08).toFixed(4)
-        );
-        // The feed stays still for a full beat, then responds linearly from the
-        // first scroll delta. Both viewport-sized panels use the same pixel
-        // measurement so their edges remain joined like adjacent Reels.
-        var reelsPageSwipe = clamp01((frontJourneyProgress - 0.924) / 0.075);
-        broadcastViewport.style.setProperty(
-          "--reels-page-offset",
-          (-vh * reelsPageSwipe).toFixed(2) + "px"
-        );
-        if (projectsScene) {
-          projectsScene.style.setProperty(
-            "--hangar-page-offset",
-            (vh * (1 - reelsPageSwipe)).toFixed(2) + "px"
+      var frontJourneyNear = frontRect.bottom > -vh * 0.5 && frontRect.top < vh * 1.5;
+      if (frontJourneyNear) {
+        frontJourney.classList.toggle("is-engaged", frontJourneyProgress > 0.006);
+        // Lower the retired opening stack as soon as the Reel gesture begins.
+        // The incoming Hangar can then cover the exact area Reels vacates.
+        frontJourney.classList.toggle("is-hangar-active", frontJourneyProgress >= 0.924);
+        // The opening globe keeps its existing physical scroll duration even
+        // though the later city and Instagram phases receive a longer runway.
+        var globeMorphP = clamp01(frontJourneyProgress / 0.117);
+        var globeRevealP = smoother((frontJourneyProgress - 0.091) / 0.052);
+        globeP = smoother((frontJourneyProgress - 0.143) / 0.247);
+        var globeExitP = smoother((frontJourneyProgress - 0.39) / 0.052);
+        if (cityViewport) {
+          var cityLayerEnter = smoother((frontJourneyProgress - 0.026) / 0.078);
+          var cityLayerExit = smoother((frontJourneyProgress - 0.62) / 0.08);
+          cityViewport.style.setProperty(
+            "--front-scene-opacity",
+            (cityLayerEnter * (1 - cityLayerExit)).toFixed(4)
           );
-          if (frontJourneyProgress < 1) {
-            projectsScene.style.setProperty("--hangar-dismiss", "0");
+          cityViewport.style.setProperty("--globe-morph", globeMorphP.toFixed(4));
+          cityViewport.style.setProperty("--globe-reveal", globeRevealP.toFixed(4));
+          cityViewport.style.setProperty("--globe-orbit", globeP.toFixed(4));
+          cityViewport.style.setProperty("--globe-exit", globeExitP.toFixed(4));
+        }
+        if (broadcastViewport) {
+          broadcastViewport.style.setProperty(
+            "--front-scene-opacity",
+            smoother((frontJourneyProgress - 0.62) / 0.08).toFixed(4)
+          );
+          // The feed stays still for a full beat, then responds linearly from the
+          // first scroll delta. Both viewport-sized panels use the same pixel
+          // measurement so their edges remain joined like adjacent Reels.
+          var reelsPageSwipe = clamp01((frontJourneyProgress - 0.924) / 0.075);
+          broadcastViewport.style.setProperty(
+            "--reels-page-offset",
+            (-vh * reelsPageSwipe).toFixed(2) + "px"
+          );
+          if (projectsScene) {
+            projectsScene.style.setProperty(
+              "--hangar-page-offset",
+              (vh * (1 - reelsPageSwipe)).toFixed(2) + "px"
+            );
+            if (frontJourneyProgress < 1) {
+              projectsScene.style.setProperty("--hangar-dismiss", "0");
+            }
+            projectsScene.classList.toggle(
+              "is-front-pinned",
+              frontJourneyProgress >= 0.92 && frontJourneyProgress < 1
+            );
           }
-          projectsScene.classList.toggle(
-            "is-front-pinned",
-            frontJourneyProgress >= 0.92 && frontJourneyProgress < 1
-          );
         }
       }
     }
@@ -327,7 +368,7 @@
     var projectHandoffActive = false;
     var hangarOpticsReveal = 0;
     if (projectsScene && projectsSlot && !projectsScene.classList.contains("is-front-pinned")) {
-      var projectsRect = projectsSlot.getBoundingClientRect();
+      var projectsRect = scrollRect(projectsSlot);
       var projectsRunway = Math.max(1, projectsRect.height - vh);
       projectsProgress = clamp01(-projectsRect.top / projectsRunway);
       projectHandoffActive = projectsRect.top <= 0 && projectsProgress < 1;
@@ -342,7 +383,7 @@
 
     scrubScenes.forEach(function (scene) {
       var inFrontJourney = frontJourney && scene.parentElement === frontJourney;
-      var rect = inFrontJourney && frontRect ? frontRect : scene.getBoundingClientRect();
+      var rect = inFrontJourney && frontRect ? frontRect : scrollRect(scene);
       var nearScene = rect.bottom > -vh * 0.5 && rect.top < vh * 1.5;
       if (!nearScene) {
         if (scene.id === "city" && cityFlightVideo && !cityFlightVideo.paused) {
@@ -440,7 +481,10 @@
     var mid = vh * 0.5;
     var active = null;
     allScenes.forEach(function (scene) {
-      var r = scene.getBoundingClientRect();
+      // The Hangar section itself changes from fixed to sticky during the Reel
+      // handoff; its stable slot is the authoritative document-space range.
+      var activeElement = scene === projectsScene && projectsSlot ? projectsSlot : scene;
+      var r = scrollRect(activeElement);
       if (r.top <= mid && r.bottom >= mid) active = scene.dataset.scene;
     });
     if (frontRect && frontRect.top <= mid && frontRect.bottom >= mid) {
@@ -484,9 +528,19 @@
     },
     { passive: true }
   );
-  window.addEventListener("resize", onScroll);
-  window.addEventListener("pageshow", onScroll);
+  window.addEventListener("resize", function () {
+    measureScrollGeometry();
+    onScroll();
+  });
+  window.addEventListener("pageshow", function () {
+    measureScrollGeometry();
+    onScroll();
+  });
   window.addEventListener("optics:ready", onScroll);
+  window.addEventListener("site:ready", function () {
+    measureScrollGeometry();
+    onScroll();
+  });
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden) onScroll();
   });
@@ -3483,5 +3537,6 @@
     });
   }
 
+  measureScrollGeometry();
   onScroll();
 })();
