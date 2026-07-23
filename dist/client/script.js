@@ -543,6 +543,15 @@
         // Folded hero, quarter-turn to the left profile, exploded orbit,
         // precision reassembly, then a right-lens glide into Socials.
         var glassesState = glassesTimelineAt(opticsProgress);
+        if (contactViewport) {
+          // The display is visible only as the model reaches the wearer-facing
+          // angle. It then stays inside the right lens until the final camera
+          // dive expands that same surface into the Socials scene.
+          var wearerScreen = smoother((glassesState.turn - 0.18) / 0.62);
+          var socialsExpand = smoother((p - 0.82) / 0.145);
+          contactViewport.style.setProperty("--lens-screen", wearerScreen.toFixed(4));
+          contactViewport.style.setProperty("--socials-expand", socialsExpand.toFixed(4));
+        }
         // Once Three.js owns the product, these five CSS variables only drive
         // the hidden SVG fallback. Stop invalidating that large filtered tree
         // on every scroll sample; the WebGL renderer reads the same timeline
@@ -584,10 +593,6 @@
         else broadcastViewport.removeAttribute("data-feed");
       }
       if (scene.id === "contact" && contactViewport) {
-        contactViewport.style.setProperty("--stars-in", smoother(p / 0.24).toFixed(4));
-        // Bring the interface up with the full-frame blend so the transition
-        // never pauses on an empty dark destination.
-        contactViewport.style.setProperty("--socials-in", smoother(p / 0.16).toFixed(4));
         scene.classList.toggle("is-contact-active", rect.top <= 1 && rect.bottom > 1);
       }
     });

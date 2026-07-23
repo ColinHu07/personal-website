@@ -2863,20 +2863,22 @@ main > .scene + .scene { margin-top: -1px; }
 #contact {
   --stars-in: 0;
   --socials-in: 0;
+  --lens-screen: 0;
+  --socials-expand: 0;
   z-index: 7;
   position: relative;
   /* Socials reaches the viewport while the camera is filling the right lens,
      so the lens itself becomes the portal instead of opening a poker HUD. */
-  margin-top: -188vh;
-  margin-top: -188dvh;
+  margin-top: -226vh;
+  margin-top: -226dvh;
   overflow: visible;
   background: transparent;
   text-align: center;
 }
 
 #contact.scene.scrub {
-  height: 220vh;
-  height: 220dvh;
+  height: 340vh;
+  height: 340dvh;
 }
 
 #contact .contact-viewport {
@@ -2891,14 +2893,14 @@ main > .scene + .scene { margin-top: -1px; }
      the waveguide silhouette, then expand to the viewport corners as the
      WebGL camera completes its dive. */
   clip-path: polygon(
-    calc(48% - var(--stars-in, 0) * 48%) calc(24% - var(--stars-in, 0) * 24%),
-    calc(76% + var(--stars-in, 0) * 24%) calc(20% - var(--stars-in, 0) * 20%),
-    calc(82% + var(--stars-in, 0) * 18%) calc(28% - var(--stars-in, 0) * 28%),
-    calc(80% + var(--stars-in, 0) * 20%) calc(65% + var(--stars-in, 0) * 35%),
-    calc(72% + var(--stars-in, 0) * 28%) calc(73% + var(--stars-in, 0) * 27%),
-    calc(50% - var(--stars-in, 0) * 50%) calc(69% + var(--stars-in, 0) * 31%),
-    calc(44% - var(--stars-in, 0) * 44%) calc(60% + var(--stars-in, 0) * 40%),
-    calc(43% - var(--stars-in, 0) * 43%) calc(34% - var(--stars-in, 0) * 34%)
+    calc(48% - var(--socials-expand, 0) * 48%) calc(24% - var(--socials-expand, 0) * 24%),
+    calc(76% + var(--socials-expand, 0) * 24%) calc(20% - var(--socials-expand, 0) * 20%),
+    calc(82% + var(--socials-expand, 0) * 18%) calc(28% - var(--socials-expand, 0) * 28%),
+    calc(80% + var(--socials-expand, 0) * 20%) calc(65% + var(--socials-expand, 0) * 35%),
+    calc(72% + var(--socials-expand, 0) * 28%) calc(73% + var(--socials-expand, 0) * 27%),
+    calc(50% - var(--socials-expand, 0) * 50%) calc(69% + var(--socials-expand, 0) * 31%),
+    calc(44% - var(--socials-expand, 0) * 44%) calc(60% + var(--socials-expand, 0) * 40%),
+    calc(43% - var(--socials-expand, 0) * 43%) calc(34% - var(--socials-expand, 0) * 34%)
   );
   transform: none;
   will-change: opacity, clip-path;
@@ -2907,7 +2909,20 @@ main > .scene + .scene { margin-top: -1px; }
 
 #contact.is-contact-active .contact-viewport {
   visibility: visible;
-  opacity: var(--socials-in, 0);
+  opacity: var(--lens-screen, 0);
+}
+
+#contact .contact-viewport::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background:
+    linear-gradient(112deg, transparent 24%, rgba(151, 230, 255, 0.16) 47%, transparent 68%),
+    repeating-linear-gradient(180deg, rgba(174, 235, 255, 0.045) 0 1px, transparent 1px 4px);
+  mix-blend-mode: screen;
+  opacity: calc((1 - var(--socials-expand, 0)) * 0.34);
 }
 
 /* transmission-grid background: radar sweep + signal constellation */
@@ -2926,12 +2941,15 @@ main > .scene + .scene { margin-top: -1px; }
   z-index: 2;
   transform:
     translate3d(
-      calc((1 - var(--stars-in, 0)) * 13vw),
-      calc((1 - var(--stars-in, 0)) * 9vh),
+      calc((1 - var(--socials-expand, 0)) * 13vw),
+      calc((1 - var(--socials-expand, 0)) * 9vh),
       0
     )
-    scale(calc(0.52 + var(--stars-in, 0) * 0.48));
+    scale(calc(0.52 + var(--socials-expand, 0) * 0.48))
+    rotateY(calc((1 - var(--lens-screen, 0)) * -10deg))
+    rotateZ(calc((1 - var(--lens-screen, 0)) * -1.5deg));
   transform-origin: 50% 42%;
+  transform-style: preserve-3d;
   will-change: transform;
 }
 
@@ -3113,8 +3131,8 @@ main > .scene + .scene { margin-top: -1px; }
     margin-top: 0;
   }
   #contact {
-    margin-top: -173vh;
-    margin-top: -173dvh;
+    margin-top: -204vh;
+    margin-top: -204dvh;
   }
   @supports (height: 100dvh) {
     .scene.scrub .viewport { height: 100dvh; }
@@ -3437,8 +3455,8 @@ main > .scene + .scene { margin-top: -1px; }
     margin-top: 0;
   }
   #contact {
-    margin-top: -173vh;
-    margin-top: -173dvh;
+    margin-top: -204vh;
+    margin-top: -204dvh;
   }
 
   .optics-entry,
