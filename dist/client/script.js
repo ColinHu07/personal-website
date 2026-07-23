@@ -440,17 +440,34 @@
         // Folded hero, quarter-turn to the left profile, exploded orbit,
         // precision reassembly, then one wearer-side right-lens camera glide.
         var glassesState = glassesTimelineAt(opticsProgress);
-        glassesViewport.style.setProperty("--fold", glassesState.fold.toFixed(4));
-        glassesViewport.style.setProperty("--explode", glassesState.explode.toFixed(4));
-        glassesViewport.style.setProperty("--orbit", glassesState.orbit.toFixed(4));
-        glassesViewport.style.setProperty("--turn", glassesState.turn.toFixed(4));
-        glassesViewport.style.setProperty("--dive", glassesState.dive.toFixed(4));
+        // Once Three.js owns the product, these five CSS variables only drive
+        // the hidden SVG fallback. Stop invalidating that large filtered tree
+        // on every scroll sample; the WebGL renderer reads the same timeline
+        // directly. Keep writing them only while the fallback is visible.
+        var glassesWebglReady = glassesViewport.classList.contains("glasses-webgl-ready");
+        if (!glassesWebglReady) {
+          glassesViewport.style.setProperty("--fold", glassesState.fold.toFixed(4));
+          glassesViewport.style.setProperty("--explode", glassesState.explode.toFixed(4));
+          glassesViewport.style.setProperty("--orbit", glassesState.orbit.toFixed(4));
+          glassesViewport.style.setProperty("--turn", glassesState.turn.toFixed(4));
+          glassesViewport.style.setProperty("--dive", glassesState.dive.toFixed(4));
+        }
         glassesViewport.style.setProperty("--feed", glassesState.feed.toFixed(4));
         glassesViewport.style.setProperty("--portal", glassesState.portal.toFixed(4));
         glassesViewport.style.setProperty("--hud", glassesState.hud.toFixed(4));
         glassesViewport.style.setProperty("--status-product", glassesState.statusProduct.toFixed(4));
         glassesViewport.style.setProperty("--status-exploded", glassesState.statusExploded.toFixed(4));
         glassesViewport.style.setProperty("--status-complete", glassesState.statusComplete.toFixed(4));
+        if (opticsReady && glassesState.feed > 0.001) {
+          glassesViewport.setAttribute("data-feed-active", "");
+        } else {
+          glassesViewport.removeAttribute("data-feed-active");
+        }
+        if (opticsReady && glassesState.feed > 0.985) {
+          glassesViewport.setAttribute("data-feed-complete", "");
+        } else {
+          glassesViewport.removeAttribute("data-feed-complete");
+        }
         var glassesExitStart = phoneTimeline.matches ? 0.86 : 0.92;
         glassesViewport.style.setProperty(
           "--scene-exit",

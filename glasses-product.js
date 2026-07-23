@@ -943,18 +943,6 @@ if (canvas && viewport) {
       (keyName) => Math.abs(targetState[keyName] - motionState[keyName]) < motionEpsilon
     );
 
-    // Keep the DOM transition and the 3D pose on the same live scroll sample.
-    // The page-wide scrubber remains as a fallback, but these compositor-safe
-    // values no longer wait for a separately throttled Safari scroll callback.
-    if (liveTimeline) {
-      viewport.style.setProperty("--feed", liveTimeline.feed.toFixed(4));
-      viewport.style.setProperty("--portal", liveTimeline.portal.toFixed(4));
-      viewport.style.setProperty("--hud", liveTimeline.hud.toFixed(4));
-      viewport.style.setProperty("--status-product", liveTimeline.statusProduct.toFixed(4));
-      viewport.style.setProperty("--status-exploded", liveTimeline.statusExploded.toFixed(4));
-      viewport.style.setProperty("--status-complete", liveTimeline.statusComplete.toFixed(4));
-    }
-
     // The folded temples remain legible through the tinted prescription glass
     // in the opening product shot, then the lenses settle to their deeper
     // finished tint as the arms open.
@@ -1037,8 +1025,11 @@ if (canvas && viewport) {
     camera.lookAt(cameraLookAt);
 
     shadow.material.opacity = 0.28 * (1 - diveAmount);
+    const canvasObscured = Boolean(liveTimeline && liveTimeline.feed >= 0.985 && motionSettled);
     try {
-      renderer.render(scene, camera);
+      // Once the wearer HUD is fully opaque there is no visible 3D surface to
+      // update. A reverse scroll schedules a fresh frame immediately.
+      if (!canvasObscured) renderer.render(scene, camera);
       if (!viewport.classList.contains("glasses-webgl-ready")) {
         viewport.classList.remove("glasses-webgl-loading", "glasses-webgl-failed");
         viewport.classList.add("glasses-webgl-ready");
@@ -1050,7 +1041,14 @@ if (canvas && viewport) {
     }
     // Keep drawing only while the rendered pose is catching up with the latest
     // scroll target. This restores fluid motion without an always-on GPU loop.
-    if (!force && !reducedMotion && (!motionSettled || time < scrollWakeUntil)) scheduleRender();
+    if (
+      !force &&
+      !reducedMotion &&
+      !canvasObscured &&
+      (!motionSettled || time < scrollWakeUntil)
+    ) {
+      scheduleRender();
+    }
   };
 
   viewport.dataset.glassesRenderProfile = phonePerformance ? "mobile" : leanPerformance ? "lite" : "full";
