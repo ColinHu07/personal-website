@@ -12,13 +12,14 @@ if (canvas && viewport) {
   // blocky. Phones render at one CSS pixel; desktops keep a crisp 1.5x cap.
   const leanPerformance = phonePerformance || safariPerformance;
   const renderPixelRatio = phonePerformance ? 1 : 1.5;
+  const renderPixelBudget = phonePerformance ? 1600000 : safariPerformance ? 1900000 : 3200000;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0c0f12);
   scene.fog = leanPerformance ? null : new THREE.FogExp2(0x0c0f12, 0.021);
 
   const renderer = new THREE.WebGLRenderer({
     canvas,
-    antialias: !phonePerformance,
+    antialias: !leanPerformance,
     alpha: false,
     powerPreference: "high-performance",
   });
@@ -795,7 +796,11 @@ if (canvas && viewport) {
   let frameHandle = 0;
   let fallbackTimer = 0;
   let lastRenderTime = 0;
+  let scrollWakeUntil = 0;
+  let sceneStart = 0;
+  let sceneRunway = 1;
   const needsFrameFallback = phonePerformance || safariPerformance;
+  const frameFallbackDelay = safariPerformance ? 42 : 52;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const motionKeys = ["explode", "fold", "orbit", "turn", "dive"];
   const motionState = {
@@ -822,6 +827,27 @@ if (canvas && viewport) {
     return clamp01(parseFloat(raw) || 0);
   };
 
+  const measureScene = () => {
+    const scene = viewport.closest(".scene");
+    if (!scene) return;
+    const rect = scene.getBoundingClientRect();
+    sceneStart = window.scrollY + rect.top;
+    sceneRunway = Math.max(1, rect.height - window.innerHeight);
+  };
+
+  const readLiveTargetState = () => {
+    if (typeof window.glassesTimelineAt !== "function") return null;
+    const progress = clamp01((window.scrollY - sceneStart) / sceneRunway);
+    const state = window.glassesTimelineAt(progress);
+    return {
+      explode: state.explode,
+      fold: state.fold,
+      orbit: state.orbit,
+      turn: state.turn,
+      dive: state.dive,
+    };
+  };
+
   const resize = () => {
     const width = Math.max(1, canvas.clientWidth);
     const height = Math.max(1, canvas.clientHeight);
@@ -834,7 +860,13 @@ if (canvas && viewport) {
     baseCameraDistance = Math.max(18, verticalDistance, horizontalDistance);
     camera.aspect = aspect;
     camera.updateProjectionMatrix();
+    // Bound fill-rate by actual canvas area. Large Retina windows otherwise
+    // create a multi-megapixel WebGL buffer on every scroll frame; this keeps
+    // the desktop result crisp while holding Safari's lean profile near 1.9 MP.
+    const areaRatio = Math.sqrt(renderPixelBudget / Math.max(1, width * height));
+    renderer.setPixelRatio(Math.min(devicePixelRatio, renderPixelRatio, areaRatio));
     renderer.setSize(width, height, false);
+    measureScene();
     scheduleRender();
   };
 
@@ -860,7 +892,7 @@ if (canvas && viewport) {
           if (frameHandle) cancelAnimationFrame(frameHandle);
           frameHandle = 0;
           render(performance.now());
-        }, 70);
+        }, frameFallbackDelay);
       }
     }
   };
@@ -877,13 +909,21 @@ if (canvas && viewport) {
     // back to one computed-style read only for the model's initial frame.
     const inlineStyles = viewport.style;
     const styles = inlineStyles.getPropertyValue("--orbit") ? inlineStyles : getComputedStyle(viewport);
-    const targetState = {
+    const liveTargetState = force ? null : readLiveTargetState();
+    const targetState = liveTargetState || {
       explode: reducedMotion ? 0 : readVar(styles, "--explode"),
       fold: reducedMotion ? 0 : readVar(styles, "--fold"),
       orbit: reducedMotion ? 1 : readVar(styles, "--orbit"),
       turn: reducedMotion ? 1 : readVar(styles, "--turn"),
       dive: reducedMotion ? 0 : readVar(styles, "--dive"),
     };
+    if (reducedMotion && liveTargetState) {
+      targetState.explode = 0;
+      targetState.fold = 0;
+      targetState.orbit = 1;
+      targetState.turn = 1;
+      targetState.dive = 0;
+    }
     const elapsedSeconds = lastRenderTime
       ? Math.min(0.064, Math.max(0, (time - lastRenderTime) / 1000))
       : 1 / 60;
@@ -969,10 +1009,13 @@ if (canvas && viewport) {
     product.rotation.z = mix(Math.sin(orbitAmount * Math.PI * 2) * 0.028, -0.04, wearerTurn);
     product.position.x = mix(0, -0.12, wearerTurn);
     product.position.y = mix(0.25, 2.1, wearerTurn);
-    product.updateMatrixWorld(true);
+    // Product is a direct child of the identity scene, so its local matrix is
+    // also its world matrix. Updating only this matrix avoids walking the full
+    // glasses hierarchy here and then walking it again inside renderer.render.
+    product.updateMatrix();
 
     tmpTarget.copy(rightLensCenter);
-    product.localToWorld(tmpTarget);
+    tmpTarget.applyMatrix4(product.matrix);
     baseCamera.set(0, 0.2, baseCameraDistance + wearerTurn * (1 - diveAmount) * 3.2);
     targetCamera.set(tmpTarget.x, tmpTarget.y, tmpTarget.z + 0.38);
     camera.position.lerpVectors(baseCamera, targetCamera, diveAmount);
@@ -997,7 +1040,7 @@ if (canvas && viewport) {
     }
     // Keep drawing only while the rendered pose is catching up with the latest
     // scroll target. This restores fluid motion without an always-on GPU loop.
-    if (!force && !reducedMotion && !motionSettled) scheduleRender();
+    if (!force && !reducedMotion && (!motionSettled || time < scrollWakeUntil)) scheduleRender();
   };
 
   viewport.dataset.glassesRenderProfile = phonePerformance ? "mobile" : leanPerformance ? "lite" : "full";
@@ -1030,9 +1073,22 @@ if (canvas && viewport) {
   render(performance.now(), true);
   viewport.dataset.glassesPrewarm = "complete";
   window.addEventListener("resize", resize, { passive: true });
-  window.addEventListener("scroll", scheduleRender, { passive: true });
+  window.addEventListener("scroll", () => {
+    // Continue sampling compositor-owned scroll position between coalesced
+    // Safari events. This prevents a single delayed event from becoming a
+    // visible jump even during momentum scrolling or screen recording.
+    scrollWakeUntil = performance.now() + 500;
+    scheduleRender();
+  }, { passive: true });
   window.addEventListener("scene:sync", scheduleRender);
-  window.addEventListener("pageshow", scheduleRender);
+  window.addEventListener("site:ready", () => {
+    measureScene();
+    scheduleRender();
+  });
+  window.addEventListener("pageshow", () => {
+    measureScene();
+    scheduleRender();
+  });
 
   canvas.addEventListener("webglcontextlost", (event) => {
     event.preventDefault();

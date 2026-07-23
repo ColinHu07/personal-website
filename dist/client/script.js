@@ -15,7 +15,7 @@
   var phonePerformance = window.matchMedia("(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)");
   var isPhonePerformance = phonePerformance.matches;
   var isSafariPerformance = /^((?!chrome|chromium|android).)*safari/i.test(navigator.userAgent);
-  var SCROLL_FALLBACK_DELAY = isPhonePerformance || isSafariPerformance ? 48 : 90;
+  var SCROLL_FALLBACK_DELAY = isSafariPerformance ? 32 : isPhonePerformance ? 42 : 90;
   var MOBILE_FRAME_INTERVAL = 1000 / 30;
   var DPR = Math.min(window.devicePixelRatio || 1, isPhonePerformance ? 1 : 2);
   var pageVisible = !document.hidden;
@@ -50,6 +50,48 @@
   function lerp(a, b, t) {
     return a + (b - a) * t;
   }
+
+  // Keep the complete product choreography in one pure timeline function.
+  // The CSS scrub layer and the WebGL renderer both consume this state, so the
+  // model can sample the current scroll position every animation frame instead
+  // of waiting for a throttled style update from the page-wide scroll handler.
+  function glassesTimelineAt(progress) {
+    var p = clamp01(progress);
+    var templeFold = 1 - smooth(clamp01((p - 0.03) / 0.18));
+    var explode = 0;
+    if (p >= 0.2 && p < 0.31) {
+      explode = smooth((p - 0.2) / 0.11);
+    } else if (p >= 0.31 && p < 0.53) {
+      explode = 1;
+    } else if (p >= 0.53 && p < 0.7) {
+      explode = 1 - smooth((p - 0.53) / 0.17);
+    }
+
+    var productOrbit =
+      p < 0.22
+        ? 0.25 * smooth(clamp01((p - 0.03) / 0.19))
+        : 0.25 + 0.75 * smooth(clamp01((p - 0.22) / 0.48));
+
+    return {
+      fold: templeFold,
+      explode: explode,
+      orbit: productOrbit,
+      turn: smoother((p - 0.56) / 0.24),
+      dive: smoother((p - 0.6) / 0.27),
+      feed: smoother((p - 0.72) / 0.15),
+      portal: smoother((p - 0.75) / 0.14),
+      hud: smoother((p - 0.79) / 0.12),
+      statusProduct: 1 - smooth(clamp01(p / 0.08)),
+      statusExploded:
+        smooth(clamp01((p - 0.17) / 0.08)) *
+        (1 - smooth(clamp01((p - 0.57) / 0.11))),
+      statusComplete:
+        smooth(clamp01((p - 0.65) / 0.08)) *
+        (1 - smooth(clamp01((p - 0.86) / 0.07))),
+    };
+  }
+
+  window.glassesTimelineAt = glassesTimelineAt;
 
   function isInView(el) {
     if (!el) return false;
@@ -313,51 +355,18 @@
       if (scene.id === "glasses" && glassesViewport) {
         // Folded hero, quarter-turn to the left profile, exploded orbit,
         // precision reassembly, then one wearer-side right-lens camera glide.
-        var templeFold = 1 - smooth(clamp01((p - 0.03) / 0.18));
-        var explode = 0;
-        if (p < 0.2) {
-          explode = 0;
-        } else if (p < 0.31) {
-          explode = smooth((p - 0.2) / 0.11);
-        } else if (p < 0.53) {
-          explode = 1;
-        } else if (p < 0.7) {
-          explode = 1 - smooth((p - 0.53) / 0.17);
-        }
-
-        var productOrbit =
-          p < 0.22
-            ? 0.25 * smooth(clamp01((p - 0.03) / 0.19))
-            : 0.25 + 0.75 * smooth(clamp01((p - 0.22) / 0.48));
-        // The wearer-side rotation and camera approach deliberately overlap:
-        // the right lens remains the camera target throughout one continuous glide.
-        var productTurn = smoother((p - 0.56) / 0.24);
-        var lensDive = smoother((p - 0.6) / 0.27);
-        // Give the live feed a substantial scroll runway: it appears through
-        // the waveguide, clears its optical bloom, reaches full focus, and then
-        // holds long enough to read before the Socials handoff begins.
-        var lensFeed = smoother((p - 0.72) / 0.15);
-        var lensPortal = smoother((p - 0.75) / 0.14);
-        var lensHud = smoother((p - 0.79) / 0.12);
-        var statusProduct = 1 - smooth(clamp01(p / 0.08));
-        var statusExploded =
-          smooth(clamp01((p - 0.17) / 0.08)) *
-          (1 - smooth(clamp01((p - 0.57) / 0.11)));
-        var statusComplete =
-          smooth(clamp01((p - 0.65) / 0.08)) *
-          (1 - smooth(clamp01((p - 0.86) / 0.07)));
-
-        glassesViewport.style.setProperty("--fold", templeFold.toFixed(4));
-        glassesViewport.style.setProperty("--explode", explode.toFixed(4));
-        glassesViewport.style.setProperty("--orbit", productOrbit.toFixed(4));
-        glassesViewport.style.setProperty("--turn", productTurn.toFixed(4));
-        glassesViewport.style.setProperty("--dive", lensDive.toFixed(4));
-        glassesViewport.style.setProperty("--feed", lensFeed.toFixed(4));
-        glassesViewport.style.setProperty("--portal", lensPortal.toFixed(4));
-        glassesViewport.style.setProperty("--hud", lensHud.toFixed(4));
-        glassesViewport.style.setProperty("--status-product", statusProduct.toFixed(4));
-        glassesViewport.style.setProperty("--status-exploded", statusExploded.toFixed(4));
-        glassesViewport.style.setProperty("--status-complete", statusComplete.toFixed(4));
+        var glassesState = glassesTimelineAt(p);
+        glassesViewport.style.setProperty("--fold", glassesState.fold.toFixed(4));
+        glassesViewport.style.setProperty("--explode", glassesState.explode.toFixed(4));
+        glassesViewport.style.setProperty("--orbit", glassesState.orbit.toFixed(4));
+        glassesViewport.style.setProperty("--turn", glassesState.turn.toFixed(4));
+        glassesViewport.style.setProperty("--dive", glassesState.dive.toFixed(4));
+        glassesViewport.style.setProperty("--feed", glassesState.feed.toFixed(4));
+        glassesViewport.style.setProperty("--portal", glassesState.portal.toFixed(4));
+        glassesViewport.style.setProperty("--hud", glassesState.hud.toFixed(4));
+        glassesViewport.style.setProperty("--status-product", glassesState.statusProduct.toFixed(4));
+        glassesViewport.style.setProperty("--status-exploded", glassesState.statusExploded.toFixed(4));
+        glassesViewport.style.setProperty("--status-complete", glassesState.statusComplete.toFixed(4));
         var glassesExitStart = phoneTimeline.matches ? 0.9 : 0.96;
         glassesViewport.style.setProperty("--scene-exit", smoother((p - glassesExitStart) / (1 - glassesExitStart)).toFixed(4));
 
