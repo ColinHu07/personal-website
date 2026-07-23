@@ -2887,19 +2887,27 @@ main > .scene + .scene { margin-top: -1px; }
   background:
     radial-gradient(ellipse 55% 45% at 50% 100%, rgba(23, 68, 105, 0.45), transparent 70%),
     #030507;
-  /* The lens already fills the frame in WebGL. Fade the complete destination
-     over it instead of revealing a separately clipped dark ellipse. */
-  clip-path: none;
-  transform: translate3d(0, calc((1 - var(--stars-in, 0)) * 1.5vh), 0)
-    scale(calc(0.985 + var(--stars-in, 0) * 0.015));
-  transform-origin: 50% 50%;
-  will-change: opacity, transform;
+  /* Socials begins as the actual right-lens display. These eight points follow
+     the waveguide silhouette, then expand to the viewport corners as the
+     WebGL camera completes its dive. */
+  clip-path: polygon(
+    calc(48% - var(--stars-in, 0) * 48%) calc(24% - var(--stars-in, 0) * 24%),
+    calc(76% + var(--stars-in, 0) * 24%) calc(20% - var(--stars-in, 0) * 20%),
+    calc(82% + var(--stars-in, 0) * 18%) calc(28% - var(--stars-in, 0) * 28%),
+    calc(80% + var(--stars-in, 0) * 20%) calc(65% + var(--stars-in, 0) * 35%),
+    calc(72% + var(--stars-in, 0) * 28%) calc(73% + var(--stars-in, 0) * 27%),
+    calc(50% - var(--stars-in, 0) * 50%) calc(69% + var(--stars-in, 0) * 31%),
+    calc(44% - var(--stars-in, 0) * 44%) calc(60% + var(--stars-in, 0) * 40%),
+    calc(43% - var(--stars-in, 0) * 43%) calc(34% - var(--stars-in, 0) * 34%)
+  );
+  transform: none;
+  will-change: opacity, clip-path;
   transition: none;
 }
 
 #contact.is-contact-active .contact-viewport {
   visibility: visible;
-  opacity: var(--stars-in, 0);
+  opacity: var(--socials-in, 0);
 }
 
 /* transmission-grid background: radar sweep + signal constellation */
@@ -2910,30 +2918,36 @@ main > .scene + .scene { margin-top: -1px; }
   height: 100%;
   z-index: 0;
   pointer-events: none;
-  opacity: var(--stars-in, 0);
-  will-change: opacity;
+  opacity: 1;
 }
-#contact .section-head,
-#contact .socials-grid,
-#contact .footer {
+
+#contact .socials-interface {
   position: relative;
   z-index: 2;
-  opacity: var(--socials-in, 0);
-  transform: translate3d(0, calc((1 - var(--socials-in, 0)) * 18px), 0);
-  filter: blur(calc((1 - var(--socials-in, 0)) * 6px));
-  will-change: opacity, transform, filter;
-  transition: none;
+  transform:
+    translate3d(
+      calc((1 - var(--stars-in, 0)) * 13vw),
+      calc((1 - var(--stars-in, 0)) * 9vh),
+      0
+    )
+    scale(calc(0.52 + var(--stars-in, 0) * 0.48));
+  transform-origin: 50% 42%;
+  will-change: transform;
 }
 
 #contact .section-head {
   margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
 }
 
+#contact .section-head,
+#contact .socials-grid,
+#contact .footer,
 #contact .section-head.reveal.visible,
 #contact .socials-grid.reveal.visible,
 #contact .footer.reveal.visible {
-  opacity: var(--socials-in, 0);
-  transform: translate3d(0, calc((1 - var(--socials-in, 0)) * 18px), 0);
+  opacity: 1;
+  transform: none;
+  filter: none;
 }
 
 .socials-grid {
