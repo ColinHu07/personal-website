@@ -8,6 +8,7 @@
     document.getElementById("dance-film-next")
   ].filter(Boolean);
   var poseDemo = document.getElementById("pose-demo");
+  var mediaStart = document.getElementById("media-start");
   var scrollFill = document.getElementById("scroll-fill");
   var storyTrack = document.querySelector(".story-track");
   var skipLink = document.querySelector(".skip-link");
@@ -53,6 +54,7 @@
   var switchingFilm = false;
   var frameRequested = false;
   var activeChapterName = "";
+  var mediaPrimed = false;
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
@@ -147,7 +149,7 @@
     if (!film || reducedMotion || document.hidden) return;
     var playAttempt = film.play();
     if (playAttempt && typeof playAttempt.catch === "function") {
-      playAttempt.catch(function () {});
+      playAttempt.then(updateMediaBlockedState).catch(updateMediaBlockedState);
     }
   }
 
@@ -161,13 +163,50 @@
     if (!poseDemo) return;
     if (reducedMotion || chapterName !== "system") {
       poseDemo.pause();
+      updateMediaBlockedState();
       return;
     }
 
     var playAttempt = poseDemo.play();
     if (playAttempt && typeof playAttempt.catch === "function") {
-      playAttempt.catch(function () {});
+      playAttempt.then(updateMediaBlockedState).catch(updateMediaBlockedState);
     }
+  }
+
+  function updateMediaBlockedState() {
+    if (reducedMotion || document.hidden) {
+      body.classList.remove("media-blocked");
+      return;
+    }
+
+    var film = activeFilm();
+    var filmBlocked = Boolean(film && film.paused);
+    var demoBlocked = Boolean(
+      poseDemo &&
+      activeChapterName === "system" &&
+      poseDemo.paused
+    );
+    body.classList.toggle("media-blocked", filmBlocked || demoBlocked);
+  }
+
+  function primePoseDemo() {
+    if (!poseDemo || reducedMotion || document.hidden) return;
+    var shouldKeepPlaying = activeChapterName === "system";
+    var playAttempt = poseDemo.play();
+    if (playAttempt && typeof playAttempt.then === "function") {
+      playAttempt.then(function () {
+        if (!shouldKeepPlaying) poseDemo.pause();
+        updateMediaBlockedState();
+      }).catch(updateMediaBlockedState);
+    }
+  }
+
+  function unlockMedia(forceRetry) {
+    if (mediaPrimed && !forceRetry) return;
+    mediaPrimed = true;
+    body.classList.remove("media-blocked");
+    playFilm();
+    primePoseDemo();
   }
 
   function switchSegment(outgoing) {
@@ -185,6 +224,7 @@
       outgoing.classList.remove("is-active");
       outgoing.pause();
       switchingFilm = false;
+      updateMediaBlockedState();
       window.setTimeout(cueNextSegment, 180);
     }
 
@@ -207,12 +247,38 @@
         body.classList.add("film-ready");
         playFilm();
       });
+      film.addEventListener("playing", function () {
+        film.removeAttribute("autoplay");
+        updateMediaBlockedState();
+      });
+      film.addEventListener("pause", updateMediaBlockedState);
       film.addEventListener("ended", function () {
         switchSegment(film);
       });
     });
     if (films[0].readyState >= 2) body.classList.add("film-ready");
     cueNextSegment();
+  }
+
+  if (poseDemo) {
+    poseDemo.muted = true;
+    poseDemo.addEventListener("canplay", function () {
+      if (activeChapterName === "system") syncPoseDemo("system");
+    });
+    poseDemo.addEventListener("playing", updateMediaBlockedState);
+    poseDemo.addEventListener("pause", updateMediaBlockedState);
+  }
+
+  document.addEventListener("touchstart", function () {
+    unlockMedia(false);
+  }, { passive: true, once: true, capture: true });
+  document.addEventListener("pointerdown", function () {
+    unlockMedia(false);
+  }, { passive: true, once: true, capture: true });
+  if (mediaStart) {
+    mediaStart.addEventListener("click", function () {
+      unlockMedia(true);
+    });
   }
 
   function updateScrollScene() {
@@ -279,6 +345,7 @@
         layer.style.setProperty("--parallax-y", offset.toFixed(2) + "px");
       });
     }
+    updateMediaBlockedState();
   }
 
   function requestScrollUpdate() {
@@ -329,10 +396,14 @@
   window.addEventListener("pageshow", function () {
     requestScrollUpdate();
     playFilm();
+    updateMediaBlockedState();
   });
   document.addEventListener("visibilitychange", function () {
     if (document.hidden) pauseFilms();
-    else playFilm();
+    else {
+      playFilm();
+      syncPoseDemo(activeChapterName);
+    }
   });
 
   if (reducedMotion) {
@@ -342,6 +413,7 @@
     playFilm();
   }
   updateScrollScene();
+  window.setTimeout(updateMediaBlockedState, 240);
   body.classList.add("motion-ready");
 
   if (window.location.hash) {
