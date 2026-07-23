@@ -369,15 +369,15 @@ main { position: relative; z-index: 1; }
 
 .projects-slot {
   position: relative;
-  z-index: 2;
+  z-index: 7;
   margin-top: -100vh;
   /* Keep the glasses scene one full frame away while the hangar itself is
      temporarily fixed for the Reels handoff. Without this reserved space,
      the fixed section leaves normal flow and optics rises underneath it. */
   min-height: 100vh;
   min-height: 100dvh;
-  height: 175vh;
-  height: 175dvh;
+  height: 150vh;
+  height: 150dvh;
 }
 
 /* Adjacent scene color fields overlap by a physical pixel so fractional
@@ -1655,6 +1655,7 @@ main > .scene + .scene { margin-top: -1px; }
 
 #projects {
   --hangar-exit: 0;
+  --hangar-dismiss: 0;
   --hangar-reveal: 1;
   position: relative;
   overflow: hidden;
@@ -1666,8 +1667,11 @@ main > .scene + .scene { margin-top: -1px; }
 #projects:not(.is-front-pinned) {
   position: sticky;
   top: 0;
+  z-index: 7;
   height: 100vh;
   height: 100dvh;
+  opacity: calc(1 - var(--hangar-dismiss, 0));
+  will-change: opacity;
 }
 
 #projects.is-front-pinned {
@@ -1707,6 +1711,39 @@ main > .scene + .scene { margin-top: -1px; }
   text-align: center;
   max-width: 46rem;
   margin: 0 auto clamp(3rem, 7vh, 4.5rem);
+}
+
+#projects.scene.flow {
+  padding:
+    clamp(4.6rem, 7vh, 6rem)
+    clamp(1.4rem, 6vw, 5rem)
+    clamp(0.9rem, 2vh, 1.5rem);
+}
+
+#projects .section-head {
+  margin-bottom: clamp(1.2rem, 2.3vh, 2rem);
+}
+
+#projects .section-head .eyebrow {
+  margin-bottom: clamp(0.35rem, 0.8vh, 0.7rem);
+}
+
+#projects .section-sub {
+  margin-top: clamp(0.45rem, 1vh, 0.8rem);
+  line-height: 1.45;
+}
+
+#projects .hangar-grid {
+  gap: clamp(0.75rem, 1.5vh, 1.15rem);
+}
+
+#projects .holo-card {
+  min-height: clamp(170px, 20vh, 205px);
+  padding: clamp(1rem, 1.8vh, 1.35rem) clamp(1rem, 1.5vw, 1.35rem);
+}
+
+#projects .card-chip {
+  transform: translateY(clamp(0.35rem, 0.8vh, 0.7rem));
 }
 .eyebrow {
   font-family: var(--font-hud);
@@ -1836,6 +1873,8 @@ main > .scene + .scene { margin-top: -1px; }
 
 #glasses {
   z-index: 6;
+  margin-top: -100vh;
+  margin-top: -100dvh;
 }
 
 /* A full-frame entry veil carries the Hangar palette into the studio. Unlike

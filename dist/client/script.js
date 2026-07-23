@@ -393,8 +393,10 @@
       var projectsRect = projectsSlot.getBoundingClientRect();
       var projectsRunway = Math.max(1, projectsRect.height - vh);
       var projectsProgress = clamp01(-projectsRect.top / projectsRunway);
-      var hangarExit = smoother((projectsProgress - 0.35) / 0.28);
+      var hangarExit = smoother((projectsProgress - 0.28) / 0.38);
+      var hangarDismiss = smoother((projectsProgress - 0.72) / 0.23);
       projectsScene.style.setProperty("--hangar-exit", hangarExit.toFixed(4));
+      projectsScene.style.setProperty("--hangar-dismiss", hangarDismiss.toFixed(4));
     }
 
     if (progressFill) {
