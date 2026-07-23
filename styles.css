@@ -366,6 +366,11 @@ main { position: relative; z-index: 1; }
   position: relative;
   z-index: 2;
   margin-top: -100vh;
+  /* Keep the glasses scene one full frame away while the hangar itself is
+     temporarily fixed for the Reels handoff. Without this reserved space,
+     the fixed section leaves normal flow and optics rises underneath it. */
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* Adjacent scene color fields overlap by a physical pixel so fractional
