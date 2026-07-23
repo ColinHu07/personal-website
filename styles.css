@@ -23,6 +23,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
+html.reels-snap-settling { scroll-behavior: auto; }
 html.instant-hangar,
 html.instant-preload-anchor { scroll-behavior: auto; }
 html.site-preloading,

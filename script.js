@@ -224,6 +224,97 @@
   var concertP = 0;
 
   var FRONT_JOURNEY_STOPS = { hero: 0, city: 0.52, broadcast: 0.73 };
+  var REELS_HANGAR_SWIPE_START = 0.924;
+  var REELS_HANGAR_SWIPE_LENGTH = 0.075;
+  var reelsSnapFrame = 0;
+  var reelsSnapFallbackTimer = 0;
+  var reelsSnapSettling = false;
+  var supportsScrollEnd = "onscrollend" in document;
+
+  function reelsHangarSnapBounds() {
+    if (!frontJourney) return null;
+    var geometry = scrollGeometry.get(frontJourney);
+    if (!geometry) return null;
+    var runway = Math.max(1, geometry.height - window.innerHeight);
+    return {
+      start: geometry.top + runway * REELS_HANGAR_SWIPE_START,
+      end: geometry.top + runway,
+    };
+  }
+
+  function finishReelsSnap(destination) {
+    if (reelsSnapFrame) cancelAnimationFrame(reelsSnapFrame);
+    reelsSnapFrame = 0;
+    reelsSnapSettling = false;
+    document.documentElement.classList.remove("reels-snap-settling");
+    window.scrollTo({ top: destination, behavior: "auto" });
+    onScroll();
+  }
+
+  function cancelReelsSnap() {
+    if (!reelsSnapSettling) return;
+    if (reelsSnapFrame) cancelAnimationFrame(reelsSnapFrame);
+    reelsSnapFrame = 0;
+    reelsSnapSettling = false;
+    document.documentElement.classList.remove("reels-snap-settling");
+  }
+
+  function settleReelsHangar() {
+    if (reelsSnapSettling || document.hidden) return;
+    var bounds = reelsHangarSnapBounds();
+    if (!bounds) return;
+    var current = window.scrollY;
+    var range = Math.max(1, bounds.end - bounds.start);
+    if (current <= bounds.start + 1 || current >= bounds.end - 1) return;
+
+    // Match the Reels interaction: after the gesture ends, whichever page owns
+    // at least half the viewport wins and the remaining distance settles fast.
+    var reveal = clamp01((current - bounds.start) / range);
+    var destination = reveal >= 0.5 ? bounds.end : bounds.start;
+    var distance = Math.abs(destination - current);
+    if (distance < 1) return;
+
+    var startedAt = 0;
+    var duration = prefersReduced
+      ? 0
+      : 145 + 115 * Math.sqrt(Math.min(1, distance / range));
+    reelsSnapSettling = true;
+    document.documentElement.classList.add("reels-snap-settling");
+
+    function settleFrame(time) {
+      if (!reelsSnapSettling) return;
+      if (!startedAt) startedAt = time;
+      var progress = duration ? clamp01((time - startedAt) / duration) : 1;
+      var eased = 1 - Math.pow(1 - progress, 4);
+      window.scrollTo({
+        top: current + (destination - current) * eased,
+        behavior: "auto",
+      });
+      // Drive the joined pages from this exact animation sample instead of
+      // waiting for WebKit to deliver a separate scroll callback.
+      onScroll();
+      if (progress < 1) {
+        reelsSnapFrame = requestAnimationFrame(settleFrame);
+      } else {
+        finishReelsSnap(destination);
+      }
+    }
+
+    reelsSnapFrame = requestAnimationFrame(settleFrame);
+  }
+
+  function scheduleReelsSnapFallback() {
+    if (supportsScrollEnd || reelsSnapSettling) return;
+    if (reelsSnapFallbackTimer) clearTimeout(reelsSnapFallbackTimer);
+    reelsSnapFallbackTimer = setTimeout(function () {
+      reelsSnapFallbackTimer = 0;
+      settleReelsHangar();
+    }, 140);
+  }
+
+  document.addEventListener("scrollend", settleReelsHangar, { passive: true });
+  window.addEventListener("wheel", cancelReelsSnap, { passive: true });
+  window.addEventListener("touchstart", cancelReelsSnap, { passive: true });
   if (frontJourney) {
     Array.prototype.slice.call(document.querySelectorAll('a[href="#hero"], a[href="#city"], a[href="#broadcast"]')).forEach(function (link) {
       link.addEventListener("click", function (event) {
@@ -315,7 +406,10 @@
         frontJourney.classList.toggle("is-engaged", frontJourneyProgress > 0.006);
         // Lower the retired opening stack as soon as the Reel gesture begins.
         // The incoming Hangar can then cover the exact area Reels vacates.
-        frontJourney.classList.toggle("is-hangar-active", frontJourneyProgress >= 0.924);
+        frontJourney.classList.toggle(
+          "is-hangar-active",
+          frontJourneyProgress >= REELS_HANGAR_SWIPE_START
+        );
         // The opening globe keeps its existing physical scroll duration even
         // though the later city and Instagram phases receive a longer runway.
         var globeMorphP = clamp01(frontJourneyProgress / 0.117);
@@ -342,7 +436,10 @@
           // The feed stays still for a full beat, then responds linearly from the
           // first scroll delta. Both viewport-sized panels use the same pixel
           // measurement so their edges remain joined like adjacent Reels.
-          var reelsPageSwipe = clamp01((frontJourneyProgress - 0.924) / 0.075);
+          var reelsPageSwipe = clamp01(
+            (frontJourneyProgress - REELS_HANGAR_SWIPE_START) /
+            REELS_HANGAR_SWIPE_LENGTH
+          );
           broadcastViewport.style.setProperty(
             "--reels-page-offset",
             (-vh * reelsPageSwipe).toFixed(2) + "px"
@@ -509,7 +606,10 @@
         ? "hero"
         : frontJourneyProgress < 0.68
           ? "city"
-          : "broadcast";
+          : frontJourneyProgress <
+              REELS_HANGAR_SWIPE_START + REELS_HANGAR_SWIPE_LENGTH * 0.5
+            ? "broadcast"
+            : "projects";
     }
     dots.forEach(function (dot) {
       dot.classList.toggle("active", dot.dataset.dot === active);
@@ -534,6 +634,8 @@
   window.addEventListener(
     "scroll",
     function () {
+      scheduleReelsSnapFallback();
+      if (reelsSnapSettling) return;
       if (!ticking) {
         ticking = true;
         // WebKit can defer requestAnimationFrame during momentum scrolling.
