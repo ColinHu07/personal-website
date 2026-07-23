@@ -56,7 +56,9 @@
   // model can sample the current scroll position every animation frame instead
   // of waiting for a throttled style update from the page-wide scroll handler.
   function glassesTimelineAt(progress) {
-    var p = clamp01(progress);
+    // Reserve the opening of the scene for the fully rendered product to fade
+    // in and hold. No assembly motion begins until that entrance is complete.
+    var p = clamp01((clamp01(progress) - 0.12) / 0.88);
     var templeFold = 1 - smooth(clamp01((p - 0.03) / 0.18));
     var explode = 0;
     if (p >= 0.2 && p < 0.31) {
@@ -362,9 +364,14 @@
       }
       if (scene.id === "concert") concertP = p;
       if (scene.id === "glasses" && glassesViewport) {
+        var opticsReady = doc.classList.contains("optics-initialized");
+        var opticsReveal = opticsReady ? smoother(p / 0.1) : 0;
+        var opticsProgress = opticsReady ? p : 0;
+        glassesViewport.style.setProperty("--optics-reveal", opticsReveal.toFixed(4));
+        glassesViewport.style.setProperty("--scene-enter", opticsReveal.toFixed(4));
         // Folded hero, quarter-turn to the left profile, exploded orbit,
         // precision reassembly, then one wearer-side right-lens camera glide.
-        var glassesState = glassesTimelineAt(p);
+        var glassesState = glassesTimelineAt(opticsProgress);
         glassesViewport.style.setProperty("--fold", glassesState.fold.toFixed(4));
         glassesViewport.style.setProperty("--explode", glassesState.explode.toFixed(4));
         glassesViewport.style.setProperty("--orbit", glassesState.orbit.toFixed(4));
@@ -377,9 +384,12 @@
         glassesViewport.style.setProperty("--status-exploded", glassesState.statusExploded.toFixed(4));
         glassesViewport.style.setProperty("--status-complete", glassesState.statusComplete.toFixed(4));
         var glassesExitStart = phoneTimeline.matches ? 0.86 : 0.92;
-        glassesViewport.style.setProperty("--scene-exit", smoother((p - glassesExitStart) / (1 - glassesExitStart)).toFixed(4));
+        glassesViewport.style.setProperty(
+          "--scene-exit",
+          (opticsReady ? smoother((p - glassesExitStart) / (1 - glassesExitStart)) : 0).toFixed(4)
+        );
 
-        if (p > 0.91) glassesViewport.setAttribute("data-lens", "open");
+        if (opticsReady && p > 0.91) glassesViewport.setAttribute("data-lens", "open");
         else glassesViewport.removeAttribute("data-lens");
       }
       if (scene.id === "broadcast" && broadcastViewport) {
@@ -399,12 +409,11 @@
       var projectsRect = projectsSlot.getBoundingClientRect();
       var projectsRunway = Math.max(1, projectsRect.height - vh);
       var projectsProgress = clamp01(-projectsRect.top / projectsRunway);
-      // Hold the complete bay first, then slowly dim it to black while the
-      // already-pinned Optics scene fades in underneath.
-      var hangarExit = smoother((projectsProgress - 0.34) / 0.4);
-      var hangarDismiss = smoother((projectsProgress - 0.58) / 0.38);
+      // Give the complete bay its own long read before fading to black. Optics
+      // starts only after this sticky runway ends, so it can never cover the
+      // project cards or title early.
+      var hangarExit = smoother((projectsProgress - 0.55) / 0.33);
       projectsScene.style.setProperty("--hangar-exit", hangarExit.toFixed(4));
-      projectsScene.style.setProperty("--hangar-dismiss", hangarDismiss.toFixed(4));
     }
 
     if (progressFill) {
@@ -461,6 +470,7 @@
   );
   window.addEventListener("resize", onScroll);
   window.addEventListener("pageshow", onScroll);
+  window.addEventListener("optics:ready", onScroll);
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden) onScroll();
   });

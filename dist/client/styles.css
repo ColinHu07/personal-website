@@ -379,13 +379,12 @@ main { position: relative; z-index: 1; }
      both scenes appear at the same time. */
   z-index: 2;
   margin-top: -100vh;
-  /* Keep the glasses scene one full frame away while the hangar itself is
-     temporarily fixed for the Reels handoff. Without this reserved space,
-     the fixed section leaves normal flow and optics rises underneath it. */
+  /* The 160vh sticky runway leaves a full-screen-plus reading hold before the
+     bay fades to black and hands the viewport to Optics. */
   min-height: 100vh;
   min-height: 100dvh;
-  height: 175vh;
-  height: 175dvh;
+  height: 260vh;
+  height: 260dvh;
 }
 
 /* Adjacent scene color fields overlap by a physical pixel so fractional
@@ -1664,7 +1663,6 @@ main > .scene + .scene { margin-top: -1px; }
 
 #projects {
   --hangar-exit: 0;
-  --hangar-dismiss: 0;
   --hangar-page-offset: 100vh;
   position: relative;
   overflow: hidden;
@@ -1679,7 +1677,7 @@ main > .scene + .scene { margin-top: -1px; }
   z-index: 7;
   height: 100vh;
   height: 100dvh;
-  opacity: calc(1 - var(--hangar-dismiss, 0));
+  opacity: 1;
   transform: none;
   will-change: opacity;
 }
@@ -1883,12 +1881,11 @@ main > .scene + .scene { margin-top: -1px; }
    ============================================================ */
 
 #glasses {
-  z-index: 6;
-  /* Optics reaches its sticky position before the hangar begins to dissolve.
-     That guarantees the slow crossfade reveals glasses—not the retired Reels
-     stack—across the entire viewport. */
-  margin-top: -150vh;
-  margin-top: -150dvh;
+  /* Optics stays behind the opaque Hangar and reaches sticky exactly when the
+     project runway ends. It cannot rise over the bay during its reading hold. */
+  z-index: 1;
+  margin-top: -100vh;
+  margin-top: -100dvh;
 }
 
 /* A full-frame entry veil carries the Hangar palette into the studio. Unlike
@@ -1912,6 +1909,7 @@ main > .scene + .scene { margin-top: -1px; }
 #glasses .viewport {
   --scene-enter: 0;
   --scene-exit: 0;
+  --optics-reveal: 0;
   --fold: 1;
   --explode: 0;
   --orbit: 0;
@@ -1928,9 +1926,11 @@ main > .scene + .scene { margin-top: -1px; }
     linear-gradient(180deg, #111418 0%, #090b0e 62%, #050607 100%);
   display: grid;
   place-items: center;
+  opacity: var(--optics-reveal, 0);
   perspective: 1600px;
   perspective-origin: 50% 42%;
   isolation: isolate;
+  will-change: opacity;
 }
 
 /* The final lens view dissolves into the dark radar palette before the sticky
