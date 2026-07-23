@@ -272,7 +272,9 @@
       var frontRunway = Math.max(1, frontRect.height - vh);
       frontJourneyProgress = clamp01(-frontRect.top / frontRunway);
       frontJourney.classList.toggle("is-engaged", frontJourneyProgress > 0.006);
-      frontJourney.classList.toggle("is-hangar-active", frontJourneyProgress >= 0.977);
+      // Lower the retired opening stack as soon as the Reel gesture begins.
+      // The incoming Hangar can then cover the exact area Reels vacates.
+      frontJourney.classList.toggle("is-hangar-active", frontJourneyProgress >= 0.924);
       // The opening globe keeps its existing physical scroll duration even
       // though the later city and Instagram phases receive a longer runway.
       var globeMorphP = clamp01(frontJourneyProgress / 0.117);
@@ -296,23 +298,22 @@
           "--front-scene-opacity",
           smoother((frontJourneyProgress - 0.62) / 0.08).toFixed(4)
         );
-        // The feed stays completely still for a full beat. The handoff then
-        // moves two complete viewport-sized pages together, exactly like one
-        // vertical Reel swipe: Reels exits at -100vh while Hangar enters from
-        // +100vh. Keeping the offsets in JS avoids fractional layout seams.
-        var reelsPageSwipe = smoother((frontJourneyProgress - 0.924) / 0.053);
+        // The feed stays still for a full beat, then responds linearly from the
+        // first scroll delta. Both viewport-sized panels use the same pixel
+        // measurement so their edges remain joined like adjacent Reels.
+        var reelsPageSwipe = clamp01((frontJourneyProgress - 0.924) / 0.075);
         broadcastViewport.style.setProperty(
           "--reels-page-offset",
-          (-100 * reelsPageSwipe).toFixed(3) + "vh"
+          (-vh * reelsPageSwipe).toFixed(2) + "px"
         );
         if (projectsScene) {
           projectsScene.style.setProperty(
             "--hangar-page-offset",
-            (100 * (1 - reelsPageSwipe)).toFixed(3) + "vh"
+            (vh * (1 - reelsPageSwipe)).toFixed(2) + "px"
           );
           projectsScene.classList.toggle(
             "is-front-pinned",
-            frontJourneyProgress >= 0.92 && frontJourneyProgress < 0.9995
+            frontJourneyProgress >= 0.92 && frontJourneyProgress < 1
           );
         }
       }

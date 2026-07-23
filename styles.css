@@ -360,7 +360,7 @@ main { position: relative; z-index: 1; }
 }
 
 .front-journey #broadcast .viewport {
-  transform: translate3d(0, var(--reels-page-offset, 0vh), 0);
+  transform: translate3d(0, var(--reels-page-offset, 0px), 0);
   will-change: opacity, transform;
 }
 
@@ -1355,7 +1355,7 @@ main > .scene + .scene { margin-top: -1px; }
 #broadcast .viewport {
   --scene-enter: 0;
   --scene-exit: 0;
-  --reels-page-offset: 0vh;
+  --reels-page-offset: 0px;
   --fly: min(calc(var(--p, 0) / 0.3), 1);                        /* cursor approach */
   --clk: min(max(calc((var(--p, 0) - 0.3) / 0.1), 0), 1);        /* click moment */
   --opn: min(max(calc((var(--p, 0) - 0.3) / 0.22), 0), 1);       /* open by .52, then hold */
@@ -1663,7 +1663,7 @@ main > .scene + .scene { margin-top: -1px; }
 
 #projects {
   --hangar-exit: 0;
-  --hangar-page-offset: 100vh;
+  --hangar-page-offset: 100dvh;
   position: relative;
   overflow: hidden;
   background:
@@ -1692,7 +1692,9 @@ main > .scene + .scene { margin-top: -1px; }
   height: 100vh;
   height: 100dvh;
   opacity: 1;
-  transform: translate3d(0, var(--hangar-page-offset, 100vh), 0);
+  /* One-pixel overlap keeps subpixel rounding from exposing the old opening
+     stack between the two pages during the Instagram-style drag. */
+  transform: translate3d(0, calc(var(--hangar-page-offset, 100dvh) - 1px), 0);
   pointer-events: none;
   will-change: transform;
 }
