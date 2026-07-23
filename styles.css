@@ -323,6 +323,70 @@ main { position: relative; z-index: 1; }
   overflow: hidden;
 }
 
+/* The opening is one continuous pinned composition. Its three scenes share a
+   longer hidden runway for precise trackpad control while continuing to
+   transition in place instead of stacking separate viewport-length pages. */
+.front-journey {
+  position: relative;
+  z-index: 3;
+  height: 500vh;
+  min-height: 500vh;
+  isolation: isolate;
+  background: transparent;
+}
+
+/* Once the hangar handoff starts, retire the complete Hero/City/Reels stack
+   beneath the project slot. The Reel has already performed its swipe and the
+   project layer now owns the viewport. */
+.front-journey.is-hangar-active { z-index: 1; }
+
+.front-journey > #hero.scene.scrub,
+.front-journey > #city.scene.scrub,
+.front-journey > #broadcast.scene.scrub {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  margin: 0;
+}
+
+.front-journey > #hero { z-index: 1; }
+.front-journey > #city { z-index: 2; }
+.front-journey > #broadcast { z-index: 3; }
+
+.front-journey #city .viewport,
+.front-journey #broadcast .viewport {
+  opacity: var(--front-scene-opacity, 0);
+  will-change: opacity;
+}
+
+.front-journey #broadcast .viewport {
+  transform: translate3d(0, var(--reels-page-offset, 0px), 0);
+  will-change: opacity, transform;
+}
+
+.front-journey .city-handoff::before,
+.front-journey .city-handoff::after,
+.front-journey .city-handoff-beam,
+.front-journey .city-handoff-copy,
+.front-journey #broadcast::before {
+  display: none;
+}
+
+.projects-slot {
+  position: relative;
+  /* The Hangar stays beneath the opaque Reels page until the full-screen
+     swipe exposes it. Raising this slot above the front journey is what made
+     both scenes appear at the same time. */
+  z-index: 2;
+  margin-top: -100vh;
+  /* The 160vh sticky runway leaves a full-screen-plus reading hold before the
+     bay fades to black and hands the viewport to Optics. */
+  min-height: 100vh;
+  min-height: 100dvh;
+  height: 260vh;
+  height: 260dvh;
+}
+
 /* Adjacent scene color fields overlap by a physical pixel so fractional
    mobile scroll positions and desktop zoom never expose the document
    background as a horizontal divider. */
@@ -440,10 +504,11 @@ main > .scene + .scene { margin-top: -1px; }
   left: 50%;
   width: min(74vmin, 640px);
   height: min(74vmin, 640px);
+  opacity: clamp(0, calc(1 - max(var(--p, 0) - 0.48, 0) * 1.93), 1);
   transform:
-    translate(-50%, -50%)
-    scale(calc(1 + var(--p, 0) * 2.6));
-  opacity: calc(1 - max(var(--p, 0) - 0.42, 0) * 1.75);
+    translate3d(-50%, -50%, 0)
+    scale(calc(1 + var(--p, 0) * 4.5));
+  will-change: transform, opacity;
 }
 .reactor-ring {
   position: absolute;
@@ -491,14 +556,43 @@ main > .scene + .scene { margin-top: -1px; }
 }
 .reactor-core {
   position: absolute;
-  inset: 43%;
+  top: 50%;
+  left: 50%;
+  z-index: 4;
+  width: min(62vw, 62vh);
+  aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle, #eafcff 0%, var(--cyan) 40%, rgba(79, 216, 255, 0.15) 72%, transparent 78%);
-  box-shadow: 0 0 60px var(--cyan), 0 0 140px var(--cyan-dim);
-  animation: corePulse 3.2s ease-in-out infinite;
+  opacity: clamp(0, calc(1 - max(var(--p, 0) - 0.82, 0) * 5.56), 1);
+  transform:
+    translate3d(-50%, -50%, 0)
+    scale(calc(0.14 + var(--p, 0) * 0.86));
+  will-change: transform, opacity;
+}
+.reactor-core::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    repeating-linear-gradient(0deg, rgba(202, 244, 255, 0.07) 0 1px, transparent 1px 7px),
+    radial-gradient(circle at 43% 38%, rgba(255, 255, 255, 0.9) 0 1.5%, rgba(234, 252, 255, 0.58) 5%, rgba(79, 216, 255, 0.56) 17%, rgba(79, 216, 255, 0.22) 50%, rgba(79, 216, 255, 0.045) 80%, transparent 100%);
+  border: 1px solid rgba(175, 235, 255, 0.52);
+  box-shadow: 0 0 34px rgba(79, 216, 255, 0.72), 0 0 105px rgba(79, 216, 255, 0.28), inset 0 0 42px rgba(234, 252, 255, 0.12);
+  animation: idleCoreBob 3.2s ease-in-out infinite;
+  transition: transform 180ms ease-out, filter 180ms ease-out;
+  will-change: transform, filter;
+}
+.front-journey.is-engaged .reactor-core::before {
+  animation: none;
+  transform: scale(1);
+  filter: brightness(1);
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes spinRev { to { transform: rotate(-360deg); } }
+@keyframes idleCoreBob {
+  0%, 100% { transform: scale(1); filter: brightness(1); }
+  50% { transform: scale(0.8); filter: brightness(0.84); }
+}
 
 .hero-copy {
   position: relative;
@@ -508,7 +602,9 @@ main > .scene + .scene { margin-top: -1px; }
   min-width: 0;
   text-align: center;
   padding: 0 1.4rem;
-  transform: translateY(calc(var(--p, 0) * -12vh));
+  transform:
+    translateY(calc(var(--p, 0) * -12vh))
+    scale(calc(1 + var(--p, 0) * 0.16));
   opacity: calc(1 - var(--p, 0) * 1.1);
 }
 .boot-line {
@@ -593,10 +689,12 @@ main > .scene + .scene { margin-top: -1px; }
 
 /* ============================================================
    SCENE 02 // GLOBE -> NEW YORK
-   Phases (by --p):
-     0.00–0.30  topo globe sweeps Asia -> Europe -> locks on NYC
-     0.30–0.45  globe blows past camera
-     0.35–1.00  3D wireframe flythrough of the city (loops
+   Phases (by the shared front journey):
+     0.00–0.12  luminous reactor core grows to planet diameter
+     0.09–0.14  the Earth resolves inside that same sphere
+     0.14–0.39  globe sweeps Asia -> Europe -> locks on NYC
+     0.39–0.44  globe blows past camera
+     0.50–0.74  city flight takes over (loops
                 forever — it keeps playing until you scroll on)
    ============================================================ */
 
@@ -604,6 +702,10 @@ main > .scene + .scene { margin-top: -1px; }
   --scene-enter: 0;
   --city-in: 0;
   --scene-exit: 0;
+  --globe-morph: 0;
+  --globe-reveal: 0;
+  --globe-orbit: 0;
+  --globe-exit: 0;
   background: linear-gradient(to bottom, #01060c 0%, #04101d 55%, #051727 100%);
 }
 
@@ -632,8 +734,8 @@ main > .scene + .scene { margin-top: -1px; }
   border: 1px solid rgba(150, 220, 255, 0.45);
   border-radius: 50%;
   pointer-events: none;
-  opacity: calc(1 - max(var(--p, 0) - 0.34, 0) * 9);
-  transform: translate3d(-50%, -50%, 0) scale(calc(1 + max(var(--p, 0) - 0.3, 0) * 14));
+  opacity: clamp(0, calc(var(--globe-reveal, 0) * 1.35 - var(--globe-exit, 0) * 1.35), 1);
+  transform: translate3d(-50%, -50%, 0) scale(calc(1 + var(--globe-exit, 0) * 4));
   background:
     radial-gradient(circle at 34% 28%, transparent 0 30%, rgba(1, 9, 20, 0.08) 58%, rgba(1, 7, 16, 0.72) 100%),
     url("assets/earth-texture-mobile.jpg") center / auto 100% no-repeat,
@@ -680,13 +782,39 @@ main > .scene + .scene { margin-top: -1px; }
   width: 100%;
   height: 100%;
   z-index: 7;
-  /* zoom past the camera as p approaches .45 */
-  transform: scale(calc(1 + max(var(--p, 0) - 0.3, 0) * 14));
-  opacity: calc(1 - max(var(--p, 0) - 0.34, 0) * 9);
+  /* The orbit has its own clock, separate from the later city reveal. */
+  transform: scale(calc(1 + var(--globe-exit, 0) * 4));
+  opacity: clamp(0, calc(var(--globe-reveal, 0) * 1.35 - var(--globe-exit, 0) * 1.35), 1);
   pointer-events: none;
+  will-change: opacity, transform;
 }
 .globe-canvas.globe-gl { z-index: 6; }
 #city .viewport > .globe-canvas:not(.globe-gl) { z-index: 8; }
+
+.globe-morph-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 10;
+  width: min(62vw, 62vh);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(150, 220, 255, 0.42);
+  pointer-events: none;
+  opacity: clamp(0, calc(1 - var(--globe-reveal, 0) * 1.08), 1);
+  transform:
+    translate3d(-50%, -50%, 0)
+    scale(calc(0.14 + var(--globe-morph, 0) * 0.86));
+  background:
+    repeating-linear-gradient(0deg, rgba(202, 244, 255, 0.07) 0 1px, transparent 1px 7px),
+    radial-gradient(circle at 43% 38%, rgba(255, 255, 255, 0.9) 0 1.5%, rgba(234, 252, 255, 0.58) 5%, rgba(79, 216, 255, 0.56) 17%, rgba(79, 216, 255, 0.22) 50%, rgba(79, 216, 255, 0.045) 80%, transparent 100%);
+  border-color: rgba(175, 235, 255, 0.52);
+  box-shadow:
+    0 0 34px rgba(79, 216, 255, 0.72),
+    0 0 105px rgba(79, 216, 255, 0.28),
+    inset 0 0 42px rgba(234, 252, 255, 0.12);
+  will-change: transform, opacity;
+}
 
 .globe-hud {
   position: absolute;
@@ -702,7 +830,7 @@ main > .scene + .scene { margin-top: -1px; }
   letter-spacing: 0.28em;
   text-transform: uppercase;
   text-align: center;
-  opacity: calc(1 - var(--p, 0) * 2.6);
+  opacity: clamp(0, calc(var(--globe-reveal, 0) - var(--globe-exit, 0) * 1.3), 1);
 }
 .globe-hud-line { color: var(--cyan); font-size: 0.8rem; font-weight: 700; }
 .globe-hud-coords { color: var(--text-dim); font-size: 0.7rem; }
@@ -1195,7 +1323,10 @@ main > .scene + .scene { margin-top: -1px; }
    Phases (by --p):
      0.00–0.30  cursor flies in toward the floating IG icon
      0.30–0.40  CLICK: press dip + ripple rings
-     0.40–1.00  feed window blooms out of the icon, reels rise
+     0.40–0.70  feed window blooms out of the icon
+     0.70–0.84  complete Reels hold
+     0.84–0.92  swift upward Reel swipe
+     0.92–1.00  hangar handoff
    ============================================================ */
 
 #broadcast {
@@ -1224,14 +1355,25 @@ main > .scene + .scene { margin-top: -1px; }
 #broadcast .viewport {
   --scene-enter: 0;
   --scene-exit: 0;
+  --reels-page-offset: 0px;
   --fly: min(calc(var(--p, 0) / 0.3), 1);                        /* cursor approach */
   --clk: min(max(calc((var(--p, 0) - 0.3) / 0.1), 0), 1);        /* click moment */
-  --opn: min(max(calc((var(--p, 0) - 0.4) / 0.45), 0), 1);       /* window open */
+  --opn: min(max(calc((var(--p, 0) - 0.3) / 0.22), 0), 1);       /* open by .52, then hold */
+  background: transparent;
+  display: grid;
+  place-items: center;
+}
+
+.broadcast-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 1;
   background:
     radial-gradient(ellipse 70% 50% at 50% 40%, rgba(60, 20, 70, 0.4), transparent 70%),
     linear-gradient(to bottom, #0a0522 0%, #120838 45%, #0a1226 100%);
-  display: grid;
-  place-items: center;
+  will-change: opacity;
 }
 
 /* Continue the same color field on the incoming side of the cut. Keeping a
@@ -1257,9 +1399,9 @@ main > .scene + .scene { margin-top: -1px; }
   content: "";
   position: absolute;
   inset: 0;
-  z-index: 30;
+  z-index: 4;
   pointer-events: none;
-  opacity: var(--scene-exit, 0);
+  opacity: 0;
   background:
     radial-gradient(ellipse 70% 40% at 50% 100%, rgba(79, 216, 255, 0.1), transparent 72%),
     linear-gradient(to bottom, rgba(18, 8, 56, 0.28), rgba(18, 8, 56, 0.9) 70%, #120838 100%);
@@ -1277,7 +1419,10 @@ main > .scene + .scene { margin-top: -1px; }
   opacity: var(--scene-enter, 1);
 }
 
-#broadcast .scene-tag { opacity: var(--scene-enter, 1); }
+#broadcast .scene-tag,
+#broadcast .desk-grid {
+  opacity: var(--scene-enter, 1);
+}
 
 .ig-target {
   position: absolute;
@@ -1357,6 +1502,7 @@ main > .scene + .scene { margin-top: -1px; }
   transform: scale(calc(0.12 + var(--opn) * 0.88));
   opacity: calc(var(--opn) * 2.2 - 0.1);
   pointer-events: none;
+  will-change: transform;
 }
 #broadcast .viewport[data-feed="open"] .feed-window { pointer-events: auto; }
 
@@ -1516,15 +1662,88 @@ main > .scene + .scene { margin-top: -1px; }
    ============================================================ */
 
 #projects {
+  --hangar-exit: 0;
+  --hangar-dismiss: 0;
+  --hangar-page-offset: 100dvh;
+  position: relative;
+  overflow: hidden;
   background:
     radial-gradient(ellipse 60% 40% at 50% 0%, rgba(23, 68, 105, 0.35), transparent 70%),
     linear-gradient(to bottom, #120838, var(--bg) 30%);
+}
+
+#projects:not(.is-front-pinned) {
+  position: sticky;
+  top: 0;
+  z-index: 7;
+  height: 100vh;
+  height: 100dvh;
+  opacity: calc(1 - var(--hangar-dismiss, 0));
+  transform: none;
+  will-change: opacity;
+}
+
+#projects.is-front-pinned {
+  position: fixed;
+  inset: 0;
+  /* This temporary presentation layer must sit above every earlier pinned
+     opening scene; otherwise a transparent Reels backdrop exposes Hero/City
+     instead of the hangar. */
+  z-index: 4;
+  height: 100vh;
+  height: 100dvh;
+  opacity: 1;
+  /* One-pixel overlap keeps subpixel rounding from exposing the old opening
+     stack between the two pages during the Instagram-style drag. */
+  transform: translate3d(0, calc(var(--hangar-page-offset, 100dvh) - 1px), 0);
+  pointer-events: none;
+  will-change: transform;
+}
+
+#projects .section-head,
+#projects .hangar-grid {
+  opacity: calc(1 - var(--hangar-exit, 0));
+  filter: blur(calc(var(--hangar-exit, 0) * 7px));
+  will-change: opacity, filter;
 }
 
 .section-head {
   text-align: center;
   max-width: 46rem;
   margin: 0 auto clamp(3rem, 7vh, 4.5rem);
+}
+
+#projects.scene.flow {
+  padding:
+    clamp(4.6rem, 7vh, 6rem)
+    clamp(1.4rem, 6vw, 5rem)
+    clamp(0.9rem, 2vh, 1.5rem);
+}
+
+#projects .section-head {
+  margin-bottom: clamp(1.2rem, 2.3vh, 2rem);
+}
+
+#projects .section-head .eyebrow {
+  margin-bottom: clamp(0.35rem, 0.8vh, 0.7rem);
+}
+
+#projects .section-sub {
+  margin-top: clamp(0.45rem, 1vh, 0.8rem);
+  line-height: 1.45;
+}
+
+#projects .hangar-grid {
+  gap: clamp(0.75rem, 1.5vh, 1.15rem);
+}
+
+#projects .holo-card {
+  min-height: clamp(170px, 20vh, 205px);
+  padding: clamp(1rem, 1.8vh, 1.35rem) clamp(1rem, 1.5vw, 1.35rem);
+}
+
+#projects .card-chip {
+  transform: translateY(clamp(0.35rem, 0.8vh, 0.7rem));
 }
 .eyebrow {
   font-family: var(--font-hud);
@@ -1653,7 +1872,12 @@ main > .scene + .scene { margin-top: -1px; }
    ============================================================ */
 
 #glasses {
-  z-index: 6;
+  /* Optics reaches sticky behind the still-opaque Hangar before either fade
+     begins. The outgoing section is already invisible when its sticky frame
+     releases, eliminating the horizontal black band. */
+  z-index: 1;
+  margin-top: -160vh;
+  margin-top: -160dvh;
 }
 
 /* A full-frame entry veil carries the Hangar palette into the studio. Unlike
@@ -1677,6 +1901,7 @@ main > .scene + .scene { margin-top: -1px; }
 #glasses .viewport {
   --scene-enter: 0;
   --scene-exit: 0;
+  --optics-reveal: 0;
   --fold: 1;
   --explode: 0;
   --orbit: 0;
@@ -1693,9 +1918,12 @@ main > .scene + .scene { margin-top: -1px; }
     linear-gradient(180deg, #111418 0%, #090b0e 62%, #050607 100%);
   display: grid;
   place-items: center;
+  opacity: var(--optics-reveal, 0);
   perspective: 1600px;
   perspective-origin: 50% 42%;
   isolation: isolate;
+  contain: layout paint style;
+  will-change: opacity;
 }
 
 /* The final lens view dissolves into the dark radar palette before the sticky
@@ -1707,9 +1935,7 @@ main > .scene + .scene { margin-top: -1px; }
   z-index: 40;
   pointer-events: none;
   opacity: var(--scene-exit, 0);
-  background:
-    radial-gradient(ellipse 58% 42% at 50% 52%, rgba(23, 68, 105, 0.24), transparent 72%),
-    linear-gradient(to bottom, rgba(3, 10, 18, 0.9), rgba(3, 10, 18, 0.98) 76%, var(--bg) 100%);
+  background: #030507;
   backdrop-filter: blur(calc(var(--scene-exit, 0) * 10px)) saturate(calc(1 - var(--scene-exit, 0) * 0.35));
 }
 
@@ -1784,6 +2010,7 @@ main > .scene + .scene { margin-top: -1px; }
   width: 100%;
   height: 100%;
   opacity: 0;
+  transform: translateZ(0);
   transition: opacity 0.24s ease;
   will-change: opacity;
 }
@@ -2617,27 +2844,36 @@ main > .scene + .scene { margin-top: -1px; }
    ============================================================ */
 
 #contact {
+  --stars-in: 0;
+  --socials-in: 0;
+  z-index: 7;
   position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(ellipse 55% 45% at 50% 100%, rgba(23, 68, 105, 0.45), transparent 70%),
-    var(--bg);
+  margin-top: -100vh;
+  margin-top: -100dvh;
+  overflow: visible;
+  background: transparent;
   text-align: center;
 }
 
-/* Match the fully-dark Optics exit for the first pixels of Socials, then let
-   the radar field rise underneath it. This overlap removes the sticky-release
-   edge in both portrait and short landscape viewports. */
-#contact::before {
-  content: "";
-  position: absolute;
-  top: -2px;
-  right: 0;
-  left: 0;
-  z-index: 1;
-  height: clamp(10rem, 42vh, 20rem);
-  pointer-events: none;
-  background: linear-gradient(to bottom, var(--bg) 0%, rgba(3, 10, 18, 0.96) 22%, rgba(3, 10, 18, 0.62) 66%, transparent 100%);
+#contact.scene.scrub {
+  height: 220vh;
+  height: 220dvh;
+}
+
+#contact .contact-viewport {
+  visibility: hidden;
+  opacity: 0;
+  overflow: hidden;
+  padding: clamp(4.5rem, 9vh, 7rem) clamp(1.4rem, 6vw, 5rem) clamp(1.2rem, 3vh, 2.2rem);
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 100%, rgba(23, 68, 105, 0.45), transparent 70%),
+    #030507;
+  transition: none;
+}
+
+#contact.is-contact-active .contact-viewport {
+  visibility: visible;
+  opacity: 1;
 }
 
 /* transmission-grid background: radar sweep + signal constellation */
@@ -2648,14 +2884,30 @@ main > .scene + .scene { margin-top: -1px; }
   height: 100%;
   z-index: 0;
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 clamp(8rem, 30vh, 16rem), #000 100%);
-  mask-image: linear-gradient(to bottom, transparent 0, #000 clamp(8rem, 30vh, 16rem), #000 100%);
+  opacity: var(--stars-in, 0);
+  will-change: opacity;
 }
 #contact .section-head,
 #contact .socials-grid,
 #contact .footer {
   position: relative;
   z-index: 2;
+  opacity: var(--socials-in, 0);
+  transform: translate3d(0, calc((1 - var(--socials-in, 0)) * 18px), 0);
+  filter: blur(calc((1 - var(--socials-in, 0)) * 6px));
+  will-change: opacity, transform, filter;
+  transition: none;
+}
+
+#contact .section-head {
+  margin-bottom: clamp(1.4rem, 3vh, 2.4rem);
+}
+
+#contact .section-head.reveal.visible,
+#contact .socials-grid.reveal.visible,
+#contact .footer.reveal.visible {
+  opacity: var(--socials-in, 0);
+  transform: translate3d(0, calc((1 - var(--socials-in, 0)) * 18px), 0);
 }
 
 .socials-grid {
@@ -2945,6 +3197,42 @@ main > .scene + .scene { margin-top: -1px; }
   .feed-grid { padding: 0.9rem; gap: 0.8rem; }
   .reel-cover { aspect-ratio: 9 / 16; }
   .feed-follow { padding: 0.55rem; }
+  #projects.scene.flow {
+    padding: 4.1rem 5vw 0.8rem;
+  }
+  #projects .section-head {
+    margin-bottom: 0.9rem;
+  }
+  #projects .section-head .eyebrow {
+    margin-bottom: 0.35rem;
+  }
+  #projects .section-head h2 {
+    font-size: clamp(1.8rem, 4.2vw, 2.8rem);
+  }
+  #projects .section-sub {
+    margin-top: 0.35rem;
+    line-height: 1.35;
+  }
+  #projects .hangar-grid {
+    gap: 0.65rem;
+  }
+  #projects .holo-card {
+    min-height: 164px;
+    padding: 0.9rem 1rem 0.8rem;
+  }
+  #projects .card-id {
+    margin-bottom: 0.35rem;
+  }
+  #projects .holo-card h3 {
+    margin-bottom: 0.3rem;
+  }
+  #projects .holo-card p:not(.card-id) {
+    font-size: 0.78rem;
+    line-height: 1.35;
+  }
+  #projects .card-chip {
+    transform: translateY(0.35rem);
+  }
 }
 
 @media (orientation: landscape) and (max-height: 500px) {

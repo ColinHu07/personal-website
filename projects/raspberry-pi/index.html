@@ -24,10 +24,11 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Orbitron:wght@600;700;900&amp;family=Rajdhani:wght@500;600;700&amp;display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="hydroheight.css?v=20260718-9" />
+    <link rel="stylesheet" href="hydroheight.css?v=20260722-11" />
+    <link rel="stylesheet" href="../../bay-motion.css?v=20260722-3" />
     <link rel="stylesheet" href="../../project-bottom.css?v=20260717" />
   </head>
-  <body>
+  <body data-bay-theme="hydroheight">
     <div class="page-progress" aria-hidden="true"><span></span></div>
 
     <header class="hydro-nav">
@@ -108,7 +109,9 @@
         </div>
       </section>
 
-      <section class="origin-section" id="background" aria-labelledby="origin-title">
+      <div class="hydro-story" data-hydro-story>
+        <div class="hydro-story-stage">
+      <section class="origin-section" id="background" aria-labelledby="origin-title" data-hydro-panel="origin">
         <div class="origin-heading">
           <p class="eyebrow"><span>Background</span> From an Iowa research lab to the field</p>
           <h2 id="origin-title">It all started<br />at the river.</h2>
@@ -174,7 +177,7 @@
         </div>
       </section>
 
-      <section class="method-section" id="method" aria-labelledby="method-title">
+      <section class="method-section" id="method" aria-labelledby="method-title" data-hydro-panel="method">
         <div class="method-transition" data-method-transition aria-hidden="true">
           <span class="transition-grid"></span>
           <span class="transition-orbit"></span>
@@ -219,7 +222,9 @@
         </ol>
       </section>
 
-      <section class="geometry-section" id="geometry" aria-labelledby="geometry-title">
+      <div class="hydro-palette-wash" aria-hidden="true"></div>
+
+      <section class="geometry-section" id="geometry" aria-labelledby="geometry-title" data-hydro-panel="geometry">
         <div class="geometry-visual" aria-hidden="true">
           <img
             class="geometry-field-image"
@@ -266,9 +271,11 @@
           <p class="formula-note">Conceptual model shown; field calibration accounts for camera intrinsics and scene geometry.</p>
         </div>
       </section>
+        </div>
+      </div>
 
-      <section class="threshold-section" id="thresholds" aria-labelledby="threshold-title">
-        <div class="threshold-heading">
+      <section class="threshold-section" id="thresholds" aria-labelledby="threshold-title" data-bay-scene="thresholds" data-bay-effect="wash" data-bay-from="220, 231, 227" data-bay-to="6, 21, 27">
+        <div class="threshold-heading" data-bay-layer>
           <p class="eyebrow"><span>Risk model</span> From a reading to a warning</p>
           <h2 id="threshold-title">One river.<br />Two time scales.</h2>
           <p>
@@ -278,7 +285,7 @@
           </p>
         </div>
 
-        <div class="threshold-models">
+        <div class="threshold-models" data-bay-layer>
           <article class="threshold-card threshold-card--micro">
             <header>
               <span>01 // Microscopic</span>
@@ -321,7 +328,7 @@
           </article>
         </div>
 
-        <div class="threshold-validation" aria-label="Threshold validation cases">
+        <div class="threshold-validation" aria-label="Threshold validation cases" data-bay-layer>
           <div>
             <span>Flood validation // Hurricane Sandy</span>
             <strong>Crossed +2&sigma;</strong>
@@ -339,19 +346,19 @@
           </div>
         </div>
 
-        <a class="threshold-source" href="https://docs.google.com/presentation/d/1UQ-PywN87FLus3zjtN_8MTifnQoxWTUoZv5U9ZJsG1U/edit?slide=id.g313ae431324_0_15#slide=id.g313ae431324_0_15" target="_blank" rel="noopener">
+        <a class="threshold-source" href="https://docs.google.com/presentation/d/1UQ-PywN87FLus3zjtN_8MTifnQoxWTUoZv5U9ZJsG1U/edit?slide=id.g313ae431324_0_15#slide=id.g313ae431324_0_15" target="_blank" rel="noopener" data-bay-layer>
           View the research presentation <span aria-hidden="true">&nearr;</span>
         </a>
       </section>
 
-      <section class="project-footer" aria-labelledby="footer-title">
-        <p class="eyebrow"><span>HydroHeight</span> Remote river intelligence</p>
-        <h2 id="footer-title">A camera can be<br />a water gauge.</h2>
-        <p>
+      <section class="project-footer" aria-labelledby="footer-title" data-bay-scene="closing" data-bay-effect="rise">
+        <p class="eyebrow" data-bay-layer><span>HydroHeight</span> Remote river intelligence</p>
+        <h2 id="footer-title" data-bay-layer>A camera can be<br />a water gauge.</h2>
+        <p data-bay-layer>
           HydroHeight explores a low-cost path to monitoring sites where installing
           a traditional gauge is difficult, but a stable view of the water already exists.
         </p>
-        <div class="footer-grid" aria-hidden="true"></div>
+        <div class="footer-grid" aria-hidden="true" data-bay-layer></div>
       </section>
     </main>
 
@@ -361,6 +368,7 @@
       <span class="project-bottom-bar__file">HYDROHEIGHT // FILE 004</span>
     </footer>
 
-    <script src="hydroheight.js?v=20260717-6"></script>
+    <script src="hydroheight.js?v=20260722-8"></script>
+    <script src="../../bay-motion.js?v=20260722-3"></script>
   </body>
 </html>

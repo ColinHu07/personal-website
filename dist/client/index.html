@@ -31,14 +31,14 @@
       media="(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)"
       fetchpriority="high"
     />
-    <link rel="modulepreload" href="glasses-product.js?v=jarvis-87" />
+    <link rel="modulepreload" href="glasses-product.js?v=jarvis-90" />
     <link rel="modulepreload" href="assets/vendor/three.module.min.js" />
     <link rel="modulepreload" href="assets/vendor/three.core.min.js" />
     <link
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=jarvis-91" />
+    <link rel="stylesheet" href="styles.css?v=jarvis-112" />
   </head>
   <body>
     <div class="site-loader" role="status" aria-live="polite" aria-label="Preparing the interactive site">
@@ -77,6 +77,7 @@
     </nav>
 
     <main>
+      <div class="front-journey" data-front-journey>
       <!-- ============ SCENE 01 // JARVIS BOOT ============ -->
       <section class="scene scrub" id="hero" data-scene="hero">
         <div class="viewport">
@@ -90,8 +91,8 @@
             <div class="reactor-ring r3"></div>
             <div class="reactor-ring r4"></div>
             <div class="reactor-ticks"></div>
-            <div class="reactor-core"></div>
           </div>
+          <div class="reactor-core" aria-hidden="true"></div>
 
           <div class="hero-copy">
             <p class="boot-line" id="boot-line" aria-hidden="true">&gt; JARVIS PROTOCOL // INITIALIZING…</p>
@@ -128,6 +129,7 @@
             <img src="assets/earth-texture-mobile.jpg" alt="" decoding="async" fetchpriority="high" />
           </div>
           <canvas class="globe-canvas" aria-hidden="true"></canvas>
+          <div class="globe-morph-core" aria-hidden="true"></div>
 
           <div class="globe-hud" aria-hidden="true">
             <span class="globe-hud-line">ORBITAL VIEW // TARGET LOCK: NEW YORK CITY</span>
@@ -190,6 +192,7 @@
       <!-- ============ SCENE 03 // BROADCAST (cursor -> instagram) ============ -->
       <section class="scene scrub" id="broadcast" data-scene="broadcast">
         <div class="viewport">
+          <div class="broadcast-backdrop" aria-hidden="true"></div>
           <div class="scene-tag" aria-hidden="true">
             <span class="tag-num">SCENE&nbsp;03</span>
             <span class="tag-name">BROADCAST DECK // OPENING FEED</span>
@@ -274,7 +277,10 @@
         </div>
       </section>
 
+      </div>
+
       <!-- ============ SCENE 04 // PROJECT HANGAR ============ -->
+      <div class="projects-slot">
       <section class="scene flow" id="projects" data-scene="projects">
         <div class="section-head">
           <p class="eyebrow">SCENE 04 // HANGAR BAY</p>
@@ -330,6 +336,7 @@
           </article>
         </div>
       </section>
+      </div>
 
       <!-- ============ SCENE 05 // STARK OPTICS ============ -->
       <section class="scene scrub" id="glasses" data-scene="glasses">
@@ -571,15 +578,16 @@
       </section>
 
       <!-- ============ SCENE 06 // SOCIALS ============ -->
-      <section class="scene flow contact" id="contact" data-scene="contact">
-        <canvas class="socials-canvas" aria-hidden="true"></canvas>
-        <div class="section-head">
-          <p class="eyebrow">SCENE 06 // OPEN CHANNELS</p>
-          <h2>SOCIALS</h2>
-          <p class="section-sub">All transmission lines. Pick a frequency.</p>
-        </div>
+      <section class="scene scrub contact" id="contact" data-scene="contact">
+        <div class="viewport contact-viewport">
+          <canvas class="socials-canvas" aria-hidden="true"></canvas>
+          <div class="section-head">
+            <p class="eyebrow">SCENE 06 // OPEN CHANNELS</p>
+            <h2>SOCIALS</h2>
+            <p class="section-sub">All transmission lines. Pick a frequency.</p>
+          </div>
 
-        <div class="socials-grid">
+          <div class="socials-grid">
           <a class="social-tile ig" href="https://www.instagram.com/colin.huwu/" target="_blank" rel="noopener">
             <div class="card-corners"><span></span><span></span><span></span><span></span></div>
             <svg viewBox="0 0 96 96" class="social-icon">
@@ -661,12 +669,13 @@
             </div>
             <span class="social-arrow">&gt;</span>
           </a>
-        </div>
+          </div>
 
-        <footer class="footer">
-          <span>COLIN HU // PERSONAL INTERFACE</span>
-          <span>BUILT FOR GITHUB PAGES // NO BUILD STEP</span>
-        </footer>
+          <footer class="footer">
+            <span>COLIN HU // PERSONAL INTERFACE</span>
+            <span>BUILT FOR GITHUB PAGES // NO BUILD STEP</span>
+          </footer>
+        </div>
       </section>
     </main>
 
@@ -700,13 +709,16 @@
         else window.addEventListener("load", finishHangarReturn, { once: true });
       }
     </script>
-    <script src="script.js?v=jarvis-87"></script>
+    <script src="script.js?v=jarvis-109"></script>
     <script type="module">
       var glassesScene = document.getElementById("glasses");
       var glassesViewport = glassesScene && glassesScene.querySelector(".viewport");
       var glassesModuleRequested = false;
       var preloadRoot = document.documentElement;
       var preloadStartedAt = performance.now();
+      // Keep the calibration cover visible long enough for the prewarmed
+      // WebGL frames to reach the compositor, including on a warm cache.
+      var minimumOpticsCalibration = 1800;
       var pageLoadComplete = document.readyState === "complete";
       var glassesLoadComplete = false;
       var preloadRevealed = !preloadRoot.classList.contains("site-preloading");
@@ -714,7 +726,7 @@
       function revealPreloadedSite() {
         if (preloadRevealed || !pageLoadComplete || !glassesLoadComplete) return;
         preloadRevealed = true;
-        var remaining = Math.max(0, 420 - (performance.now() - preloadStartedAt));
+        var remaining = Math.max(0, minimumOpticsCalibration - (performance.now() - preloadStartedAt));
         setTimeout(function () {
           requestAnimationFrame(function () {
             var deepLinkTarget = window.location.hash
@@ -744,11 +756,15 @@
         if (glassesModuleRequested) return Promise.resolve();
         glassesModuleRequested = true;
         if (glassesViewport) glassesViewport.classList.add("glasses-webgl-loading");
-        return import("./glasses-product.js?v=jarvis-87").then(function () {
+        return import("./glasses-product.js?v=jarvis-90").then(function () {
+          preloadRoot.classList.add("optics-initialized");
+          window.dispatchEvent(new CustomEvent("optics:ready"));
           glassesLoadComplete = true;
           revealPreloadedSite();
         }).catch(function () {
           if (glassesViewport) glassesViewport.classList.add("glasses-webgl-failed");
+          preloadRoot.classList.add("optics-initialized");
+          window.dispatchEvent(new CustomEvent("optics:ready"));
           glassesLoadComplete = true;
           revealPreloadedSite();
         });
@@ -765,6 +781,9 @@
         if (preloadRevealed) return;
         pageLoadComplete = true;
         glassesLoadComplete = true;
+        if (glassesViewport) glassesViewport.classList.add("glasses-webgl-failed");
+        preloadRoot.classList.add("optics-initialized");
+        window.dispatchEvent(new CustomEvent("optics:ready"));
         revealPreloadedSite();
       }, 9000);
     </script>

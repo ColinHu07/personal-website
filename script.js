@@ -14,6 +14,8 @@
   var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var phonePerformance = window.matchMedia("(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)");
   var isPhonePerformance = phonePerformance.matches;
+  var isSafariPerformance = /^((?!chrome|chromium|android).)*safari/i.test(navigator.userAgent);
+  var SCROLL_FALLBACK_DELAY = isSafariPerformance ? 18 : isPhonePerformance ? 32 : 90;
   var MOBILE_FRAME_INTERVAL = 1000 / 30;
   var DPR = Math.min(window.devicePixelRatio || 1, isPhonePerformance ? 1 : 2);
   var pageVisible = !document.hidden;
@@ -49,6 +51,51 @@
     return a + (b - a) * t;
   }
 
+  // Keep the complete product choreography in one pure timeline function.
+  // The CSS scrub layer and the WebGL renderer both consume this state, so the
+  // model can sample the current scroll position every animation frame instead
+  // of waiting for a throttled style update from the page-wide scroll handler.
+  function glassesTimelineAt(progress) {
+    // Keep the assembled product still through the fade-in. With the Hangar
+    // handoff geometry below, the first visible rotation begins at roughly
+    // 80% scene opacity.
+    var p = clamp01((clamp01(progress) - 0.095) / 0.905);
+    var templeFold = 1 - smooth(clamp01((p - 0.03) / 0.18));
+    var explode = 0;
+    if (p >= 0.2 && p < 0.31) {
+      explode = smooth((p - 0.2) / 0.11);
+    } else if (p >= 0.31 && p < 0.53) {
+      explode = 1;
+    } else if (p >= 0.53 && p < 0.7) {
+      explode = 1 - smooth((p - 0.53) / 0.17);
+    }
+
+    var productOrbit =
+      p < 0.22
+        ? 0.25 * smooth(clamp01((p - 0.03) / 0.19))
+        : 0.25 + 0.75 * smooth(clamp01((p - 0.22) / 0.48));
+
+    return {
+      fold: templeFold,
+      explode: explode,
+      orbit: productOrbit,
+      turn: smoother((p - 0.56) / 0.24),
+      dive: smoother((p - 0.6) / 0.27),
+      feed: smoother((p - 0.72) / 0.15),
+      portal: smoother((p - 0.75) / 0.14),
+      hud: smoother((p - 0.79) / 0.12),
+      statusProduct: 1 - smooth(clamp01(p / 0.08)),
+      statusExploded:
+        smooth(clamp01((p - 0.17) / 0.08)) *
+        (1 - smooth(clamp01((p - 0.57) / 0.11))),
+      statusComplete:
+        smooth(clamp01((p - 0.65) / 0.08)) *
+        (1 - smooth(clamp01((p - 0.86) / 0.07))),
+    };
+  }
+
+  window.glassesTimelineAt = glassesTimelineAt;
+
   function isInView(el) {
     if (!el) return false;
     var r = el.getBoundingClientRect();
@@ -64,12 +111,12 @@
     var intersecting = false;
     var frameId = 0;
     var lastFrame = -Infinity;
-    var mobileInterval = options.mobileInterval || MOBILE_FRAME_INTERVAL;
+    var mobileInterval = options.mobileInterval == null ? MOBILE_FRAME_INTERVAL : options.mobileInterval;
 
     function frame(time) {
       frameId = 0;
       if (!intersecting || !pageVisible) return;
-      if (!isPhonePerformance || time - lastFrame >= mobileInterval) {
+      if (!isPhonePerformance || mobileInterval <= 0 || time - lastFrame >= mobileInterval) {
         lastFrame = time;
         renderFrame(time || 0);
       }
@@ -120,7 +167,47 @@
   var progressFill = document.getElementById("progress-fill");
   var dots = Array.prototype.slice.call(document.querySelectorAll(".scene-dots a"));
   var allScenes = Array.prototype.slice.call(document.querySelectorAll(".scene"));
+  var frontJourney = document.querySelector("[data-front-journey]");
+  var frontJourneyProgress = 0;
   var phoneTimeline = window.matchMedia("(max-width: 760px), (orientation: landscape) and (max-height: 500px)");
+  var scrollGeometry = new WeakMap();
+
+  // Every scroll-scrub scene has a fixed document position and height. Cache
+  // those values outside the hot path so each Safari wheel frame does not
+  // alternate CSS writes with page-wide getBoundingClientRect() reads. That
+  // forced-layout pattern was the main source of 100–280 ms gaps in Optics.
+  function measureScrollGeometry() {
+    var scrollTop = window.scrollY;
+    var measured = allScenes.slice();
+    if (frontJourney) measured.push(frontJourney);
+    if (projectsSlot) measured.push(projectsSlot);
+    measured.forEach(function (element) {
+      if (!element) return;
+      var rect = element.getBoundingClientRect();
+      scrollGeometry.set(element, {
+        top: scrollTop + rect.top,
+        height: rect.height,
+      });
+    });
+  }
+
+  function scrollRect(element) {
+    var geometry = scrollGeometry.get(element);
+    if (!geometry) {
+      var liveRect = element.getBoundingClientRect();
+      geometry = {
+        top: window.scrollY + liveRect.top,
+        height: liveRect.height,
+      };
+      scrollGeometry.set(element, geometry);
+    }
+    var top = geometry.top - window.scrollY;
+    return {
+      top: top,
+      bottom: top + geometry.height,
+      height: geometry.height,
+    };
+  }
 
   var cityViewport = document.querySelector("#city .viewport");
   var cityFlightVideo = document.querySelector(".city-flight-video");
@@ -129,8 +216,32 @@
   var concertViewport = document.querySelector("#concert .viewport");
   var glassesViewport = document.querySelector("#glasses .viewport");
   var broadcastViewport = document.querySelector("#broadcast .viewport");
+  var projectsScene = document.getElementById("projects");
+  var projectsSlot = document.querySelector(".projects-slot");
+  var contactViewport = document.querySelector("#contact .contact-viewport");
   var cityP = 0;
+  var globeP = 0;
   var concertP = 0;
+
+  var FRONT_JOURNEY_STOPS = { hero: 0, city: 0.52, broadcast: 0.73 };
+  if (frontJourney) {
+    Array.prototype.slice.call(document.querySelectorAll('a[href="#hero"], a[href="#city"], a[href="#broadcast"]')).forEach(function (link) {
+      link.addEventListener("click", function (event) {
+        var sceneName = link.getAttribute("href").slice(1);
+        var stop = FRONT_JOURNEY_STOPS[sceneName];
+        if (typeof stop !== "number") return;
+        event.preventDefault();
+        var runway = Math.max(0, frontJourney.offsetHeight - window.innerHeight);
+        window.scrollTo({
+          top: frontJourney.offsetTop + runway * stop,
+          behavior: prefersReduced ? "auto" : "smooth",
+        });
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState(null, "", "#" + sceneName);
+        }
+      });
+    });
+  }
 
   // CSS animations are also paused outside the current/adjacent scene. The
   // generous margin lets the next transition warm up before it becomes visible.
@@ -195,9 +306,84 @@
   function onScroll() {
     var vh = window.innerHeight;
     var doc = document.documentElement;
+    var frontRect = frontJourney ? scrollRect(frontJourney) : null;
+    if (frontRect) {
+      var frontRunway = Math.max(1, frontRect.height - vh);
+      frontJourneyProgress = clamp01(-frontRect.top / frontRunway);
+      var frontJourneyNear = frontRect.bottom > -vh * 0.5 && frontRect.top < vh * 1.5;
+      if (frontJourneyNear) {
+        frontJourney.classList.toggle("is-engaged", frontJourneyProgress > 0.006);
+        // Lower the retired opening stack as soon as the Reel gesture begins.
+        // The incoming Hangar can then cover the exact area Reels vacates.
+        frontJourney.classList.toggle("is-hangar-active", frontJourneyProgress >= 0.924);
+        // The opening globe keeps its existing physical scroll duration even
+        // though the later city and Instagram phases receive a longer runway.
+        var globeMorphP = clamp01(frontJourneyProgress / 0.117);
+        var globeRevealP = smoother((frontJourneyProgress - 0.091) / 0.052);
+        globeP = smoother((frontJourneyProgress - 0.143) / 0.247);
+        var globeExitP = smoother((frontJourneyProgress - 0.39) / 0.052);
+        if (cityViewport) {
+          var cityLayerEnter = smoother((frontJourneyProgress - 0.026) / 0.078);
+          var cityLayerExit = smoother((frontJourneyProgress - 0.62) / 0.08);
+          cityViewport.style.setProperty(
+            "--front-scene-opacity",
+            (cityLayerEnter * (1 - cityLayerExit)).toFixed(4)
+          );
+          cityViewport.style.setProperty("--globe-morph", globeMorphP.toFixed(4));
+          cityViewport.style.setProperty("--globe-reveal", globeRevealP.toFixed(4));
+          cityViewport.style.setProperty("--globe-orbit", globeP.toFixed(4));
+          cityViewport.style.setProperty("--globe-exit", globeExitP.toFixed(4));
+        }
+        if (broadcastViewport) {
+          broadcastViewport.style.setProperty(
+            "--front-scene-opacity",
+            smoother((frontJourneyProgress - 0.62) / 0.08).toFixed(4)
+          );
+          // The feed stays still for a full beat, then responds linearly from the
+          // first scroll delta. Both viewport-sized panels use the same pixel
+          // measurement so their edges remain joined like adjacent Reels.
+          var reelsPageSwipe = clamp01((frontJourneyProgress - 0.924) / 0.075);
+          broadcastViewport.style.setProperty(
+            "--reels-page-offset",
+            (-vh * reelsPageSwipe).toFixed(2) + "px"
+          );
+          if (projectsScene) {
+            projectsScene.style.setProperty(
+              "--hangar-page-offset",
+              (vh * (1 - reelsPageSwipe)).toFixed(2) + "px"
+            );
+            if (frontJourneyProgress < 1) {
+              projectsScene.style.setProperty("--hangar-dismiss", "0");
+            }
+            projectsScene.classList.toggle(
+              "is-front-pinned",
+              frontJourneyProgress >= 0.92 && frontJourneyProgress < 1
+            );
+          }
+        }
+      }
+    }
+
+    var projectsProgress = -1;
+    var projectHandoffActive = false;
+    var hangarOpticsReveal = 0;
+    if (projectsScene && projectsSlot && !projectsScene.classList.contains("is-front-pinned")) {
+      var projectsRect = scrollRect(projectsSlot);
+      var projectsRunway = Math.max(1, projectsRect.height - vh);
+      projectsProgress = clamp01(-projectsRect.top / projectsRunway);
+      projectHandoffActive = projectsRect.top <= 0 && projectsProgress < 1;
+
+      // Fade the complete Hangar away in place, pause on the shared dark field,
+      // then fade the already-pinned studio in. The physical sticky release is
+      // invisible, so no horizontal band can cross the viewport.
+      var hangarDismiss = smoother((projectsProgress - 0.64) / 0.14);
+      hangarOpticsReveal = smoother((projectsProgress - 0.79) / 0.15);
+      projectsScene.style.setProperty("--hangar-dismiss", hangarDismiss.toFixed(4));
+    }
 
     scrubScenes.forEach(function (scene) {
-      var rect = scene.getBoundingClientRect();
+      var inFrontJourney = frontJourney && scene.parentElement === frontJourney;
+      var rect = inFrontJourney && frontRect ? frontRect : scrollRect(scene);
       var nearScene = rect.bottom > -vh * 0.5 && rect.top < vh * 1.5;
       if (!nearScene) {
         if (scene.id === "city" && cityFlightVideo && !cityFlightVideo.paused) {
@@ -207,6 +393,11 @@
       }
       var total = rect.height - vh;
       var p = total > 0 ? clamp01(-rect.top / total) : 0;
+      if (inFrontJourney) {
+        if (scene.id === "hero") p = clamp01(frontJourneyProgress / 0.117);
+        else if (scene.id === "city") p = clamp01((frontJourneyProgress - 0.34) / 0.4);
+        else if (scene.id === "broadcast") p = clamp01((frontJourneyProgress - 0.62) / 0.38);
+      }
       var viewport = scene.querySelector(".viewport");
       if (viewport) {
         viewport.style.setProperty("--p", p.toFixed(4));
@@ -223,6 +414,12 @@
         var cityFlightReveal = smoother((p - 0.405) / 0.16);
         var citySceneExit = smoother((p - 0.86) / 0.14);
         if (cityViewport) {
+          if (inFrontJourney) {
+            cityViewport.style.setProperty(
+              "--scene-enter",
+              smoother((frontJourneyProgress - 0.026) / 0.078).toFixed(4)
+            );
+          }
           cityViewport.style.setProperty("--city-in", cityFlightReveal.toFixed(4));
           cityViewport.style.setProperty("--scene-exit", citySceneExit.toFixed(4));
         }
@@ -230,64 +427,49 @@
       }
       if (scene.id === "concert") concertP = p;
       if (scene.id === "glasses" && glassesViewport) {
+        var opticsReady = doc.classList.contains("optics-initialized");
+        var normalOpticsReveal = smoother(p / 0.1);
+        var opticsReveal = opticsReady
+          ? projectHandoffActive
+            ? hangarOpticsReveal
+            : normalOpticsReveal
+          : 0;
+        var opticsProgress = opticsReady ? p : 0;
+        glassesViewport.style.setProperty("--optics-reveal", opticsReveal.toFixed(4));
+        glassesViewport.style.setProperty("--scene-enter", opticsReveal.toFixed(4));
         // Folded hero, quarter-turn to the left profile, exploded orbit,
         // precision reassembly, then one wearer-side right-lens camera glide.
-        var templeFold = 1 - smooth(clamp01((p - 0.03) / 0.18));
-        var explode = 0;
-        if (p < 0.2) {
-          explode = 0;
-        } else if (p < 0.31) {
-          explode = smooth((p - 0.2) / 0.11);
-        } else if (p < 0.53) {
-          explode = 1;
-        } else if (p < 0.7) {
-          explode = 1 - smooth((p - 0.53) / 0.17);
-        }
+        var glassesState = glassesTimelineAt(opticsProgress);
+        glassesViewport.style.setProperty("--fold", glassesState.fold.toFixed(4));
+        glassesViewport.style.setProperty("--explode", glassesState.explode.toFixed(4));
+        glassesViewport.style.setProperty("--orbit", glassesState.orbit.toFixed(4));
+        glassesViewport.style.setProperty("--turn", glassesState.turn.toFixed(4));
+        glassesViewport.style.setProperty("--dive", glassesState.dive.toFixed(4));
+        glassesViewport.style.setProperty("--feed", glassesState.feed.toFixed(4));
+        glassesViewport.style.setProperty("--portal", glassesState.portal.toFixed(4));
+        glassesViewport.style.setProperty("--hud", glassesState.hud.toFixed(4));
+        glassesViewport.style.setProperty("--status-product", glassesState.statusProduct.toFixed(4));
+        glassesViewport.style.setProperty("--status-exploded", glassesState.statusExploded.toFixed(4));
+        glassesViewport.style.setProperty("--status-complete", glassesState.statusComplete.toFixed(4));
+        var glassesExitStart = phoneTimeline.matches ? 0.86 : 0.92;
+        glassesViewport.style.setProperty(
+          "--scene-exit",
+          (opticsReady ? smoother((p - glassesExitStart) / (1 - glassesExitStart)) : 0).toFixed(4)
+        );
 
-        var productOrbit =
-          p < 0.22
-            ? 0.25 * smooth(clamp01((p - 0.03) / 0.19))
-            : 0.25 + 0.75 * smooth(clamp01((p - 0.22) / 0.48));
-        // The wearer-side rotation and camera approach deliberately overlap:
-        // the right lens remains the camera target throughout one continuous glide.
-        var productTurn = smoother((p - 0.56) / 0.24);
-        var lensDive = smoother((p - 0.6) / 0.27);
-        // Give the live feed a substantial scroll runway: it appears through
-        // the waveguide, clears its optical bloom, reaches full focus, and then
-        // holds long enough to read before the Socials handoff begins.
-        var lensFeed = smoother((p - 0.72) / 0.15);
-        var lensPortal = smoother((p - 0.75) / 0.14);
-        var lensHud = smoother((p - 0.79) / 0.12);
-        var statusProduct = 1 - smooth(clamp01(p / 0.08));
-        var statusExploded =
-          smooth(clamp01((p - 0.17) / 0.08)) *
-          (1 - smooth(clamp01((p - 0.57) / 0.11)));
-        var statusComplete =
-          smooth(clamp01((p - 0.65) / 0.08)) *
-          (1 - smooth(clamp01((p - 0.86) / 0.07)));
-
-        glassesViewport.style.setProperty("--fold", templeFold.toFixed(4));
-        glassesViewport.style.setProperty("--explode", explode.toFixed(4));
-        glassesViewport.style.setProperty("--orbit", productOrbit.toFixed(4));
-        glassesViewport.style.setProperty("--turn", productTurn.toFixed(4));
-        glassesViewport.style.setProperty("--dive", lensDive.toFixed(4));
-        glassesViewport.style.setProperty("--feed", lensFeed.toFixed(4));
-        glassesViewport.style.setProperty("--portal", lensPortal.toFixed(4));
-        glassesViewport.style.setProperty("--hud", lensHud.toFixed(4));
-        glassesViewport.style.setProperty("--status-product", statusProduct.toFixed(4));
-        glassesViewport.style.setProperty("--status-exploded", statusExploded.toFixed(4));
-        glassesViewport.style.setProperty("--status-complete", statusComplete.toFixed(4));
-        var glassesExitStart = phoneTimeline.matches ? 0.9 : 0.96;
-        glassesViewport.style.setProperty("--scene-exit", smoother((p - glassesExitStart) / (1 - glassesExitStart)).toFixed(4));
-
-        if (p > 0.91) glassesViewport.setAttribute("data-lens", "open");
+        if (opticsReady && p > 0.91) glassesViewport.setAttribute("data-lens", "open");
         else glassesViewport.removeAttribute("data-lens");
       }
       if (scene.id === "broadcast" && broadcastViewport) {
         broadcastViewport.style.setProperty("--scene-enter", smoother(p / 0.12).toFixed(4));
-        broadcastViewport.style.setProperty("--scene-exit", smoother((p - 0.84) / 0.16).toFixed(4));
-        if (p > 0.6) broadcastViewport.setAttribute("data-feed", "open");
+        broadcastViewport.style.setProperty("--scene-exit", smoother((p - 0.82) / 0.14).toFixed(4));
+        if (p > 0.52) broadcastViewport.setAttribute("data-feed", "open");
         else broadcastViewport.removeAttribute("data-feed");
+      }
+      if (scene.id === "contact" && contactViewport) {
+        contactViewport.style.setProperty("--stars-in", smoother(p / 0.28).toFixed(4));
+        contactViewport.style.setProperty("--socials-in", smoother((p - 0.36) / 0.34).toFixed(4));
+        scene.classList.toggle("is-contact-active", rect.top <= 1 && rect.bottom > 1);
       }
     });
 
@@ -299,9 +481,19 @@
     var mid = vh * 0.5;
     var active = null;
     allScenes.forEach(function (scene) {
-      var r = scene.getBoundingClientRect();
+      // The Hangar section itself changes from fixed to sticky during the Reel
+      // handoff; its stable slot is the authoritative document-space range.
+      var activeElement = scene === projectsScene && projectsSlot ? projectsSlot : scene;
+      var r = scrollRect(activeElement);
       if (r.top <= mid && r.bottom >= mid) active = scene.dataset.scene;
     });
+    if (frontRect && frontRect.top <= mid && frontRect.bottom >= mid) {
+      active = frontJourneyProgress < 0.117
+        ? "hero"
+        : frontJourneyProgress < 0.68
+          ? "city"
+          : "broadcast";
+    }
     dots.forEach(function (dot) {
       dot.classList.toggle("active", dot.dataset.dot === active);
     });
@@ -327,17 +519,28 @@
     function () {
       if (!ticking) {
         ticking = true;
-        // WKWebView can pause requestAnimationFrame while a page is opened
-        // inside Messages or while iOS Low Power Mode is active. Keep the
-        // smooth rAF path, but guarantee one update after scrolling settles.
-        scrollFallbackTimer = setTimeout(flushScrollUpdate, 90);
+        // WebKit can defer requestAnimationFrame during momentum scrolling.
+        // Keep the normal rAF path, but refresh Safari's scrub target soon
+        // enough for the glasses renderer's frame-rescue timer to use it.
+        scrollFallbackTimer = setTimeout(flushScrollUpdate, SCROLL_FALLBACK_DELAY);
         requestAnimationFrame(flushScrollUpdate);
       }
     },
     { passive: true }
   );
-  window.addEventListener("resize", onScroll);
-  window.addEventListener("pageshow", onScroll);
+  window.addEventListener("resize", function () {
+    measureScrollGeometry();
+    onScroll();
+  });
+  window.addEventListener("pageshow", function () {
+    measureScrollGeometry();
+    onScroll();
+  });
+  window.addEventListener("optics:ready", onScroll);
+  window.addEventListener("site:ready", function () {
+    measureScrollGeometry();
+    onScroll();
+  });
   document.addEventListener("visibilitychange", function () {
     if (!document.hidden) onScroll();
   });
@@ -617,11 +820,11 @@
     }
 
     function drawGlobe(time) {
-      if (cityP < 0.5 && isInView(cityViewport)) {
+      if (cityP < 0.56 && isInView(cityViewport)) {
         gtx.clearRect(0, 0, GW, GH);
 
         // Asia -> Europe -> Americas camera sweep, locking on NYC
-        var lock = smooth(clamp01(cityP / 0.3));
+        var lock = globeP;
         var sway = Math.sin(time * 0.0004) * 4 * (1 - lock);
         // Asia (118E) -> Europe (~12E) -> NYC (-74W)
         var rotLon, rotLat;
@@ -2579,6 +2782,13 @@
     var constellationPaths = [];
     var planets = [];
     var socialsStartTime = null;
+    var socialsLastFrameTime = null;
+    var socialsFrameSampleStart = null;
+    var socialsFrameSampleCount = 0;
+    var socialsPixelRatio = isPhonePerformance || isSafariPerformance ? 1 : 1.25;
+    var radarGlowScale = isPhonePerformance || isSafariPerformance ? 0.55 : 0.72;
+    var constellationCanvas = document.createElement("canvas");
+    var constellationContext = constellationCanvas.getContext("2d");
     var NODE_COLORS = [
       [255, 79, 216],   // instagram
       [255, 71, 87],    // youtube
@@ -2857,11 +3067,56 @@
       });
     }
 
+    // The dense character trace does not need to be rebuilt every animation
+    // frame. Rendering it once removes hundreds of line segments and shadow
+    // operations from the radar's hot path while keeping the moving stars,
+    // sweep reveal, planets, and pings fully animated.
+    function rebuildConstellationCache() {
+      constellationCanvas.width = Math.max(1, Math.round(XW * socialsPixelRatio));
+      constellationCanvas.height = Math.max(1, Math.round(XH * socialsPixelRatio));
+      constellationContext.setTransform(socialsPixelRatio, 0, 0, socialsPixelRatio, 0, 0);
+      constellationContext.clearRect(0, 0, XW, XH);
+      constellationContext.lineCap = "round";
+      constellationContext.lineJoin = "round";
+
+      for (var pathDrawIndex = 0; pathDrawIndex < constellationPaths.length; pathDrawIndex++) {
+        var constellationPath = constellationPaths[pathDrawIndex];
+        var pathNodeIndices = constellationPath.nodes;
+        if (!pathNodeIndices.length) continue;
+        var pathColor = constellationPath.color || [255, 211, 72];
+
+        constellationContext.beginPath();
+        var firstPathNode = nodes[pathNodeIndices[0]];
+        constellationContext.moveTo(firstPathNode.x, firstPathNode.y);
+        for (var pathPointIndex = 1; pathPointIndex < pathNodeIndices.length; pathPointIndex++) {
+          var pathPoint = nodes[pathNodeIndices[pathPointIndex]];
+          constellationContext.lineTo(pathPoint.x, pathPoint.y);
+        }
+        if (constellationPath.closed) constellationContext.closePath();
+
+        if (constellationPath.fillAlpha > 0) {
+          constellationContext.fillStyle = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + "," + constellationPath.fillAlpha.toFixed(2) + ")";
+          constellationContext.fill();
+        }
+
+        constellationContext.shadowColor = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + ",0.72)";
+        constellationContext.shadowBlur = 10 * radarGlowScale;
+        constellationContext.strokeStyle = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + ",0.24)";
+        constellationContext.lineWidth = constellationPath.lineWidth * 2.4;
+        constellationContext.stroke();
+
+        constellationContext.shadowBlur = 0;
+        constellationContext.strokeStyle = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + ",0.88)";
+        constellationContext.lineWidth = constellationPath.lineWidth;
+        constellationContext.stroke();
+      }
+    }
+
     var resizeSocials = function () {
       XW = socialsCanvas.offsetWidth;
       XH = socialsCanvas.offsetHeight;
-      socialsCanvas.width = XW * DPR;
-      socialsCanvas.height = XH * DPR;
+      socialsCanvas.width = Math.max(1, Math.round(XW * socialsPixelRatio));
+      socialsCanvas.height = Math.max(1, Math.round(XH * socialsPixelRatio));
       nodes = [];
       constellationPaths = [];
       planets = [];
@@ -2999,6 +3254,8 @@
           ping: 0,
         });
       }
+      rebuildConstellationCache();
+      socialsCanvas.dataset.radarProfile = isPhonePerformance ? "mobile" : isSafariPerformance ? "safari" : "desktop";
     };
     var socialsInitialized = false;
     whenSceneNear(contactSection, function () {
@@ -3009,7 +3266,20 @@
     }, "220% 0px");
 
     function drawSocials(time) {
-      sctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      if (socialsFrameSampleStart == null) socialsFrameSampleStart = time;
+      socialsFrameSampleCount += 1;
+      if (time - socialsFrameSampleStart >= 1000) {
+        socialsCanvas.dataset.radarFps = String(Math.round(
+          (socialsFrameSampleCount - 1) * 1000 / Math.max(1, time - socialsFrameSampleStart)
+        ));
+        socialsFrameSampleStart = time;
+        socialsFrameSampleCount = 1;
+      }
+      var frameScale = socialsLastFrameTime == null
+        ? 1
+        : Math.min(4, Math.max(0.25, (time - socialsLastFrameTime) / (1000 / 60)));
+      socialsLastFrameTime = time;
+      sctx.setTransform(socialsPixelRatio, 0, 0, socialsPixelRatio, 0, 0);
       sctx.clearRect(0, 0, XW, XH);
 
       var cx = XW / 2;
@@ -3048,7 +3318,7 @@
         if (planetAngle < 0) planetAngle += TAU;
         var planetDiff = (sweep - planetAngle + TAU) % TAU;
         if (planetDiff < 0.075) planet.ping = 1;
-        planet.ping *= 0.957;
+        planet.ping *= Math.pow(0.957, frameScale);
 
         var pc = planet.color;
         var planetGlow = sctx.createRadialGradient(
@@ -3067,7 +3337,9 @@
         sctx.arc(px, py, planet.r * 1.15, 0, TAU);
         sctx.fillStyle = planetGlow;
         sctx.shadowColor = "rgba(" + pc[0] + "," + pc[1] + "," + pc[2] + ",0.55)";
-        sctx.shadowBlur = 8 + planet.ping * 18;
+        // The radial sprite already carries the idle glow. Reserve the costly
+        // canvas shadow filter for the brief sweep ping only.
+        sctx.shadowBlur = planet.ping > 0.02 ? (2 + planet.ping * 16) * radarGlowScale : 0;
         sctx.fill();
 
         sctx.beginPath();
@@ -3125,6 +3397,9 @@
       // flare together as the radar beam crosses them.
       for (var n = 0; n < nodes.length; n++) {
         var nd = nodes[n];
+        // Hidden trace samples only build the cached silhouette. Updating
+        // their trigonometry every frame was the radar's largest CPU cost.
+        if (nd.character && !nd.visibleStar) continue;
         nd.drawX = nd.x + Math.sin(time * 0.0003 + nd.phase) * 14 * nd.drift;
         nd.drawY = nd.y + Math.cos(time * 0.00024 + nd.phase * 1.7) * 10 * nd.drift;
 
@@ -3141,7 +3416,7 @@
           nd.connectionReveal = 0;
         }
         if (diff < 0.052) nd.ping = 1;
-        nd.ping *= 0.952;
+        nd.ping *= Math.pow(0.952, frameScale);
       }
 
       // The second pass reveals complete antialiased paths through a sector
@@ -3157,39 +3432,7 @@
           sctx.clip();
         }
 
-        sctx.lineCap = "round";
-        sctx.lineJoin = "round";
-        for (var pathDrawIndex = 0; pathDrawIndex < constellationPaths.length; pathDrawIndex++) {
-          var constellationPath = constellationPaths[pathDrawIndex];
-          var pathNodeIndices = constellationPath.nodes;
-          if (!pathNodeIndices.length) continue;
-          var pathColor = constellationPath.color || [255, 211, 72];
-
-          sctx.beginPath();
-          var firstPathNode = nodes[pathNodeIndices[0]];
-          sctx.moveTo(firstPathNode.drawX, firstPathNode.drawY);
-          for (var pathPointIndex = 1; pathPointIndex < pathNodeIndices.length; pathPointIndex++) {
-            var pathPoint = nodes[pathNodeIndices[pathPointIndex]];
-            sctx.lineTo(pathPoint.drawX, pathPoint.drawY);
-          }
-          if (constellationPath.closed) sctx.closePath();
-
-          if (constellationPath.fillAlpha > 0) {
-            sctx.fillStyle = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + "," + constellationPath.fillAlpha.toFixed(2) + ")";
-            sctx.fill();
-          }
-
-          sctx.shadowColor = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + ",0.72)";
-          sctx.shadowBlur = 10;
-          sctx.strokeStyle = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + ",0.24)";
-          sctx.lineWidth = constellationPath.lineWidth * 2.4;
-          sctx.stroke();
-
-          sctx.shadowBlur = 0;
-          sctx.strokeStyle = "rgba(" + pathColor[0] + "," + pathColor[1] + "," + pathColor[2] + ",0.88)";
-          sctx.lineWidth = constellationPath.lineWidth;
-          sctx.stroke();
-        }
+        sctx.drawImage(constellationCanvas, 0, 0, XW, XH);
         sctx.restore();
       }
 
@@ -3214,7 +3457,10 @@
         sctx.arc(nx, ny, starRadius + ndDraw.ping * 1.8, 0, Math.PI * 2);
         sctx.fillStyle = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + base.toFixed(2) + ")";
         sctx.shadowColor = "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + (0.25 + ndDraw.ping * 0.7).toFixed(2) + ")";
-        sctx.shadowBlur = 2 + brightness * 4 + selected * 4 + ndDraw.ping * 12;
+        var starNeedsGlow = ndDraw.spark || ndDraw.ping > 0.02 || selected > 0.02;
+        sctx.shadowBlur = starNeedsGlow
+          ? (2 + brightness * 4 + selected * 4 + ndDraw.ping * 12) * radarGlowScale
+          : 0;
         sctx.fill();
 
         if (ndDraw.ping > 0.38 && ndDraw.spark) {
@@ -3253,9 +3499,14 @@
         drawSocials((time || 0) - socialsStartTime);
       } else {
         socialsStartTime = null;
+        socialsLastFrameTime = null;
+        socialsFrameSampleStart = null;
+        socialsFrameSampleCount = 0;
       }
     }
-    runSceneAnimation(contactSection, socialsLoop, { rootMargin: "20% 0px" });
+    // This scene is lightweight enough after caching to follow every display
+    // refresh. A zero interval bypasses the shared phone-only 30 fps limiter.
+    runSceneAnimation(contactSection, socialsLoop, { rootMargin: "20% 0px", mobileInterval: 0 });
   }
 
   /* ---------- reveal-on-scroll for flow sections ---------- */
@@ -3286,5 +3537,6 @@
     });
   }
 
+  measureScrollGeometry();
   onScroll();
 })();

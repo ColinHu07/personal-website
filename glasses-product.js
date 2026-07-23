@@ -6,8 +6,16 @@ const viewport = document.querySelector("#glasses .viewport");
 if (canvas && viewport) {
   const phonePerformance = window.matchMedia("(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)").matches;
   const safariPerformance = /^((?!chrome|chromium|android).)*safari/i.test(navigator.userAgent);
-  const retinaPerformance = (window.devicePixelRatio || 1) > 1.5;
-  const leanPerformance = phonePerformance || safariPerformance || retinaPerformance;
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  // Safari keeps the cheaper material/compositor profile, but a Retina desktop
+  // must not inherit the sub-CSS-pixel phone buffer that made edges visibly
+  // blocky. Phones render at one CSS pixel; desktops keep a crisp 1.5x cap.
+  const leanPerformance = phonePerformance || safariPerformance;
+  const renderPixelRatio = phonePerformance ? 1 : 1.5;
+  // Safari 26.2 composites WebGL on the main thread while a sticky ancestor is
+  // scrolling. Keeping that path near one physical megapixel costs half the
+  // fill-rate of the old 1.9 MP buffer while remaining CSS-pixel sharp.
+  const renderPixelBudget = phonePerformance ? 1250000 : safariPerformance ? 1150000 : 3200000;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0c0f12);
   scene.fog = leanPerformance ? null : new THREE.FogExp2(0x0c0f12, 0.021);
@@ -18,7 +26,7 @@ if (canvas && viewport) {
     alpha: false,
     powerPreference: "high-performance",
   });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, phonePerformance ? 0.75 : leanPerformance ? 0.7 : 1.5));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, renderPixelRatio));
   renderer.shadowMap.enabled = !leanPerformance;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -790,11 +798,24 @@ if (canvas && viewport) {
   let isVisible = false;
   let frameHandle = 0;
   let fallbackTimer = 0;
-  let lastRenderTime = -Infinity;
-  // The mobile shader/geometry path is inexpensive enough to follow 60 Hz
-  // scroll input without the uneven stepping of the previous 30 fps cap.
-  const phoneFrameInterval = 1000 / 60;
+  let lastRenderTime = 0;
+  let scrollWakeUntil = 0;
+  let sceneStart = 0;
+  let sceneRunway = 1;
+  const needsFrameFallback = phonePerformance || safariPerformance;
+  const frameFallbackDelay = safariPerformance ? 24 : 42;
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const motionKeys = ["explode", "fold", "orbit", "turn", "dive"];
+  const motionState = {
+    initialized: false,
+    explode: 0,
+    fold: 1,
+    orbit: 0,
+    turn: 0,
+    dive: 0,
+  };
+  const motionFollowRate = 30;
+  const motionEpsilon = 0.0005;
   const tmpTarget = new THREE.Vector3();
   const baseCamera = new THREE.Vector3();
   const targetCamera = new THREE.Vector3();
@@ -809,6 +830,20 @@ if (canvas && viewport) {
     return clamp01(parseFloat(raw) || 0);
   };
 
+  const measureScene = () => {
+    const scene = viewport.closest(".scene");
+    if (!scene) return;
+    const rect = scene.getBoundingClientRect();
+    sceneStart = window.scrollY + rect.top;
+    sceneRunway = Math.max(1, rect.height - window.innerHeight);
+  };
+
+  const readLiveTimeline = () => {
+    if (typeof window.glassesTimelineAt !== "function") return null;
+    const progress = clamp01((window.scrollY - sceneStart) / sceneRunway);
+    return window.glassesTimelineAt(progress);
+  };
+
   const resize = () => {
     const width = Math.max(1, canvas.clientWidth);
     const height = Math.max(1, canvas.clientHeight);
@@ -821,30 +856,35 @@ if (canvas && viewport) {
     baseCameraDistance = Math.max(18, verticalDistance, horizontalDistance);
     camera.aspect = aspect;
     camera.updateProjectionMatrix();
+    // Bound fill-rate by actual canvas area. Large Retina windows otherwise
+    // create a multi-megapixel WebGL buffer on every scroll frame; this keeps
+    // the desktop result crisp while holding Safari's lean profile near 1.9 MP.
+    const areaRatio = Math.sqrt(renderPixelBudget / Math.max(1, width * height));
+    renderer.setPixelRatio(Math.min(devicePixelRatio, renderPixelRatio, areaRatio));
     renderer.setSize(width, height, false);
+    measureScene();
     scheduleRender();
   };
 
   const scheduleRender = () => {
-    // Sticky elements are reported inconsistently by IntersectionObserver in
-    // some iOS/WebKit builds. The scrub engine's active-scene marker is the
-    // reliable source while scrolling, with geometry as an initial fallback.
-    const activeScene = document.body.dataset.activeScene;
-    if (activeScene) {
-      isVisible = activeScene === "glasses";
-    } else {
-      const viewportRect = viewport.getBoundingClientRect();
-      isVisible = viewportRect.bottom > 0 && viewportRect.top < window.innerHeight;
-    }
+    // Use the cached scene runway instead of the page-wide active-scene marker.
+    // Optics is already visible during its Hangar crossfade, before the
+    // midpoint marker switches, and should be rendering throughout that handoff.
+    isVisible =
+      window.scrollY > sceneStart - window.innerHeight * 1.1 &&
+      window.scrollY < sceneStart + sceneRunway + window.innerHeight * 1.1;
     if (!frameHandle && isVisible && !document.hidden) {
       frameHandle = requestAnimationFrame(render);
-      if (phonePerformance && !fallbackTimer) {
+      // Safari can defer animation callbacks during momentum scrolling or
+      // screen capture. Cancel the stranded callback and draw the latest state
+      // directly so later scroll events cannot collapse into one large jump.
+      if (needsFrameFallback && !fallbackTimer) {
         fallbackTimer = window.setTimeout(() => {
           fallbackTimer = 0;
           if (frameHandle) cancelAnimationFrame(frameHandle);
           frameHandle = 0;
           render(performance.now());
-        }, 70);
+        }, frameFallbackDelay);
       }
     }
   };
@@ -856,21 +896,64 @@ if (canvas && viewport) {
       fallbackTimer = 0;
     }
     if ((!isVisible && !force) || document.hidden) return;
-    if (phonePerformance && !force && time - lastRenderTime < phoneFrameInterval) {
-      fallbackTimer = window.setTimeout(scheduleRender, phoneFrameInterval - (time - lastRenderTime));
-      return;
-    }
-    lastRenderTime = time;
 
     // The scrub engine writes inline values while this scene is near. Fall
     // back to one computed-style read only for the model's initial frame.
     const inlineStyles = viewport.style;
     const styles = inlineStyles.getPropertyValue("--orbit") ? inlineStyles : getComputedStyle(viewport);
-    const explodeAmount = reducedMotion ? 0 : readVar(styles, "--explode");
-    const templeFold = reducedMotion ? 0 : readVar(styles, "--fold");
-    const orbitAmount = reducedMotion ? 1 : readVar(styles, "--orbit");
-    const wearerTurn = reducedMotion ? 1 : readVar(styles, "--turn");
-    const diveAmount = reducedMotion ? 0 : readVar(styles, "--dive");
+    const liveTimeline = force ? null : readLiveTimeline();
+    const targetState = liveTimeline ? {
+      explode: liveTimeline.explode,
+      fold: liveTimeline.fold,
+      orbit: liveTimeline.orbit,
+      turn: liveTimeline.turn,
+      dive: liveTimeline.dive,
+    } : {
+      explode: reducedMotion ? 0 : readVar(styles, "--explode"),
+      fold: reducedMotion ? 0 : readVar(styles, "--fold"),
+      orbit: reducedMotion ? 1 : readVar(styles, "--orbit"),
+      turn: reducedMotion ? 1 : readVar(styles, "--turn"),
+      dive: reducedMotion ? 0 : readVar(styles, "--dive"),
+    };
+    if (reducedMotion && liveTimeline) {
+      targetState.explode = 0;
+      targetState.fold = 0;
+      targetState.orbit = 1;
+      targetState.turn = 1;
+      targetState.dive = 0;
+    }
+    const elapsedSeconds = lastRenderTime
+      ? Math.min(0.064, Math.max(0, (time - lastRenderTime) / 1000))
+      : 1 / 60;
+    const followAmount = force || reducedMotion || !motionState.initialized
+      ? 1
+      : 1 - Math.exp(-elapsedSeconds * motionFollowRate);
+    motionKeys.forEach((keyName) => {
+      motionState[keyName] = mix(motionState[keyName], targetState[keyName], followAmount);
+    });
+    motionState.initialized = true;
+    lastRenderTime = time;
+
+    const explodeAmount = motionState.explode;
+    const templeFold = motionState.fold;
+    const orbitAmount = motionState.orbit;
+    const wearerTurn = motionState.turn;
+    const diveAmount = motionState.dive;
+    const motionSettled = motionKeys.every(
+      (keyName) => Math.abs(targetState[keyName] - motionState[keyName]) < motionEpsilon
+    );
+
+    // Keep the DOM transition and the 3D pose on the same live scroll sample.
+    // The page-wide scrubber remains as a fallback, but these compositor-safe
+    // values no longer wait for a separately throttled Safari scroll callback.
+    if (liveTimeline) {
+      viewport.style.setProperty("--feed", liveTimeline.feed.toFixed(4));
+      viewport.style.setProperty("--portal", liveTimeline.portal.toFixed(4));
+      viewport.style.setProperty("--hud", liveTimeline.hud.toFixed(4));
+      viewport.style.setProperty("--status-product", liveTimeline.statusProduct.toFixed(4));
+      viewport.style.setProperty("--status-exploded", liveTimeline.statusExploded.toFixed(4));
+      viewport.style.setProperty("--status-complete", liveTimeline.statusComplete.toFixed(4));
+    }
 
     // The folded temples remain legible through the tinted prescription glass
     // in the opening product shot, then the lenses settle to their deeper
@@ -936,10 +1019,13 @@ if (canvas && viewport) {
     product.rotation.z = mix(Math.sin(orbitAmount * Math.PI * 2) * 0.028, -0.04, wearerTurn);
     product.position.x = mix(0, -0.12, wearerTurn);
     product.position.y = mix(0.25, 2.1, wearerTurn);
-    product.updateMatrixWorld(true);
+    // Product is a direct child of the identity scene, so its local matrix is
+    // also its world matrix. Updating only this matrix avoids walking the full
+    // glasses hierarchy here and then walking it again inside renderer.render.
+    product.updateMatrix();
 
     tmpTarget.copy(rightLensCenter);
-    product.localToWorld(tmpTarget);
+    tmpTarget.applyMatrix4(product.matrix);
     baseCamera.set(0, 0.2, baseCameraDistance + wearerTurn * (1 - diveAmount) * 3.2);
     targetCamera.set(tmpTarget.x, tmpTarget.y, tmpTarget.z + 0.38);
     camera.position.lerpVectors(baseCamera, targetCamera, diveAmount);
@@ -962,6 +1048,9 @@ if (canvas && viewport) {
       viewport.classList.add("glasses-webgl-failed");
       return;
     }
+    // Keep drawing only while the rendered pose is catching up with the latest
+    // scroll target. This restores fluid motion without an always-on GPU loop.
+    if (!force && !reducedMotion && (!motionSettled || time < scrollWakeUntil)) scheduleRender();
   };
 
   viewport.dataset.glassesRenderProfile = phonePerformance ? "mobile" : leanPerformance ? "lite" : "full";
@@ -981,22 +1070,38 @@ if (canvas && viewport) {
     [0, 0, 1, 1, 0.35],
     [0, 0, 1, 1, 1],
   ];
-  prewarmStates.forEach((state, stateIndex) => {
+  prewarmStates.forEach((state) => {
     prewarmProperties.forEach((property, propertyIndex) => {
       viewport.style.setProperty(property, String(state[propertyIndex]));
     });
-    render(performance.now() + stateIndex * 20, true);
+    render(performance.now(), true);
   });
   restoredProperties.forEach((value, property) => {
     if (value) viewport.style.setProperty(property, value);
     else viewport.style.removeProperty(property);
   });
-  render(performance.now() + prewarmStates.length * 20, true);
+  render(performance.now(), true);
   viewport.dataset.glassesPrewarm = "complete";
   window.addEventListener("resize", resize, { passive: true });
-  window.addEventListener("scroll", scheduleRender, { passive: true });
+  const wakeScrollRenderer = () => {
+    // Continue sampling compositor-owned scroll position between coalesced
+    // Safari events. This prevents a single delayed event from becoming a
+    // visible jump even during momentum scrolling or screen recording.
+    scrollWakeUntil = performance.now() + 800;
+    scheduleRender();
+  };
+  window.addEventListener("scroll", wakeScrollRenderer, { passive: true });
+  window.addEventListener("wheel", wakeScrollRenderer, { passive: true });
+  window.addEventListener("touchmove", wakeScrollRenderer, { passive: true });
   window.addEventListener("scene:sync", scheduleRender);
-  window.addEventListener("pageshow", scheduleRender);
+  window.addEventListener("site:ready", () => {
+    measureScene();
+    scheduleRender();
+  });
+  window.addEventListener("pageshow", () => {
+    measureScene();
+    scheduleRender();
+  });
 
   canvas.addEventListener("webglcontextlost", (event) => {
     event.preventDefault();
