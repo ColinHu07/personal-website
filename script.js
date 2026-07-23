@@ -233,9 +233,11 @@
       globeP = smoother((frontJourneyProgress - 0.143) / 0.247);
       var globeExitP = smoother((frontJourneyProgress - 0.39) / 0.052);
       if (cityViewport) {
+        var cityLayerEnter = smoother((frontJourneyProgress - 0.026) / 0.078);
+        var cityLayerExit = smoother((frontJourneyProgress - 0.62) / 0.08);
         cityViewport.style.setProperty(
           "--front-scene-opacity",
-          smoother((frontJourneyProgress - 0.026) / 0.078).toFixed(4)
+          (cityLayerEnter * (1 - cityLayerExit)).toFixed(4)
         );
         cityViewport.style.setProperty("--globe-morph", globeMorphP.toFixed(4));
         cityViewport.style.setProperty("--globe-reveal", globeRevealP.toFixed(4));
