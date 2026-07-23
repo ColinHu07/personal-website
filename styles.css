@@ -359,6 +359,11 @@ main { position: relative; z-index: 1; }
   will-change: opacity;
 }
 
+.front-journey #broadcast .viewport {
+  transform: translate3d(0, var(--reels-page-offset, 0vh), 0);
+  will-change: opacity, transform;
+}
+
 .front-journey .city-handoff::before,
 .front-journey .city-handoff::after,
 .front-journey .city-handoff-beam,
@@ -369,7 +374,10 @@ main { position: relative; z-index: 1; }
 
 .projects-slot {
   position: relative;
-  z-index: 7;
+  /* The Hangar stays beneath the opaque Reels page until the full-screen
+     swipe exposes it. Raising this slot above the front journey is what made
+     both scenes appear at the same time. */
+  z-index: 2;
   margin-top: -100vh;
   /* Keep the glasses scene one full frame away while the hangar itself is
      temporarily fixed for the Reels handoff. Without this reserved space,
@@ -1348,10 +1356,10 @@ main > .scene + .scene { margin-top: -1px; }
 #broadcast .viewport {
   --scene-enter: 0;
   --scene-exit: 0;
-  --reels-swipe: 0;
+  --reels-page-offset: 0vh;
   --fly: min(calc(var(--p, 0) / 0.3), 1);                        /* cursor approach */
   --clk: min(max(calc((var(--p, 0) - 0.3) / 0.1), 0), 1);        /* click moment */
-  --opn: min(max(calc((var(--p, 0) - 0.4) / 0.3), 0), 1);        /* window open + hold */
+  --opn: min(max(calc((var(--p, 0) - 0.3) / 0.22), 0), 1);       /* open by .52, then hold */
   background: transparent;
   display: grid;
   place-items: center;
@@ -1362,7 +1370,7 @@ main > .scene + .scene { margin-top: -1px; }
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  opacity: calc(1 - var(--hangar-reveal, 0));
+  opacity: 1;
   background:
     radial-gradient(ellipse 70% 50% at 50% 40%, rgba(60, 20, 70, 0.4), transparent 70%),
     linear-gradient(to bottom, #0a0522 0%, #120838 45%, #0a1226 100%);
@@ -1414,7 +1422,7 @@ main > .scene + .scene { margin-top: -1px; }
 
 #broadcast .scene-tag,
 #broadcast .desk-grid {
-  opacity: clamp(0, calc(var(--scene-enter, 1) - var(--hangar-reveal, 0)), 1);
+  opacity: var(--scene-enter, 1);
 }
 
 .ig-target {
@@ -1492,9 +1500,7 @@ main > .scene + .scene { margin-top: -1px; }
   box-shadow:
     0 0 60px rgba(255, 79, 216, 0.2),
     0 30px 80px rgba(0, 0, 0, 0.6);
-  transform:
-    translate3d(0, calc(var(--reels-swipe, 0) * -118vh), 0)
-    scale(calc(0.12 + var(--opn) * 0.88));
+  transform: scale(calc(0.12 + var(--opn) * 0.88));
   opacity: calc(var(--opn) * 2.2 - 0.1);
   pointer-events: none;
   will-change: transform;
@@ -1659,7 +1665,7 @@ main > .scene + .scene { margin-top: -1px; }
 #projects {
   --hangar-exit: 0;
   --hangar-dismiss: 0;
-  --hangar-reveal: 1;
+  --hangar-page-offset: 100vh;
   position: relative;
   overflow: hidden;
   background:
@@ -1674,6 +1680,7 @@ main > .scene + .scene { margin-top: -1px; }
   height: 100vh;
   height: 100dvh;
   opacity: calc(1 - var(--hangar-dismiss, 0));
+  transform: none;
   will-change: opacity;
 }
 
@@ -1686,9 +1693,10 @@ main > .scene + .scene { margin-top: -1px; }
   z-index: 4;
   height: 100vh;
   height: 100dvh;
-  opacity: var(--hangar-reveal, 0);
+  opacity: 1;
+  transform: translate3d(0, var(--hangar-page-offset, 100vh), 0);
   pointer-events: none;
-  will-change: opacity;
+  will-change: transform;
 }
 
 #projects::after {

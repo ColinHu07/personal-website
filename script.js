@@ -270,7 +270,7 @@
       var frontRunway = Math.max(1, frontRect.height - vh);
       frontJourneyProgress = clamp01(-frontRect.top / frontRunway);
       frontJourney.classList.toggle("is-engaged", frontJourneyProgress > 0.006);
-      frontJourney.classList.toggle("is-hangar-active", frontJourneyProgress >= 0.985);
+      frontJourney.classList.toggle("is-hangar-active", frontJourneyProgress >= 0.977);
       // The opening globe keeps its existing physical scroll duration even
       // though the later city and Instagram phases receive a longer runway.
       var globeMorphP = clamp01(frontJourneyProgress / 0.117);
@@ -294,15 +294,23 @@
           "--front-scene-opacity",
           smoother((frontJourneyProgress - 0.62) / 0.08).toFixed(4)
         );
-        // Treat this like one more Reel gesture: the feed opens and holds,
-        // swipes completely out of frame, and only then reveals the hangar.
-        var hangarReveal = smoother((frontJourneyProgress - 0.973) / 0.022);
-        broadcastViewport.style.setProperty("--hangar-reveal", hangarReveal.toFixed(4));
+        // The feed stays completely still for a full beat. The handoff then
+        // moves two complete viewport-sized pages together, exactly like one
+        // vertical Reel swipe: Reels exits at -100vh while Hangar enters from
+        // +100vh. Keeping the offsets in JS avoids fractional layout seams.
+        var reelsPageSwipe = smoother((frontJourneyProgress - 0.924) / 0.053);
+        broadcastViewport.style.setProperty(
+          "--reels-page-offset",
+          (-100 * reelsPageSwipe).toFixed(3) + "vh"
+        );
         if (projectsScene) {
-          projectsScene.style.setProperty("--hangar-reveal", hangarReveal.toFixed(4));
+          projectsScene.style.setProperty(
+            "--hangar-page-offset",
+            (100 * (1 - reelsPageSwipe)).toFixed(3) + "vh"
+          );
           projectsScene.classList.toggle(
             "is-front-pinned",
-            frontJourneyProgress >= 0.968 && frontJourneyProgress < 0.9995
+            frontJourneyProgress >= 0.92 && frontJourneyProgress < 0.9995
           );
         }
       }
@@ -376,9 +384,8 @@
       }
       if (scene.id === "broadcast" && broadcastViewport) {
         broadcastViewport.style.setProperty("--scene-enter", smoother(p / 0.12).toFixed(4));
-        broadcastViewport.style.setProperty("--scene-exit", smoother((p - 0.88) / 0.1).toFixed(4));
-        broadcastViewport.style.setProperty("--reels-swipe", smoother((p - 0.84) / 0.08).toFixed(4));
-        if (p > 0.6) broadcastViewport.setAttribute("data-feed", "open");
+        broadcastViewport.style.setProperty("--scene-exit", smoother((p - 0.82) / 0.14).toFixed(4));
+        if (p > 0.52) broadcastViewport.setAttribute("data-feed", "open");
         else broadcastViewport.removeAttribute("data-feed");
       }
       if (scene.id === "contact" && contactViewport) {
