@@ -270,7 +270,7 @@
       var frontRunway = Math.max(1, frontRect.height - vh);
       frontJourneyProgress = clamp01(-frontRect.top / frontRunway);
       frontJourney.classList.toggle("is-engaged", frontJourneyProgress > 0.006);
-      frontJourney.classList.toggle("is-hangar-active", frontJourneyProgress >= 0.965);
+      frontJourney.classList.toggle("is-hangar-active", frontJourneyProgress >= 0.985);
       // The opening globe keeps its existing physical scroll duration even
       // though the later city and Instagram phases receive a longer runway.
       var globeMorphP = clamp01(frontJourneyProgress / 0.117);
@@ -294,16 +294,15 @@
           "--front-scene-opacity",
           smoother((frontJourneyProgress - 0.62) / 0.08).toFixed(4)
         );
-        // Let the Reel complete most of its upward swipe before presenting the
-        // hangar above the opening stack. The last few scroll ticks crossfade
-        // into a stationary, full-frame project bay.
-        var hangarReveal = smoother((frontJourneyProgress - 0.965) / 0.03);
+        // Treat this like one more Reel gesture: the feed opens and holds,
+        // swipes completely out of frame, and only then reveals the hangar.
+        var hangarReveal = smoother((frontJourneyProgress - 0.973) / 0.022);
         broadcastViewport.style.setProperty("--hangar-reveal", hangarReveal.toFixed(4));
         if (projectsScene) {
           projectsScene.style.setProperty("--hangar-reveal", hangarReveal.toFixed(4));
           projectsScene.classList.toggle(
             "is-front-pinned",
-            frontJourneyProgress >= 0.94 && frontJourneyProgress < 0.9995
+            frontJourneyProgress >= 0.968 && frontJourneyProgress < 0.9995
           );
         }
       }
@@ -377,8 +376,8 @@
       }
       if (scene.id === "broadcast" && broadcastViewport) {
         broadcastViewport.style.setProperty("--scene-enter", smoother(p / 0.12).toFixed(4));
-        broadcastViewport.style.setProperty("--scene-exit", smoother((p - 0.84) / 0.16).toFixed(4));
-        broadcastViewport.style.setProperty("--reels-swipe", smoother((p - 0.82) / 0.18).toFixed(4));
+        broadcastViewport.style.setProperty("--scene-exit", smoother((p - 0.88) / 0.1).toFixed(4));
+        broadcastViewport.style.setProperty("--reels-swipe", smoother((p - 0.84) / 0.08).toFixed(4));
         if (p > 0.6) broadcastViewport.setAttribute("data-feed", "open");
         else broadcastViewport.removeAttribute("data-feed");
       }
@@ -393,8 +392,10 @@
       var projectsRect = projectsSlot.getBoundingClientRect();
       var projectsRunway = Math.max(1, projectsRect.height - vh);
       var projectsProgress = clamp01(-projectsRect.top / projectsRunway);
-      var hangarExit = smoother((projectsProgress - 0.28) / 0.38);
-      var hangarDismiss = smoother((projectsProgress - 0.72) / 0.23);
+      // Hold the complete bay first, then slowly dim it to black while the
+      // already-pinned Optics scene fades in underneath.
+      var hangarExit = smoother((projectsProgress - 0.34) / 0.4);
+      var hangarDismiss = smoother((projectsProgress - 0.58) / 0.38);
       projectsScene.style.setProperty("--hangar-exit", hangarExit.toFixed(4));
       projectsScene.style.setProperty("--hangar-dismiss", hangarDismiss.toFixed(4));
     }

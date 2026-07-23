@@ -376,8 +376,8 @@ main { position: relative; z-index: 1; }
      the fixed section leaves normal flow and optics rises underneath it. */
   min-height: 100vh;
   min-height: 100dvh;
-  height: 150vh;
-  height: 150dvh;
+  height: 175vh;
+  height: 175dvh;
 }
 
 /* Adjacent scene color fields overlap by a physical pixel so fractional
@@ -1316,7 +1316,10 @@ main > .scene + .scene { margin-top: -1px; }
    Phases (by --p):
      0.00–0.30  cursor flies in toward the floating IG icon
      0.30–0.40  CLICK: press dip + ripple rings
-     0.40–1.00  feed window blooms out of the icon, reels rise
+     0.40–0.70  feed window blooms out of the icon
+     0.70–0.84  complete Reels hold
+     0.84–0.92  swift upward Reel swipe
+     0.92–1.00  hangar handoff
    ============================================================ */
 
 #broadcast {
@@ -1348,7 +1351,7 @@ main > .scene + .scene { margin-top: -1px; }
   --reels-swipe: 0;
   --fly: min(calc(var(--p, 0) / 0.3), 1);                        /* cursor approach */
   --clk: min(max(calc((var(--p, 0) - 0.3) / 0.1), 0), 1);        /* click moment */
-  --opn: min(max(calc((var(--p, 0) - 0.4) / 0.45), 0), 1);       /* window open */
+  --opn: min(max(calc((var(--p, 0) - 0.4) / 0.3), 0), 1);        /* window open + hold */
   background: transparent;
   display: grid;
   place-items: center;
@@ -1873,8 +1876,11 @@ main > .scene + .scene { margin-top: -1px; }
 
 #glasses {
   z-index: 6;
-  margin-top: -100vh;
-  margin-top: -100dvh;
+  /* Optics reaches its sticky position before the hangar begins to dissolve.
+     That guarantees the slow crossfade reveals glasses—not the retired Reels
+     stack—across the entire viewport. */
+  margin-top: -150vh;
+  margin-top: -150dvh;
 }
 
 /* A full-frame entry veil carries the Hangar palette into the studio. Unlike
