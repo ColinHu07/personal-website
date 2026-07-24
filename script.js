@@ -546,9 +546,9 @@
         if (contactViewport) {
           // Keep the waveguide dark throughout the turn. Socials appears only
           // after the camera has nearly filled the viewport with the lens,
-          // then opens from that centered image into the final scene.
+          // then switches to its final full-screen size and continues fading.
           var wearerScreen = smoother((glassesState.dive - 0.82) / 0.16);
-          var socialsExpand = smoother((glassesState.dive - 0.92) / 0.08);
+          var socialsExpand = glassesState.dive >= 0.92 ? 1 : 0;
           contactViewport.style.setProperty("--lens-screen", wearerScreen.toFixed(4));
           contactViewport.style.setProperty("--socials-expand", socialsExpand.toFixed(4));
         }

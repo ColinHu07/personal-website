@@ -881,7 +881,6 @@ if (canvas && viewport) {
     topEdge,
     width,
     height,
-    expansion,
     levelAmount
   ) => {
     const edgeX = topEdge[1].x - topEdge[0].x;
@@ -936,7 +935,7 @@ if (canvas && viewport) {
     // Socials scene, the page is already perfectly horizontal instead of
     // carrying a few degrees of lens roll through the handoff.
     const angle = mix(stabilizedAngle, 0, levelAmount);
-    const scale = mix(lensScale, 1, expansion);
+    const scale = lensScale;
     // Optical stabilization places the image on the viewer's sightline, not
     // at the off-axis geometric center of the rotating lens. Because reveal
     // now begins only when the lens is almost full-frame, the centered image
@@ -958,28 +957,20 @@ if (canvas && viewport) {
     return `matrix3d(${values.map((value) => value.toFixed(8)).join(",")})`;
   };
 
-  const rectanglePerimeterPoint = (progress, width, height) => {
-    const amount = ((progress % 1) + 1) % 1;
-    if (amount < 0.25) return { x: amount * 4 * width, y: 0 };
-    if (amount < 0.5) return { x: width, y: (amount - 0.25) * 4 * height };
-    if (amount < 0.75) return { x: (1 - (amount - 0.5) * 4) * width, y: height };
-    return { x: 0, y: (1 - (amount - 0.75) * 4) * height };
-  };
-
   const syncLensSocials = (diveAmount) => {
     if (!contactViewport || !lensSocialsSurface) return;
     const width = Math.max(1, canvas.clientWidth);
     const height = Math.max(1, canvas.clientHeight);
     const reveal = smoother((diveAmount - 0.82) / 0.16);
-    const expansion = smoother((diveAmount - 0.92) / 0.08);
+    const fullScreen = diveAmount >= 0.92;
     const levelAmount = smoother((diveAmount - 0.88) / 0.04);
     contactViewport.style.setProperty("--lens-screen", reveal.toFixed(4));
-    contactViewport.style.setProperty("--socials-expand", expansion.toFixed(4));
+    contactViewport.style.setProperty("--socials-expand", fullScreen ? "1" : "0");
 
-    // Once the camera has crossed the lens plane, its 3D projection is no
-    // longer meaningful. Complete the handoff first so a behind-camera point
-    // can never strand the Socials page in its previous skewed pose.
-    if (expansion > 0.999) {
+    // Once the lens has filled the frame, stop scaling the interface with its
+    // geometry. The Socials page takes over at its final full-screen size and
+    // the remaining scroll distance only raises its opacity.
+    if (fullScreen) {
       contactViewport.style.clipPath = "inset(0)";
       contactViewport.style.webkitClipPath = "inset(0)";
       lensSocialsSurface.style.transform = "none";
@@ -999,30 +990,12 @@ if (canvas && viewport) {
       projectedOutline.some((point) => !point.visible) ||
       projectedTopEdge.some((point) => !point.visible)
     ) {
-      // Crossing the lens plane can place one sampled edge behind the camera
-      // for a few frames. By then the projected lens already covers the
-      // viewport, so finish the takeover instead of freezing the last skew.
-      if (expansion > 0.55) {
-        contactViewport.style.clipPath = "inset(0)";
-        contactViewport.style.webkitClipPath = "inset(0)";
-        lensSocialsSurface.style.transform = "none";
-        contactViewport.dataset.lensPortal = "tracked";
-      }
       return;
     }
 
-    const clipPoints = projectedOutline.map((point, index) => {
-      const destination = rectanglePerimeterPoint(
-        index / projectedOutline.length,
-        width,
-        height
-      );
-      return `${mix(point.x, destination.x, expansion).toFixed(2)}px ${mix(
-        point.y,
-        destination.y,
-        expansion
-      ).toFixed(2)}px`;
-    });
+    const clipPoints = projectedOutline.map(
+      (point) => `${point.x.toFixed(2)}px ${point.y.toFixed(2)}px`
+    );
     const clip = `polygon(${clipPoints.join(",")})`;
     contactViewport.style.clipPath = clip;
     contactViewport.style.webkitClipPath = clip;
@@ -1032,7 +1005,6 @@ if (canvas && viewport) {
       projectedTopEdge,
       width,
       height,
-      expansion,
       levelAmount
     );
     contactViewport.dataset.lensPortal = "tracked";
