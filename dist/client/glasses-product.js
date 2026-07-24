@@ -876,7 +876,14 @@ if (canvas && viewport) {
   // Waveguide optics rectify the projected image for the wearer. Follow the
   // live lens center and silhouette, but keep the interface horizon-stable and
   // proportionally scaled instead of applying a harsh trapezoidal warp.
-  const rectifiedLensTransform = (outline, topEdge, width, height, expansion) => {
+  const rectifiedLensTransform = (
+    outline,
+    topEdge,
+    width,
+    height,
+    expansion,
+    levelAmount
+  ) => {
     const edgeX = topEdge[1].x - topEdge[0].x;
     const edgeY = topEdge[1].y - topEdge[0].y;
     const edgeLength = Math.max(0.001, Math.hypot(edgeX, edgeY));
@@ -924,7 +931,11 @@ if (canvas && viewport) {
       0.78,
       Math.min((maxAlong - minAlong) / width, (maxAcross - minAcross) / height) * 0.97
     );
-    const angle = mix(stabilizedAngle, 0, expansion);
+    // Level the interface while it is still contained by the nearly
+    // full-screen lens. By the time the mask begins expanding into the
+    // Socials scene, the page is already perfectly horizontal instead of
+    // carrying a few degrees of lens roll through the handoff.
+    const angle = mix(stabilizedAngle, 0, levelAmount);
     const scale = mix(lensScale, 1, expansion);
     // Optical stabilization places the image on the viewer's sightline, not
     // at the off-axis geometric center of the rotating lens. Because reveal
@@ -961,6 +972,7 @@ if (canvas && viewport) {
     const height = Math.max(1, canvas.clientHeight);
     const reveal = smoother((diveAmount - 0.82) / 0.16);
     const expansion = smoother((diveAmount - 0.92) / 0.08);
+    const levelAmount = smoother((diveAmount - 0.88) / 0.04);
     contactViewport.style.setProperty("--lens-screen", reveal.toFixed(4));
     contactViewport.style.setProperty("--socials-expand", expansion.toFixed(4));
 
@@ -1020,7 +1032,8 @@ if (canvas && viewport) {
       projectedTopEdge,
       width,
       height,
-      expansion
+      expansion,
+      levelAmount
     );
     contactViewport.dataset.lensPortal = "tracked";
   };
