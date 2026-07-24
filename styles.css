@@ -2886,7 +2886,9 @@ main > .scene + .scene { margin-top: -1px; }
   opacity: 0;
   overflow: visible;
   padding: 0;
-  background: transparent;
+  /* The mask itself carries the Socials base color so even sub-pixel
+     anti-aliasing around the transformed inner page cannot expose a gap. */
+  background: #030507;
   /* WebGL replaces this fallback with the projected outline of the real
      display lens every frame. The fallback is retained for browsers that
      cannot initialize the 3D product. */

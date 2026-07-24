@@ -438,11 +438,9 @@ if (canvas && viewport) {
   const lensPortalOutline = lensPortalPoints.map(
     (point) => new THREE.Vector3(point.x, point.y, lensPortalDepth(point.x))
   );
-  const lensPortalCorners = [
+  const lensPortalTopEdge = [
     new THREE.Vector3(-1.1, 0.98, lensPortalDepth(-1.1)),
     new THREE.Vector3(-4.1, 1.06, lensPortalDepth(-4.1)),
-    new THREE.Vector3(-3.65, -1.06, lensPortalDepth(-3.65)),
-    new THREE.Vector3(-1.48, -1.18, lensPortalDepth(-1.48)),
   ];
 
   // Render the actual asymmetric Meta symbol as a crisp metallic inlay. The
@@ -872,34 +870,74 @@ if (canvas && viewport) {
     };
   };
 
-  // Return a CSS matrix3d that maps the full Socials page onto a projected
-  // quadrilateral. This is a real planar homography: all copy, tiles, canvas
-  // lines, and highlights share the lens's changing foreshortening.
-  const quadTransform = (corners, width, height) => {
-    const [topLeft, topRight, bottomRight, bottomLeft] = corners;
-    const dx1 = topRight.x - bottomRight.x;
-    const dx2 = bottomLeft.x - bottomRight.x;
-    const dx3 = topLeft.x - topRight.x + bottomRight.x - bottomLeft.x;
-    const dy1 = topRight.y - bottomRight.y;
-    const dy2 = bottomLeft.y - bottomRight.y;
-    const dy3 = topLeft.y - topRight.y + bottomRight.y - bottomLeft.y;
-    const determinant = dx1 * dy2 - dx2 * dy1;
-    let perspectiveX = 0;
-    let perspectiveY = 0;
-    if (Math.abs(dx3) > 0.0001 || Math.abs(dy3) > 0.0001) {
-      if (Math.abs(determinant) < 0.000001) return "none";
-      perspectiveX = (dx3 * dy2 - dx2 * dy3) / determinant;
-      perspectiveY = (dx1 * dy3 - dx3 * dy1) / determinant;
+  // Waveguide optics rectify the projected image for the wearer. Follow the
+  // live lens center and silhouette, but keep the interface horizon-stable and
+  // proportionally scaled instead of applying a harsh trapezoidal warp.
+  const rectifiedLensTransform = (outline, topEdge, width, height, expansion) => {
+    const edgeX = topEdge[1].x - topEdge[0].x;
+    const edgeY = topEdge[1].y - topEdge[0].y;
+    const edgeLength = Math.max(0.001, Math.hypot(edgeX, edgeY));
+    let physicalAngle = Math.atan2(edgeY / edgeLength, edgeX / edgeLength);
+    if (Math.cos(physicalAngle) < 0) {
+      physicalAngle += physicalAngle > 0 ? -Math.PI : Math.PI;
     }
-    const scaleX = topRight.x - topLeft.x + perspectiveX * topRight.x;
-    const skewX = bottomLeft.x - topLeft.x + perspectiveY * bottomLeft.x;
-    const scaleY = topRight.y - topLeft.y + perspectiveX * topRight.y;
-    const skewY = bottomLeft.y - topLeft.y + perspectiveY * bottomLeft.y;
+    // Preserve a hint of the lens roll while simulating the optical
+    // stabilization that keeps an AR display readable to the wearer.
+    const stabilizedAngle = Math.max(
+      -THREE.MathUtils.degToRad(3),
+      Math.min(THREE.MathUtils.degToRad(3), physicalAngle * 0.22)
+    );
+    const axisX = Math.cos(stabilizedAngle);
+    const axisY = Math.sin(stabilizedAngle);
+    const normalX = -axisY;
+    const normalY = axisX;
+    const average = outline.reduce(
+      (total, point) => ({ x: total.x + point.x, y: total.y + point.y }),
+      { x: 0, y: 0 }
+    );
+    average.x /= outline.length;
+    average.y /= outline.length;
+
+    let minAlong = Infinity;
+    let maxAlong = -Infinity;
+    let minAcross = Infinity;
+    let maxAcross = -Infinity;
+    outline.forEach((point) => {
+      const offsetX = point.x - average.x;
+      const offsetY = point.y - average.y;
+      const along = offsetX * axisX + offsetY * axisY;
+      const across = offsetX * normalX + offsetY * normalY;
+      minAlong = Math.min(minAlong, along);
+      maxAlong = Math.max(maxAlong, along);
+      minAcross = Math.min(minAcross, across);
+      maxAcross = Math.max(maxAcross, across);
+    });
+
+    const lensCenterX =
+      average.x + axisX * (minAlong + maxAlong) * 0.5 + normalX * (minAcross + maxAcross) * 0.5;
+    const lensCenterY =
+      average.y + axisY * (minAlong + maxAlong) * 0.5 + normalY * (minAcross + maxAcross) * 0.5;
+    // Uniform contain preserves the complete Socials page and its proportions.
+    // The parent lens mask carries the matching dark display background all
+    // the way to the physical rim, so the lens is still fully illuminated
+    // without cropping channels or stretching typography.
+    const lensScale =
+      Math.min((maxAlong - minAlong) / width, (maxAcross - minAcross) / height) * 0.97;
+    const angle = mix(stabilizedAngle, 0, expansion);
+    const scale = mix(lensScale, 1, expansion);
+    const centerX = mix(lensCenterX, width * 0.5, expansion);
+    const centerY = mix(lensCenterY, height * 0.5, expansion);
+    const cosine = Math.cos(angle);
+    const sine = Math.sin(angle);
+    const translateX =
+      centerX - (cosine * scale * width * 0.5 - sine * scale * height * 0.5);
+    const translateY =
+      centerY - (sine * scale * width * 0.5 + cosine * scale * height * 0.5);
     const values = [
-      scaleX / width, scaleY / width, 0, perspectiveX / width,
-      skewX / height, skewY / height, 0, perspectiveY / height,
+      cosine * scale, sine * scale, 0, 0,
+      -sine * scale, cosine * scale, 0, 0,
       0, 0, 1, 0,
-      topLeft.x, topLeft.y, 0, 1,
+      translateX, translateY, 0, 1,
     ];
     return `matrix3d(${values.map((value) => value.toFixed(8)).join(",")})`;
   };
@@ -937,12 +975,12 @@ if (canvas && viewport) {
     const projectedOutline = lensPortalOutline.map((point) =>
       projectLensPoint(point, width, height)
     );
-    const projectedCorners = lensPortalCorners.map((point) =>
+    const projectedTopEdge = lensPortalTopEdge.map((point) =>
       projectLensPoint(point, width, height)
     );
     if (
       projectedOutline.some((point) => !point.visible) ||
-      projectedCorners.some((point) => !point.visible)
+      projectedTopEdge.some((point) => !point.visible)
     ) {
       // Crossing the lens plane can place one sampled edge behind the camera
       // for a few frames. By then the projected lens already covers the
@@ -972,17 +1010,13 @@ if (canvas && viewport) {
     contactViewport.style.clipPath = clip;
     contactViewport.style.webkitClipPath = clip;
 
-    const viewportCorners = [
-      { x: 0, y: 0 },
-      { x: width, y: 0 },
-      { x: width, y: height },
-      { x: 0, y: height },
-    ];
-    const surfaceCorners = projectedCorners.map((point, index) => ({
-      x: mix(point.x, viewportCorners[index].x, expansion),
-      y: mix(point.y, viewportCorners[index].y, expansion),
-    }));
-    lensSocialsSurface.style.transform = quadTransform(surfaceCorners, width, height);
+    lensSocialsSurface.style.transform = rectifiedLensTransform(
+      projectedOutline,
+      projectedTopEdge,
+      width,
+      height,
+      expansion
+    );
     contactViewport.dataset.lensPortal = "tracked";
   };
 
