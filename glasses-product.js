@@ -913,20 +913,22 @@ if (canvas && viewport) {
       maxAcross = Math.max(maxAcross, across);
     });
 
-    const lensCenterX =
-      average.x + axisX * (minAlong + maxAlong) * 0.5 + normalX * (minAcross + maxAcross) * 0.5;
-    const lensCenterY =
-      average.y + axisY * (minAlong + maxAlong) * 0.5 + normalY * (minAcross + maxAcross) * 0.5;
     // Uniform contain preserves the complete Socials page and its proportions.
     // The parent lens mask carries the matching dark display background all
     // the way to the physical rim, so the lens is still fully illuminated
     // without cropping channels or stretching typography.
-    const lensScale =
-      Math.min((maxAlong - minAlong) / width, (maxAcross - minAcross) / height) * 0.97;
+    const lensScale = Math.min(
+      0.78,
+      Math.min((maxAlong - minAlong) / width, (maxAcross - minAcross) / height) * 0.97
+    );
     const angle = mix(stabilizedAngle, 0, expansion);
     const scale = mix(lensScale, 1, expansion);
-    const centerX = mix(lensCenterX, width * 0.5, expansion);
-    const centerY = mix(lensCenterY, height * 0.5, expansion);
+    // Optical stabilization places the image on the viewer's sightline, not
+    // at the off-axis geometric center of the rotating lens. Because reveal
+    // now begins only when the lens is almost full-frame, the centered image
+    // remains inside the glass and becomes the exact origin of the next scene.
+    const centerX = width * 0.5;
+    const centerY = height * 0.5;
     const cosine = Math.cos(angle);
     const sine = Math.sin(angle);
     const translateX =
@@ -950,12 +952,12 @@ if (canvas && viewport) {
     return { x: 0, y: (1 - (amount - 0.75) * 4) * height };
   };
 
-  const syncLensSocials = (wearerTurn, diveAmount) => {
+  const syncLensSocials = (diveAmount) => {
     if (!contactViewport || !lensSocialsSurface) return;
     const width = Math.max(1, canvas.clientWidth);
     const height = Math.max(1, canvas.clientHeight);
-    const reveal = smoother((wearerTurn - 0.18) / 0.62);
-    const expansion = smoother((diveAmount - 0.82) / 0.18);
+    const reveal = smoother((diveAmount - 0.82) / 0.16);
+    const expansion = smoother((diveAmount - 0.92) / 0.08);
     contactViewport.style.setProperty("--lens-screen", reveal.toFixed(4));
     contactViewport.style.setProperty("--socials-expand", expansion.toFixed(4));
 
@@ -1215,7 +1217,7 @@ if (canvas && viewport) {
     camera.position.z += glideArc * 0.26;
     cameraLookAt.copy(origin).lerp(tmpTarget, diveAmount);
     camera.lookAt(cameraLookAt);
-    syncLensSocials(wearerTurn, diveAmount);
+    syncLensSocials(diveAmount);
 
     shadow.material.opacity = 0.28 * (1 - diveAmount);
     const canvasObscured = Boolean(liveTimeline && liveTimeline.feed >= 0.985 && motionSettled);

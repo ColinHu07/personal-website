@@ -544,11 +544,11 @@
         // precision reassembly, then a right-lens glide into Socials.
         var glassesState = glassesTimelineAt(opticsProgress);
         if (contactViewport) {
-          // The display is visible only as the model reaches the wearer-facing
-          // angle. It then stays inside the right lens until the final camera
-          // dive expands that same surface into the Socials scene.
-          var wearerScreen = smoother((glassesState.turn - 0.18) / 0.62);
-          var socialsExpand = smoother((p - 0.82) / 0.145);
+          // Keep the waveguide dark throughout the turn. Socials appears only
+          // after the camera has nearly filled the viewport with the lens,
+          // then opens from that centered image into the final scene.
+          var wearerScreen = smoother((glassesState.dive - 0.82) / 0.16);
+          var socialsExpand = smoother((glassesState.dive - 0.92) / 0.08);
           contactViewport.style.setProperty("--lens-screen", wearerScreen.toFixed(4));
           contactViewport.style.setProperty("--socials-expand", socialsExpand.toFixed(4));
         }
