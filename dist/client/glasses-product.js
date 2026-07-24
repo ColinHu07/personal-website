@@ -2,6 +2,8 @@ import * as THREE from "./assets/vendor/three.module.min.js";
 
 const canvas = document.querySelector(".glasses-product-canvas");
 const viewport = document.querySelector("#glasses .viewport");
+const contactViewport = document.querySelector("#contact .contact-viewport");
+const lensSocialsSurface = document.querySelector("#contact .lens-socials-surface");
 
 if (canvas && viewport) {
   const phonePerformance = window.matchMedia("(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)").matches;
@@ -419,6 +421,30 @@ if (canvas && viewport) {
   const leftLens = addPart(makeLensPart(-1), new THREE.Vector3(-0.12, 0.04, 1.52));
   const rightLens = addPart(makeLensPart(1), new THREE.Vector3(0.12, -0.04, 1.68));
 
+  // The wearer display lives in the negative-X lens. Sample the same curve
+  // used to build that physical lens so the Socials mask can be projected from
+  // the live Three.js pose instead of approximated by a fixed screen polygon.
+  const lensPortalShape = new THREE.Shape();
+  traceInnerLens(lensPortalShape, -1, false);
+  const lensPortalPoints = lensPortalShape.getSpacedPoints(28);
+  if (
+    lensPortalPoints.length > 1 &&
+    lensPortalPoints[0].distanceTo(lensPortalPoints[lensPortalPoints.length - 1]) < 0.001
+  ) {
+    lensPortalPoints.pop();
+  }
+  const lensPortalDepth = (x) =>
+    -0.06 - 0.24 * Math.pow(Math.min(1, Math.abs(x) / 4.9), 2);
+  const lensPortalOutline = lensPortalPoints.map(
+    (point) => new THREE.Vector3(point.x, point.y, lensPortalDepth(point.x))
+  );
+  const lensPortalCorners = [
+    new THREE.Vector3(-1.1, 0.98, lensPortalDepth(-1.1)),
+    new THREE.Vector3(-4.1, 1.06, lensPortalDepth(-4.1)),
+    new THREE.Vector3(-3.65, -1.06, lensPortalDepth(-3.65)),
+    new THREE.Vector3(-1.48, -1.18, lensPortalDepth(-1.48)),
+  ];
+
   // Render the actual asymmetric Meta symbol as a crisp metallic inlay. The
   // vector paths are drawn into a transparent canvas, so the mark remains
   // code-native and sharp without using a screenshot or footage texture.
@@ -825,9 +851,139 @@ if (canvas && viewport) {
 
   const clamp01 = (value) => Math.max(0, Math.min(1, value));
   const mix = (a, b, amount) => a + (b - a) * amount;
+  const smoother = (value) => {
+    const amount = clamp01(value);
+    return amount * amount * amount * (amount * (amount * 6 - 15) + 10);
+  };
   const readVar = (styles, name) => {
     const raw = styles.getPropertyValue(name);
     return clamp01(parseFloat(raw) || 0);
+  };
+
+  const projectLensPoint = (point, width, height) => {
+    const projected = point.clone()
+      .applyMatrix4(leftLens.matrix)
+      .applyMatrix4(product.matrix)
+      .project(camera);
+    return {
+      x: Math.max(-width * 2, Math.min(width * 3, (projected.x * 0.5 + 0.5) * width)),
+      y: Math.max(-height * 2, Math.min(height * 3, (-projected.y * 0.5 + 0.5) * height)),
+      visible: Number.isFinite(projected.x) && Number.isFinite(projected.y) && projected.z < 1.2,
+    };
+  };
+
+  // Return a CSS matrix3d that maps the full Socials page onto a projected
+  // quadrilateral. This is a real planar homography: all copy, tiles, canvas
+  // lines, and highlights share the lens's changing foreshortening.
+  const quadTransform = (corners, width, height) => {
+    const [topLeft, topRight, bottomRight, bottomLeft] = corners;
+    const dx1 = topRight.x - bottomRight.x;
+    const dx2 = bottomLeft.x - bottomRight.x;
+    const dx3 = topLeft.x - topRight.x + bottomRight.x - bottomLeft.x;
+    const dy1 = topRight.y - bottomRight.y;
+    const dy2 = bottomLeft.y - bottomRight.y;
+    const dy3 = topLeft.y - topRight.y + bottomRight.y - bottomLeft.y;
+    const determinant = dx1 * dy2 - dx2 * dy1;
+    let perspectiveX = 0;
+    let perspectiveY = 0;
+    if (Math.abs(dx3) > 0.0001 || Math.abs(dy3) > 0.0001) {
+      if (Math.abs(determinant) < 0.000001) return "none";
+      perspectiveX = (dx3 * dy2 - dx2 * dy3) / determinant;
+      perspectiveY = (dx1 * dy3 - dx3 * dy1) / determinant;
+    }
+    const scaleX = topRight.x - topLeft.x + perspectiveX * topRight.x;
+    const skewX = bottomLeft.x - topLeft.x + perspectiveY * bottomLeft.x;
+    const scaleY = topRight.y - topLeft.y + perspectiveX * topRight.y;
+    const skewY = bottomLeft.y - topLeft.y + perspectiveY * bottomLeft.y;
+    const values = [
+      scaleX / width, scaleY / width, 0, perspectiveX / width,
+      skewX / height, skewY / height, 0, perspectiveY / height,
+      0, 0, 1, 0,
+      topLeft.x, topLeft.y, 0, 1,
+    ];
+    return `matrix3d(${values.map((value) => value.toFixed(8)).join(",")})`;
+  };
+
+  const rectanglePerimeterPoint = (progress, width, height) => {
+    const amount = ((progress % 1) + 1) % 1;
+    if (amount < 0.25) return { x: amount * 4 * width, y: 0 };
+    if (amount < 0.5) return { x: width, y: (amount - 0.25) * 4 * height };
+    if (amount < 0.75) return { x: (1 - (amount - 0.5) * 4) * width, y: height };
+    return { x: 0, y: (1 - (amount - 0.75) * 4) * height };
+  };
+
+  const syncLensSocials = (wearerTurn, diveAmount) => {
+    if (!contactViewport || !lensSocialsSurface) return;
+    const width = Math.max(1, canvas.clientWidth);
+    const height = Math.max(1, canvas.clientHeight);
+    const reveal = smoother((wearerTurn - 0.18) / 0.62);
+    const expansion = smoother((diveAmount - 0.82) / 0.18);
+    contactViewport.style.setProperty("--lens-screen", reveal.toFixed(4));
+    contactViewport.style.setProperty("--socials-expand", expansion.toFixed(4));
+
+    // Once the camera has crossed the lens plane, its 3D projection is no
+    // longer meaningful. Complete the handoff first so a behind-camera point
+    // can never strand the Socials page in its previous skewed pose.
+    if (expansion > 0.999) {
+      contactViewport.style.clipPath = "inset(0)";
+      contactViewport.style.webkitClipPath = "inset(0)";
+      lensSocialsSurface.style.transform = "none";
+      contactViewport.dataset.lensPortal = "tracked";
+      return;
+    }
+
+    camera.updateMatrixWorld();
+    leftLens.updateMatrix();
+    const projectedOutline = lensPortalOutline.map((point) =>
+      projectLensPoint(point, width, height)
+    );
+    const projectedCorners = lensPortalCorners.map((point) =>
+      projectLensPoint(point, width, height)
+    );
+    if (
+      projectedOutline.some((point) => !point.visible) ||
+      projectedCorners.some((point) => !point.visible)
+    ) {
+      // Crossing the lens plane can place one sampled edge behind the camera
+      // for a few frames. By then the projected lens already covers the
+      // viewport, so finish the takeover instead of freezing the last skew.
+      if (expansion > 0.55) {
+        contactViewport.style.clipPath = "inset(0)";
+        contactViewport.style.webkitClipPath = "inset(0)";
+        lensSocialsSurface.style.transform = "none";
+        contactViewport.dataset.lensPortal = "tracked";
+      }
+      return;
+    }
+
+    const clipPoints = projectedOutline.map((point, index) => {
+      const destination = rectanglePerimeterPoint(
+        index / projectedOutline.length,
+        width,
+        height
+      );
+      return `${mix(point.x, destination.x, expansion).toFixed(2)}px ${mix(
+        point.y,
+        destination.y,
+        expansion
+      ).toFixed(2)}px`;
+    });
+    const clip = `polygon(${clipPoints.join(",")})`;
+    contactViewport.style.clipPath = clip;
+    contactViewport.style.webkitClipPath = clip;
+
+    const viewportCorners = [
+      { x: 0, y: 0 },
+      { x: width, y: 0 },
+      { x: width, y: height },
+      { x: 0, y: height },
+    ];
+    const surfaceCorners = projectedCorners.map((point, index) => ({
+      x: mix(point.x, viewportCorners[index].x, expansion),
+      y: mix(point.y, viewportCorners[index].y, expansion),
+    }));
+    lensSocialsSurface.style.transform = quadTransform(surfaceCorners, width, height);
+    contactViewport.dataset.lensPortal = "tracked";
   };
 
   const measureScene = () => {
@@ -1025,6 +1181,7 @@ if (canvas && viewport) {
     camera.position.z += glideArc * 0.26;
     cameraLookAt.copy(origin).lerp(tmpTarget, diveAmount);
     camera.lookAt(cameraLookAt);
+    syncLensSocials(wearerTurn, diveAmount);
 
     shadow.material.opacity = 0.28 * (1 - diveAmount);
     const canvasObscured = Boolean(liveTimeline && liveTimeline.feed >= 0.985 && motionSettled);

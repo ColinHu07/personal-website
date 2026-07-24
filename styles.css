@@ -2884,14 +2884,12 @@ main > .scene + .scene { margin-top: -1px; }
 #contact .contact-viewport {
   visibility: hidden;
   opacity: 0;
-  overflow: hidden;
-  padding: clamp(4.5rem, 9vh, 7rem) clamp(1.4rem, 6vw, 5rem) clamp(1.2rem, 3vh, 2.2rem);
-  background:
-    radial-gradient(ellipse 55% 45% at 50% 100%, rgba(23, 68, 105, 0.45), transparent 70%),
-    #030507;
-  /* Socials begins as the actual right-lens display. These eight points follow
-     the waveguide silhouette, then expand to the viewport corners as the
-     WebGL camera completes its dive. */
+  overflow: visible;
+  padding: 0;
+  background: transparent;
+  /* WebGL replaces this fallback with the projected outline of the real
+     display lens every frame. The fallback is retained for browsers that
+     cannot initialize the 3D product. */
   clip-path: polygon(
     calc(48% - var(--socials-expand, 0) * 48%) calc(24% - var(--socials-expand, 0) * 24%),
     calc(76% + var(--socials-expand, 0) * 24%) calc(20% - var(--socials-expand, 0) * 20%),
@@ -2902,7 +2900,6 @@ main > .scene + .scene { margin-top: -1px; }
     calc(44% - var(--socials-expand, 0) * 44%) calc(60% + var(--socials-expand, 0) * 40%),
     calc(43% - var(--socials-expand, 0) * 43%) calc(34% - var(--socials-expand, 0) * 34%)
   );
-  transform: none;
   will-change: opacity, clip-path;
   transition: none;
 }
@@ -2912,7 +2909,22 @@ main > .scene + .scene { margin-top: -1px; }
   opacity: var(--lens-screen, 0);
 }
 
-#contact .contact-viewport::after {
+#contact .lens-socials-surface {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+  padding: clamp(4.5rem, 9vh, 7rem) clamp(1.4rem, 6vw, 5rem) clamp(1.2rem, 3vh, 2.2rem);
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 100%, rgba(23, 68, 105, 0.45), transparent 70%),
+    #030507;
+  transform: none;
+  transform-origin: 0 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+#contact .lens-socials-surface::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -2939,18 +2951,7 @@ main > .scene + .scene { margin-top: -1px; }
 #contact .socials-interface {
   position: relative;
   z-index: 2;
-  transform:
-    translate3d(
-      calc((1 - var(--socials-expand, 0)) * 13vw),
-      calc((1 - var(--socials-expand, 0)) * 9vh),
-      0
-    )
-    scale(calc(0.52 + var(--socials-expand, 0) * 0.48))
-    rotateY(calc((1 - var(--lens-screen, 0)) * -10deg))
-    rotateZ(calc((1 - var(--lens-screen, 0)) * -1.5deg));
-  transform-origin: 50% 42%;
-  transform-style: preserve-3d;
-  will-change: transform;
+  transform: none;
 }
 
 #contact .section-head {
@@ -3211,7 +3212,7 @@ main > .scene + .scene { margin-top: -1px; }
 
   /* Six compact channels fit inside the expanded lens destination without
      turning the final scene into another nested scrolling surface. */
-  #contact .contact-viewport {
+  #contact .lens-socials-surface {
     padding: clamp(4.1rem, 7vh, 5rem) 0.8rem 0.8rem;
   }
   #contact .section-head {

@@ -31,14 +31,14 @@
       media="(max-width: 900px), (pointer: coarse), (orientation: landscape) and (max-height: 500px)"
       fetchpriority="high"
     />
-    <link rel="modulepreload" href="glasses-product.js?v=jarvis-92" />
+    <link rel="modulepreload" href="glasses-product.js?v=jarvis-93" />
     <link rel="modulepreload" href="assets/vendor/three.module.min.js" />
     <link rel="modulepreload" href="assets/vendor/three.core.min.js" />
     <link
       href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" href="styles.css?v=jarvis-117" />
+    <link rel="stylesheet" href="styles.css?v=jarvis-118" />
   </head>
   <body>
     <div class="site-loader" role="status" aria-live="polite" aria-label="Preparing the interactive site">
@@ -534,6 +534,7 @@
       <!-- ============ SCENE 06 // SOCIALS LENS DESTINATION ============ -->
       <section class="scene scrub contact" id="contact" data-scene="contact">
         <div class="viewport contact-viewport">
+          <div class="lens-socials-surface">
           <canvas class="socials-canvas" aria-hidden="true"></canvas>
           <div class="socials-interface">
           <div class="section-head">
@@ -631,6 +632,7 @@
             <span>BUILT FOR GITHUB PAGES // NO BUILD STEP</span>
           </footer>
           </div>
+          </div>
         </div>
       </section>
     </main>
@@ -712,7 +714,7 @@
         if (glassesModuleRequested) return Promise.resolve();
         glassesModuleRequested = true;
         if (glassesViewport) glassesViewport.classList.add("glasses-webgl-loading");
-        return import("./glasses-product.js?v=jarvis-92").then(function () {
+        return import("./glasses-product.js?v=jarvis-93").then(function () {
           preloadRoot.classList.add("optics-initialized");
           window.dispatchEvent(new CustomEvent("optics:ready"));
           glassesLoadComplete = true;
