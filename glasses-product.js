@@ -841,11 +841,14 @@ if (canvas && viewport) {
   const motionFollowRate = 30;
   const motionEpsilon = 0.0005;
   const tmpTarget = new THREE.Vector3();
+  const lensApproachNormal = new THREE.Vector3();
   const baseCamera = new THREE.Vector3();
   const targetCamera = new THREE.Vector3();
   const cameraLookAt = new THREE.Vector3();
   const origin = new THREE.Vector3(0, 0.05, 0);
-  const rightLensCenter = new THREE.Vector3(-2.6, 0.02, 0.17);
+  const rightLensCenter = lensPortalOutline
+    .reduce((center, point) => center.add(point), new THREE.Vector3())
+    .multiplyScalar(1 / lensPortalOutline.length);
 
   const clamp01 = (value) => Math.max(0, Math.min(1, value));
   const mix = (a, b, amount) => a + (b - a) * amount;
@@ -1204,18 +1207,29 @@ if (canvas && viewport) {
     // glasses hierarchy here and then walking it again inside renderer.render.
     product.updateMatrix();
 
+    // Aim at the sampled center of the actual wearer-side lens, including the
+    // lens part's own live transform. The camera used to move toward this
+    // target while continuing to look mostly at the glasses origin, which left
+    // the physical lens center stranded in the upper-right of the viewport.
+    leftLens.updateMatrix();
     tmpTarget.copy(rightLensCenter);
+    tmpTarget.applyMatrix4(leftLens.matrix);
     tmpTarget.applyMatrix4(product.matrix);
     baseCamera.set(0, 0.2, baseCameraDistance + wearerTurn * (1 - diveAmount) * 3.2);
-    // Finish much closer to the waveguide so the right lens fills the frame
-    // before the Socials page expands through it.
-    targetCamera.set(tmpTarget.x, tmpTarget.y, tmpTarget.z + 0.18);
+    lensApproachNormal.set(0, 0, -1).applyQuaternion(product.quaternion).normalize();
+    // Finish just off the wearer-side lens surface, following its true normal
+    // instead of assuming the tilted product still faces global camera-Z.
+    targetCamera.copy(tmpTarget).addScaledVector(lensApproachNormal, 0.18);
     camera.position.lerpVectors(baseCamera, targetCamera, diveAmount);
     const glideArc = Math.sin(diveAmount * Math.PI);
     camera.position.x += glideArc * 0.5;
     camera.position.y += glideArc * 0.22;
     camera.position.z += glideArc * 0.26;
-    cameraLookAt.copy(origin).lerp(tmpTarget, diveAmount);
+    // Lock the gaze onto the lens before the close approach. Position and aim
+    // now converge in the same coordinate system, so the zoom lands on the
+    // center of the glass rather than its lower-left edge.
+    var lensFocusAmount = smoother(diveAmount / 0.58);
+    cameraLookAt.copy(origin).lerp(tmpTarget, lensFocusAmount);
     camera.lookAt(cameraLookAt);
     syncLensSocials(diveAmount);
 

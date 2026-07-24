@@ -3419,16 +3419,11 @@
       var sweep = sweepTravel % TAU;
       var sweepCycle = Math.floor(sweepTravel / TAU);
 
-      // concentric channel rings
-      sctx.strokeStyle = "rgba(79,216,255,0.07)";
-      sctx.lineWidth = 1;
-      for (var ring = 1; ring <= 6; ring++) {
-        sctx.beginPath();
-        sctx.arc(cx, cy, (maxR / 6) * ring, 0, Math.PI * 2);
-        sctx.stroke();
-      }
-      // crosshair spokes
+      // Keep the constellation field open. The former concentric radar rings
+      // became a large oval when the page was briefly clipped through the
+      // close-up lens.
       sctx.strokeStyle = "rgba(79,216,255,0.05)";
+      sctx.lineWidth = 1;
       for (var sp = 0; sp < 12; sp++) {
         var sa = (sp / 12) * Math.PI * 2;
         sctx.beginPath();
