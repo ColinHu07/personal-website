@@ -1,7 +1,7 @@
-# Colin Hu // JARVIS Interface
+# Colin Hu // Personal Website
 
-A personal site styled after Iron Man's JARVIS holographic system. Pure HTML/CSS/JS —
-no build step, works on GitHub Pages as-is.
+Colin Hu’s personal website — projects, experiments, and ways to connect. Pure
+HTML/CSS/JS, with no build step, so it works on GitHub Pages as-is.
 
 ## The scenes (top to bottom)
 

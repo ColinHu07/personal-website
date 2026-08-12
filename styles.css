@@ -3104,7 +3104,14 @@ main > .scene + .scene { margin-top: -1px; }
 @media (max-width: 760px) {
   .scene-dots { display: none; }
   .hud-readout { display: none; }
-  .site-nav nav a:not(:nth-child(-n+3)) { display: none; }
+  .site-nav { padding-inline: 0.65rem; }
+  .brand-text { display: none; }
+  .site-nav nav { gap: clamp(0.2rem, 2vw, 0.6rem); }
+  .site-nav nav a {
+    padding-inline: 2px;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+  }
   .scene.scrub { height: 200vh; }
   #hero.scene.scrub { height: 150vh; }
   #city.scene.scrub { height: 340vh; }
@@ -3310,7 +3317,6 @@ main > .scene + .scene { margin-top: -1px; }
   }
   .scene-dots,
   .hud-readout { display: none; }
-  .site-nav nav a:not(:nth-child(-n+3)) { display: none; }
   .feed-window {
     max-height: 78svh;
     overflow: hidden;

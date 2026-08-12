@@ -218,12 +218,20 @@
   var broadcastViewport = document.querySelector("#broadcast .viewport");
   var projectsScene = document.getElementById("projects");
   var projectsSlot = document.querySelector(".projects-slot");
+  var glassesScene = document.getElementById("glasses");
   var contactViewport = document.querySelector("#contact .contact-viewport");
   var cityP = 0;
   var globeP = 0;
   var concertP = 0;
 
-  var FRONT_JOURNEY_STOPS = { hero: 0, city: 0.52, broadcast: 0.73 };
+  var FRONT_JOURNEY_STOPS = {
+    hero: 0,
+    city: 0.52,
+    // Stop late enough for the personnel card to be fully visible, but before
+    // the city layer starts fading into Reels.
+    intro: 0.628,
+    broadcast: 0.73,
+  };
   var REELS_HANGAR_SWIPE_START = 0.924;
   var REELS_HANGAR_SWIPE_LENGTH = 0.075;
   var reelsSnapFrame = 0;
@@ -315,24 +323,53 @@
   document.addEventListener("scrollend", settleReelsHangar, { passive: true });
   window.addEventListener("wheel", cancelReelsSnap, { passive: true });
   window.addEventListener("touchstart", cancelReelsSnap, { passive: true });
-  if (frontJourney) {
-    Array.prototype.slice.call(document.querySelectorAll('a[href="#hero"], a[href="#city"], a[href="#broadcast"]')).forEach(function (link) {
-      link.addEventListener("click", function (event) {
-        var sceneName = link.getAttribute("href").slice(1);
-        var stop = FRONT_JOURNEY_STOPS[sceneName];
-        if (typeof stop !== "number") return;
-        event.preventDefault();
-        var runway = Math.max(0, frontJourney.offsetHeight - window.innerHeight);
-        window.scrollTo({
-          top: frontJourney.offsetTop + runway * stop,
-          behavior: prefersReduced ? "auto" : "smooth",
-        });
-        if (window.history && window.history.replaceState) {
-          window.history.replaceState(null, "", "#" + sceneName);
-        }
-      });
-    });
+  function documentTop(element) {
+    return element ? window.scrollY + element.getBoundingClientRect().top : 0;
   }
+
+  function navigateToSiteSection(sceneName, requestedBehavior) {
+    var destination = null;
+    var frontStop = FRONT_JOURNEY_STOPS[sceneName];
+
+    cancelReelsSnap();
+    if (frontJourney && typeof frontStop === "number") {
+      var frontRunway = Math.max(0, frontJourney.offsetHeight - window.innerHeight);
+      destination = documentTop(frontJourney) + frontRunway * frontStop;
+    } else if (sceneName === "projects" && projectsSlot) {
+      // The slot is the stable document-space anchor while the Hangar itself
+      // switches between fixed and sticky positioning during the Reels handoff.
+      destination = documentTop(projectsSlot);
+    } else if (sceneName === "contact" && glassesScene) {
+      // Socials overlaps the end of Optics. Its section top is intentionally
+      // early, so navigate to the end of the Optics runway where the Socials
+      // surface is expanded and fully visible.
+      var glassesRunway = Math.max(0, glassesScene.offsetHeight - window.innerHeight);
+      destination = documentTop(glassesScene) + glassesRunway * 0.995;
+    }
+
+    if (destination === null) return false;
+    var maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    window.scrollTo({
+      top: Math.max(0, Math.min(maxScroll, destination)),
+      behavior: requestedBehavior || (prefersReduced ? "auto" : "smooth"),
+    });
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, "", "#" + sceneName);
+    }
+    return true;
+  }
+
+  window.navigateToSiteSection = navigateToSiteSection;
+
+  Array.prototype.slice.call(
+    document.querySelectorAll('.site-nav a[href^="#"], .scene-dots a[href^="#"]')
+  ).forEach(function (link) {
+    link.addEventListener("click", function (event) {
+      var sceneName = link.getAttribute("href").slice(1);
+      if (!navigateToSiteSection(sceneName)) return;
+      event.preventDefault();
+    });
+  });
 
   // CSS animations are also paused outside the current/adjacent scene. The
   // generous margin lets the next transition warm up before it becomes visible.
@@ -678,7 +715,7 @@
 
   var bootLine = document.getElementById("boot-line");
   if (bootLine && !prefersReduced) {
-    var msg = "> JARVIS PROTOCOL // SYSTEMS ONLINE. WELCOME, VISITOR.";
+    var msg = "> PERSONAL SYSTEM // ONLINE. WELCOME, VISITOR.";
     bootLine.textContent = "";
     var ti = 0;
     (function type() {
